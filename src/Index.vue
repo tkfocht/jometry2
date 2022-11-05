@@ -8,7 +8,6 @@ import TocPeriodListing from './components/index/TocPeriodListing.vue'
 
 const tocPeriodConfigurations = ref(tocPeriodConfigurationData)
 
-const playClassificationData = reactive({})
 const contestantStatData = reactive({})
 
 async function fetchData(tocPeriodId) {
