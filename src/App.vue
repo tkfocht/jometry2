@@ -32,7 +32,47 @@ const tocPeriodConfigurations = ref({
       },
       'TOC2022R': {
         id: 'TOC2022R',
-        label: '2022 TOC Regular Play (S37-S38)'
+        label: '2022 TOC Regular Play (S37-S38)',
+        quicklinks: [
+          {
+            label: 'Qualifiers',
+            link: '/toc_period.html?toc_period=TOC2022R&contestants=834,639,4281,4374,753,245,587,4421,266,4440,819,788,4043,287,1055,1044,1067,752,690'
+          },
+          {
+            label: 'SC Qualifiers',
+            link: '/toc_period.html?toc_period=TOC2022R&contestants=354,4448,4404,827,4488,903,4416,708,585,4340,860,810,4356,752,690,4512,255,806'
+          }
+        ]
+      },
+      'TOC2022SC': {
+        id: 'TOC2022SC',
+        label: '2022 Second Chance (S39)',
+        quicklinks: [
+          {
+            label: 'Semifinalists',
+            link: '/toc_period.html?toc_period=TOC2022SC'
+          }
+        ]
+      },
+      'NCC2022': {
+        id: 'NCC2022',
+        label: '2022 National College Championship',
+        quicklinks: [
+          {
+            label: 'Semifinalists',
+            link: '/toc_period.html?toc_period=NCC2022&contestants=4066,4070,4064,4045,4059,4076,4050,4060,4074,4052,4056,4080'
+          }
+        ]
+      },
+      'TOC2022P': {
+        id: 'TOC2022P',
+        label: '2022 Professors Tournament (S38)',
+        quicklinks: [
+          {
+            label: 'Semifinalists',
+            link: 'toc_period.html?toc_period=TOC2022P&contestants=all'
+          }
+        ]
       }
     }
   },
@@ -70,12 +110,11 @@ async function fetchData(tocPeriodId) {
   contestantStatData[tocPeriodId] = resResult
 }
 
-fetchData('TOC2023R')
-fetchData('TOC2022H')
-fetchData('TOC2022R')
-fetchData('TOC2021H')
-fetchData('TOC2021R')
-
+for (var tocPeriodId in tocPeriodConfigurations.value) {
+  for (var tocPlayPeriodClassification in tocPeriodConfigurations.value[tocPeriodId].playClassifications) {
+    fetchData(tocPlayPeriodClassification)
+  }
+}
 </script>
 
 <template>
