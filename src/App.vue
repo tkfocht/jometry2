@@ -5,46 +5,58 @@ import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import TocPeriodListing from './components/index/TocPeriodListing.vue'
 
-const tocPeriodConfigurations = ref([
-{
+const tocPeriodConfigurations = ref({
+  'TOC2023': {
     id: 'TOC2023',
     label: 'TOC 2023 (S40)',
-    playClassifications: [
-      {
+    playClassifications: {
+      'TOC2023R': {
         id: 'TOC2023R',
         label: '2023 TOC Regular Play (S39)'
       }
-    ]
+    }
   },
-  {
+  'TOC2022': {
     id: 'TOC2022',
     label: 'TOC 2022 (S39)',
-    playClassifications: [
-      {
+    playClassifications: {
+      'TOC2022H': {
         id: 'TOC2022H',
-        label: '2022 Tournament of Champions (S39)'
+        label: '2022 Tournament of Champions (S39)',
+        quicklinks: [
+          {
+            label: 'Tournament',
+            link: '/toc_period.html?toc_period=TOC2022H&contestants=all'
+          }
+        ]
       },
-      {
+      'TOC2022R': {
         id: 'TOC2022R',
         label: '2022 TOC Regular Play (S37-S38)'
       }
-    ]
+    }
   },
-  {
+  'TOC2021': {
     id: 'TOC2021',
     label: 'TOC 2021 (S37)',
-    playClassifications: [
-      {
+    playClassifications: {
+      'TOC2021H': {
         id: 'TOC2021H',
-        label: '2021 Tournament of Champions (S37)'
+        label: '2021 Tournament of Champions (S37)',
+        quicklinks: [
+          {
+            label: 'Tournament',
+            link: '/toc_period.html?toc_period=TOC2021H&contestants=all'
+          }
+        ]
       },
-      {
+      'TOC2021R': {
         id: 'TOC2021R',
         label: '2021 TOC Regular Play (S35-S37)'
       }
-    ]
+    }
   }
-])
+})
 
 const playClassificationData = reactive({})
 const contestantStatData = reactive({})

@@ -29,7 +29,14 @@ function toggleGames() {
     <div class="toc-period-play-class">
         <div class="toc-period-play-class-header">
             <span class="toc-period-play-class-label">{{ playClassificationConfiguration.label }}</span>
-            <span class="toc-period-play-class-item"><slot><a class="toc-period-play-class-navigation-item" :href="'/toc_period.html?toc_period=' + playClassificationConfiguration.id">Leaders</a></slot></span>
+            <span class="toc-period-play-class-item">
+                <a v-for="quicklink in playClassificationConfiguration.quicklinks"
+                    class="toc-period-play-class-navigation-item"
+                    :href="quicklink.link">{{ quicklink.label }}</a>
+                <a v-if="!playClassificationConfiguration.quicklinks"
+                    class="toc-period-play-class-navigation-item"
+                    :href="'/toc_period.html?toc_period=' + playClassificationConfiguration.id">Leaders</a>
+            </span>
         </div>
         <div class="toc-period-play-class-controls">
             <span v-if="showGames" class="toc-period-play-class-control" @click="toggleGames">Hide Games</span>
