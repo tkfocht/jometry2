@@ -11,10 +11,10 @@ const props = defineProps({
     <div class="toc-period">
         <div class="toc-period-header"><span class="toc-period-play-class-label">{{ tocPeriodConfiguration.label }}</span></div>
         <TocPeriodPlayClassificationListing
-            v-for="playClassificationConfiguration in tocPeriodConfiguration.playClassifications" 
+            v-for="playClassificationId of tocPeriodConfiguration.playClassifications" 
             :tocPeriodConfiguration="tocPeriodConfiguration"
-            :playClassificationConfiguration="playClassificationConfiguration" 
-            :contestantStatData="contestantStatData[playClassificationConfiguration.id]" />
+            :playClassificationId="playClassificationId" 
+            :contestantStatData="contestantStatData[playClassificationId]" />
     </div>
 </template>
 

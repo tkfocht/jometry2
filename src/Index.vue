@@ -6,8 +6,6 @@ import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import TocPeriodListing from './components/index/TocPeriodListing.vue'
 
-const tocPeriodConfigurations = ref(tocPeriodConfigurationData)
-
 const contestantStatData = reactive({})
 
 async function fetchData(tocPeriodId) {
@@ -19,16 +17,16 @@ async function fetchData(tocPeriodId) {
   contestantStatData[tocPeriodId] = resResult
 }
 
-for (var tocPeriodId in tocPeriodConfigurations.value) {
-  for (var tocPlayPeriodClassification in tocPeriodConfigurations.value[tocPeriodId].playClassifications) {
-    fetchData(tocPlayPeriodClassification)
+for (var tocPeriodId in tocPeriodConfigurationData) {
+  for (const playClassificationId of tocPeriodConfigurationData[tocPeriodId].playClassifications) {
+    fetchData(playClassificationId)
   }
 }
 </script>
 
 <template>
   <Header />
-  <div v-for="tocPeriod in tocPeriodConfigurations">
+  <div v-for="tocPeriod in tocPeriodConfigurationData">
     <TocPeriodListing :tocPeriodConfiguration="tocPeriod" :contestantStatData="contestantStatData" />
   </div>
 </template>

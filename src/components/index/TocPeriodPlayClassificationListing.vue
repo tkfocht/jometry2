@@ -1,14 +1,17 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { playClassificationConfigurationData } from '@/configuration'
 import { gameStatDataFromContestantStatData, dateFormat } from '@/util'
 import * as d3 from 'd3'
 
 const showGames = ref(false)
 const props = defineProps({
   tocPeriodConfiguration: Object,
-  playClassificationConfiguration: Object,
+  playClassificationId: String,
   contestantStatData: Array
 })
+
+const playClassificationConfiguration = ref(playClassificationConfigurationData[props.playClassificationId])
 
 const gameStatData = computed(() => {
     if (props.contestantStatData) {
@@ -46,7 +49,7 @@ function toggleGames() {
             <table class="game-list">
                 <tbody>
                     <tr v-for="game in gameStatData">
-                        <td><a :href="'game.html?toc_period_id=' + tocPeriodConfiguration.id + '&game_id=' + game.gameId">Season {{ game.season }} Game {{ game.gameInSeason }}</a></td>
+                        <td><a :href="'game.html?toc_period_id=' + playClassificationConfiguration.id + '&game_id=' + game.gameId">Season {{ game.season }} Game {{ game.gameInSeason }}</a></td>
                         <td>{{ dateFormat(game.date) }}</td>
                         <td>{{ game.contestants.join(' vs ') }}</td>
                     </tr>
