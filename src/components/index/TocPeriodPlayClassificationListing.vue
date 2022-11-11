@@ -51,7 +51,7 @@ function toggleGames() {
                     <tr v-for="game in gameStatData">
                         <td><a :href="'game.html?toc_period_id=' + playClassificationConfiguration.id + '&game_id=' + game.gameId">Season {{ game.season }} Game {{ game.gameInSeason }}</a></td>
                         <td>{{ dateFormat(game.date) }}</td>
-                        <td>{{ game.contestants.join(' vs ') }}</td>
+                        <td>{{ d3.map(game.contestants, c => c.name).join(' vs ') }}</td>
                     </tr>
                 </tbody>
             </table>

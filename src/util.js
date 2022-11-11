@@ -76,10 +76,14 @@ var gameStatDataFromContestantStatData = function(data) {
         ([gameId,gameData]) => ({
             gameId: gameId,
             date: gameData[0]['Date'],
-            contestants: [gameData[0]['Contestant'], gameData[1]['Contestant'], gameData[2]['Contestant']],
+            contestants: [
+                { id: gameData[0]['Jometry Contestant Id'], name: gameData[0]['Contestant'] },            
+                { id: gameData[1]['Jometry Contestant Id'], name: gameData[1]['Contestant'] },            
+                { id: gameData[2]['Jometry Contestant Id'], name: gameData[2]['Contestant'] }
+            ],
             season: gameData[0]['Season'],
             gameInSeason: gameData[0]['Game In Season']
         }));
 }
 
-export { csvDataAccessor, gameStatDataFromContestantStatData, dateFormat };
+export { csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat };
