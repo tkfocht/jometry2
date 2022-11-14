@@ -13,7 +13,7 @@ const playClassificationId = urlParams.get('toc_period_id')
 const gameId = +urlParams.get('game_id')
 const playClassificationConfiguration = playClassificationConfigurationData[playClassificationId]
 
-const allContestantStatData = reactive({})
+const allContestantStatData = ref([])
 
 async function fetchData(playClassification) {
   const res = await d3.csv(
@@ -60,89 +60,128 @@ function contestantLink (contestantStatData) {
     '">' + contestantStatData['Contestant'] + '</a>'
 }
 
-const scoringTablePanels = reactive([
-  {
-    label: 'Game',
-    columns: [
-      { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-      { label: 'JDDF', attributeFunction: d => d['JDDF']},
-      { label: 'JDD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true)},
-      { label: 'JDD$', attributeFunction: d => d['JDD$']},
-      { label: 'JBuz$', attributeFunction: d => d['JBuz$']},
-      { label: 'JFinal$', attributeFunction: d => d['JFinal$']},
-      { label: 'DJDDF', attributeFunction: d => d['DJDDF']},
-      { label: 'DJDD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true)},
-      { label: 'DJDD$', attributeFunction: d => d['DJDD$']},
-      { label: 'DJBuz$', attributeFunction: d => d['DJBuz$']},
-      { label: 'DJFinal$', attributeFunction: d => d['DJFinal$']},
-      { label: 'FJ$', attributeFunction: d => d['FJ$']},
-      { label: 'FJFinal$', attributeFunction: d => d['FJFinal$']},
-    ]
-  }
-])
+const scoringTablePanels = computed(() => {
+  var columns = [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'JDDF', attributeFunction: d => d['JDDF']},
+        { label: 'JDD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true)},
+        { label: 'JDD$', attributeFunction: d => d['JDD$']},
+        { label: 'JBuz$', attributeFunction: d => d['JBuz$']},
+        { label: 'JFinal$', attributeFunction: d => d['JFinal$']},
+        { label: 'DJDDF', attributeFunction: d => d['DJDDF']},
+        { label: 'DJDD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true)},
+        { label: 'DJDD$', attributeFunction: d => d['DJDD$']},
+        { label: 'DJBuz$', attributeFunction: d => d['DJBuz$']},
+        { label: 'DJFinal$', attributeFunction: d => d['DJFinal$']}
+      ]
+  if (gameStatData.value && gameStatData.value['rounds'] >= 3) {
+    columns = columns.concat([
+        { label: 'TJDDF', attributeFunction: d => d['TJDDF']},
+        { label: 'TJDD+', sortValueFunction: d => d['TJDD+'], attributeFunction: d => formatNumber(d['TJDD+'], 2, false, true)},
+        { label: 'TJDD$', attributeFunction: d => d['TJDD$']},
+        { label: 'TJBuz$', attributeFunction: d => d['TJBuz$']},
+        { label: 'TJFinal$', attributeFunction: d => d['TJFinal$']}
+      ])
+  } 
+  columns = columns.concat([
+        { label: 'FJ$', attributeFunction: d => d['FJ$']},
+        { label: 'FJFinal$', attributeFunction: d => d['FJFinal$']},
+      ])
+  return [
+    {
+      label: 'Game',
+      columns: columns
+    }
+  ]
+})
 
-const conversionMetricTablePanels = reactive([
-  {
-    label: 'Game',
-    columns: [
-      { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-      { label: 'Att', attributeFunction: d => d['Att']},
-      { label: 'Buz', attributeFunction: d => d['Buz']},
-      { label: '%', attributeFunction: d => formatNumber(d['Buz%'], 1, false, false)},
-      { label: 'BuzC', attributeFunction: d => d['BuzC']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Buz'], 1, false, false)},
-      { label: 'Time', sortValueFunction: d => d['Timing'], attributeFunction: d => formatNumber(d['Timing'], 1, false, true)},
-      { label: 'Solo', attributeFunction: d => formatNumber(d['Solo'], 1, false, false)},
-      { label: 'AttV', attributeFunction: d => formatNumber(d['AttValue'], 0, false, false)},
-      { label: 'BuzV', attributeFunction: d => d['BuzValue']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['BuzValue'] / d['AttValue'], 1, false, false)},
-      { label: 'Buz$', attributeFunction: d => d['Buz$']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['BuzValue'], 1, false, false)},
-      { label: 'TimeV', sortValueFunction: d => d['TimingValue'], attributeFunction: d => formatNumber(d['TimingValue'], 0, false, true)},
-      { label: 'SoloV', attributeFunction: d => formatNumber(d['SoloValue'], 0, false, false)}
-    ]
-  },
-  {
-    label: 'Jeopardy Round',
-    columns: [
-      { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-      { label: 'Att', attributeFunction: d => d['JAtt']},
-      { label: 'Buz', attributeFunction: d => d['JBuz']},
-      { label: '%', attributeFunction: d => formatNumber(d['JBuz%'], 1, false, false)},
-      { label: 'BuzC', attributeFunction: d => d['JBuzC']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JBuz'], 1, false, false)},
-      { label: 'Time', sortValueFunction: d => d['JTiming'], attributeFunction: d => formatNumber(d['JTiming'], 1, false, true)},
-      { label: 'Solo', attributeFunction: d => formatNumber(d['JSolo'], 1, false, false)},
-      { label: 'AttV', attributeFunction: d => formatNumber(d['JAttValue'], 0, false, false)},
-      { label: 'BuzV', attributeFunction: d => d['JBuzValue']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuzValue'] / d['JAttValue'], 1, false, false)},
-      { label: 'Buz$', attributeFunction: d => d['JBuz$']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JBuzValue'], 1, false, false)},
-      { label: 'TimeV', sortValueFunction: d => d['JTimingValue'], attributeFunction: d => formatNumber(d['JTimingValue'], 0, false, true)},
-      { label: 'SoloV', attributeFunction: d => formatNumber(d['JSoloValue'], 0, false, false)}
-    ]
-  },
-  {
-    label: 'Double Jeopardy Round',
-    columns: [
-      { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-      { label: 'Att', attributeFunction: d => d['DJAtt']},
-      { label: 'Buz', attributeFunction: d => d['DJBuz']},
-      { label: '%', attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false)},
-      { label: 'BuzC', attributeFunction: d => d['DJBuzC']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false)},
-      { label: 'Time', sortValueFunction: d => d['DJTiming'], attributeFunction: d => formatNumber(d['DJTiming'], 1, false, true)},
-      { label: 'Solo', attributeFunction: d => formatNumber(d['DJSolo'], 1, false, false)},
-      { label: 'AttV', attributeFunction: d => formatNumber(d['DJAttValue'], 0, false, false)},
-      { label: 'BuzV', attributeFunction: d => d['DJBuzValue']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuzValue'] / d['DJAttValue'], 1, false, false)},
-      { label: 'Buz$', attributeFunction: d => d['DJBuz$']},
-      { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJBuzValue'], 1, false, false)},
-      { label: 'TimeV', sortValueFunction: d => d['DJTimingValue'], attributeFunction: d => formatNumber(d['DJTimingValue'], 0, false, true)},
-      { label: 'SoloV', attributeFunction: d => formatNumber(d['DJSoloValue'], 0, false, false)}
-    ]
+const conversionMetricTablePanels = computed(() => {
+  var panels = [
+    {
+      label: 'Game',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'Att', attributeFunction: d => d['Att']},
+        { label: 'Buz', attributeFunction: d => d['Buz']},
+        { label: '%', attributeFunction: d => formatNumber(d['Buz%'], 1, false, false)},
+        { label: 'BuzC', attributeFunction: d => d['BuzC']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Buz'], 1, false, false)},
+        { label: 'Time', sortValueFunction: d => d['Timing'], attributeFunction: d => formatNumber(d['Timing'], 1, false, true)},
+        { label: 'Solo', attributeFunction: d => formatNumber(d['Solo'], 1, false, false)},
+        { label: 'AttV', attributeFunction: d => formatNumber(d['AttValue'], 0, false, false)},
+        { label: 'BuzV', attributeFunction: d => d['BuzValue']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['BuzValue'] / d['AttValue'], 1, false, false)},
+        { label: 'Buz$', attributeFunction: d => d['Buz$']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['BuzValue'], 1, false, false)},
+        { label: 'TimeV', sortValueFunction: d => d['TimingValue'], attributeFunction: d => formatNumber(d['TimingValue'], 0, false, true)},
+        { label: 'SoloV', attributeFunction: d => formatNumber(d['SoloValue'], 0, false, false)}
+      ]
+    },
+    {
+      label: 'Jeopardy Round',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'Att', attributeFunction: d => d['JAtt']},
+        { label: 'Buz', attributeFunction: d => d['JBuz']},
+        { label: '%', attributeFunction: d => formatNumber(d['JBuz%'], 1, false, false)},
+        { label: 'BuzC', attributeFunction: d => d['JBuzC']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JBuz'], 1, false, false)},
+        { label: 'Time', sortValueFunction: d => d['JTiming'], attributeFunction: d => formatNumber(d['JTiming'], 1, false, true)},
+        { label: 'Solo', attributeFunction: d => formatNumber(d['JSolo'], 1, false, false)},
+        { label: 'AttV', attributeFunction: d => formatNumber(d['JAttValue'], 0, false, false)},
+        { label: 'BuzV', attributeFunction: d => d['JBuzValue']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuzValue'] / d['JAttValue'], 1, false, false)},
+        { label: 'Buz$', attributeFunction: d => d['JBuz$']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JBuzValue'], 1, false, false)},
+        { label: 'TimeV', sortValueFunction: d => d['JTimingValue'], attributeFunction: d => formatNumber(d['JTimingValue'], 0, false, true)},
+        { label: 'SoloV', attributeFunction: d => formatNumber(d['JSoloValue'], 0, false, false)}
+      ]
+    },
+    {
+      label: 'Double Jeopardy Round',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'Att', attributeFunction: d => d['DJAtt']},
+        { label: 'Buz', attributeFunction: d => d['DJBuz']},
+        { label: '%', attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false)},
+        { label: 'BuzC', attributeFunction: d => d['DJBuzC']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false)},
+        { label: 'Time', sortValueFunction: d => d['DJTiming'], attributeFunction: d => formatNumber(d['DJTiming'], 1, false, true)},
+        { label: 'Solo', attributeFunction: d => formatNumber(d['DJSolo'], 1, false, false)},
+        { label: 'AttV', attributeFunction: d => formatNumber(d['DJAttValue'], 0, false, false)},
+        { label: 'BuzV', attributeFunction: d => d['DJBuzValue']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuzValue'] / d['DJAttValue'], 1, false, false)},
+        { label: 'Buz$', attributeFunction: d => d['DJBuz$']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJBuzValue'], 1, false, false)},
+        { label: 'TimeV', sortValueFunction: d => d['DJTimingValue'], attributeFunction: d => formatNumber(d['DJTimingValue'], 0, false, true)},
+        { label: 'SoloV', attributeFunction: d => formatNumber(d['DJSoloValue'], 0, false, false)}
+      ]
+    }
+  ]
+  if (gameStatData.value && gameStatData.value['rounds'] >= 3) {
+    panels.push({
+      label: 'Triple Jeopardy Round',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'Att', attributeFunction: d => d['TJAtt']},
+        { label: 'Buz', attributeFunction: d => d['TJBuz']},
+        { label: '%', attributeFunction: d => formatNumber(d['TJBuz%'], 1, false, false)},
+        { label: 'BuzC', attributeFunction: d => d['TJBuzC']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['TJBuzC'] / d['TJBuz'], 1, false, false)},
+        { label: 'Time', sortValueFunction: d => d['TJTiming'], attributeFunction: d => formatNumber(d['TJTiming'], 1, false, true)},
+        { label: 'Solo', attributeFunction: d => formatNumber(d['TJSolo'], 1, false, false)},
+        { label: 'AttV', attributeFunction: d => formatNumber(d['TJAttValue'], 0, false, false)},
+        { label: 'BuzV', attributeFunction: d => d['TJBuzValue']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['TJBuzValue'] / d['TJAttValue'], 1, false, false)},
+        { label: 'Buz$', attributeFunction: d => d['TJBuz$']},
+        { label: '%', attributeFunction: d => formatNumber(100.0 * d['TJBuz$'] / d['TJBuzValue'], 1, false, false)},
+        { label: 'TimeV', sortValueFunction: d => d['TJTimingValue'], attributeFunction: d => formatNumber(d['TJTimingValue'], 0, false, true)},
+        { label: 'SoloV', attributeFunction: d => formatNumber(d['TJSoloValue'], 0, false, false)}
+      ]
+    })
   }
-])
+  return panels
+})
 
 const allContestantStatDataWithBox = computed(() => {
   if (allContestantStatData.value) {
@@ -186,10 +225,10 @@ const gameContestantStatDataWithBox = computed(() => {
     :title="'Att vs Buz'"
     :xLabel="'Att'"
     :xFunction="d => d['Att']"
-    :xBins="{ start: -0.5, end: 57.5, size: 1 }"
+    :xBins="{ start: -0.5, size: 1 }"
     :yLabel="'Buz'"
     :yFunction="d => d['Buz']"
-    :yBins="{ start: 0, end: 50, size: 1 }" />
+    :yBins="{ start: -0.5, size: 1 }" />
   <ScatterHistogram
     :histogramData="allContestantStatDataWithBox"
     :scatterData="gameContestantStatDataWithBox"
@@ -197,21 +236,32 @@ const gameContestantStatDataWithBox = computed(() => {
     :title="'AttValue vs BuzValue'"
     :xLabel="'AttValue'"
     :xFunction="d => d['AttValue']"
-    :xBins="{ start: 0, end: 50000, size: 1000 }"
+    :xBins="{ start: 0, size: 1000 }"
     :yLabel="'BuzValue'"
     :yFunction="d => d['BuzValue']"
-    :yBins="{ start: 0, end: 30000, size: 1000 }" />
+    :yBins="{ start: 0, size: 1000 }" />
   <ScatterHistogram
-    :histogramData="allContestantStatDataWithBox"
-    :scatterData="gameContestantStatDataWithBox"
+    :histogramData="allContestantStatData"
+    :scatterData="gameContestantStatData"
     :colorFunction="color"
     :title="'BuzValue vs Buz$'"
     :xLabel="'BuzValue'"
     :xFunction="d => d['BuzValue']"
-    :xBins="{ start: 0, end: 30000, size: 1000 }"
+    :xBins="{ start: 0, size: 1000 }"
     :yLabel="'Buz$'"
     :yFunction="d => d['Buz$']"
-    :yBins="{ start: -10000, end: 30000, size: 1000 }" />
+    :yBins="{ size: 1000 }" />
+  <ScatterHistogram
+    :histogramData="allContestantStatData"
+    :scatterData="gameContestantStatData"
+    :colorFunction="color"
+    :title="'BuzValue vs Buz$%'"
+    :xLabel="'BuzValue'"
+    :xFunction="d => d['BuzValue']"
+    :xBins="{ start: 0, size: 1000 }"
+    :yLabel="'Buz$%'"
+    :yFunction="d => 100.0 * d['Buz$'] / d['BuzValue']"
+    :yBins="{ size: 2 }" />
   <ScatterHistogram
     :histogramData="allContestantStatDataWithBox"
     :scatterData="gameContestantStatDataWithBox"
@@ -219,10 +269,11 @@ const gameContestantStatDataWithBox = computed(() => {
     :title="'Timing vs Solo'"
     :xLabel="'Timing'"
     :xFunction="d => d['Timing']"
-    :xBins="{ start: -20, end: 20, size: 1 }"
+    :xBins="{ size: 1 }"
     :yLabel="'Solo'"
     :yFunction="d => d['Solo']"
-    :yBins="{ start: 0, end: 20, size: 1 }" />
+    :yBins="{ start: 0, size: 1 }" />
+  {{ gameStatData }}
   {{ gameContestantStatData ? gameContestantStatData[0] : '' }}
 </template>
 

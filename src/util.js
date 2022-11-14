@@ -82,7 +82,8 @@ var gameStatDataFromContestantStatData = function(data) {
                 { id: gameData[2]['Jometry Contestant Id'], name: gameData[2]['Contestant'] }
             ],
             season: gameData[0]['Season'],
-            gameInSeason: gameData[0]['Game In Season']
+            gameInSeason: gameData[0]['Game In Season'],
+            rounds: gameData[0]['TJRead'] === undefined || gameData[0]['TJRead'] === 0 ? 2 : 3
         }));
 }
 

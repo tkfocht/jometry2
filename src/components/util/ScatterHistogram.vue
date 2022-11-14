@@ -26,7 +26,7 @@ const traces = computed(() => {
       xbins: props.xBins,
       ybins: props.yBins,
       type: 'histogram2d',
-      colorscale : [['0' , 'white'],['1', '#999999']]
+      colorscale : [['0' , '#FFFFFF00'],['1', '#999999FF']]
     })
   }
   if (props.scatterData) {

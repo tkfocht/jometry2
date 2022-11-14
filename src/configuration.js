@@ -13,6 +13,11 @@ var tocPeriodConfigurationData = {
         id: 'TOC2021',
         label: 'TOC 2021 (S37)',
         playClassifications: ['TOC2021H', 'TOC2021R']
+    },
+    'PCJ2023': {
+        id: 'PCJ2023',
+        label: 'Celebrity Jeopardy! 2022-2023',
+        playClassifications: ['PCJ2023']
     }
 }
 
@@ -88,6 +93,10 @@ var playClassificationConfigurationData = {
     'TOC2021R': {
         id: 'TOC2021R',
         label: '2021 TOC Regular Play (S35-S37)'
+    },
+    'PCJ2023': {
+        id: 'PCJ2023',
+        label: 'Primetime Celebrity Jeopardy! (S1)'
     }
 }
 
