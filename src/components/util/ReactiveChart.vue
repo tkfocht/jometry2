@@ -19,5 +19,11 @@ watch(() => props.chart, (newValue, oldValue) => {
 </script>
 
 <template>
-    <div ref="c"></div>
+    <div ref="c" class="graph"></div>
 </template>
+
+<style scoped>
+div.graph {
+    max-width: 700px;
+}
+</style>

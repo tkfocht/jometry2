@@ -6,6 +6,7 @@ import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
 import ReactiveChart from './components/util/ReactiveChart.vue'
+import ScatterHistogram from './components/util/ScatterHistogram.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
 const playClassificationId = urlParams.get('toc_period_id')
@@ -160,89 +161,6 @@ const gameContestantStatDataWithBox = computed(() => {
 })
 
 //Charts
-const attBuzData = computed(() => {
-  if (allContestantStatDataWithBox.value) {
-    return [
-      {
-        x: d3.map(allContestantStatDataWithBox.value, d => d['Att']),
-        y: d3.map(allContestantStatDataWithBox.value, d => d['Buz']),
-        autobinx: false,
-        xbins: { start: -0.5, end: 57.5, size: 1 },
-        ybins: { start: 0, end: 50, size: 1 },
-        type: 'histogram2d',
-        colorscale : [['0' , 'white'],['1', '#999999']]
-      },
-      {
-        x: d3.map(gameContestantStatDataWithBox.value, d => d['Att']),
-        y: d3.map(gameContestantStatDataWithBox.value, d => d['Buz']),
-        mode: 'markers+text',
-        marker: {
-            symbol: 'circle',
-            size: 6,
-            opacity: 1,
-            line: {
-                color: 'black',
-                width: 0.5
-            },
-            color: d3.map(gameContestantStatDataWithBox.value, d => color.value(d['Jometry Contestant Id'])),
-        },
-        type: 'scatter',
-        textcolor: d3.map(gameContestantStatDataWithBox.value, d => color.value(d['Jometry Contestant Id'])),
-        textfont: {
-            family: 'Roboto'
-        },
-        textposition: 'center right',
-        text: d3.map(gameContestantStatDataWithBox.value, d => d['Contestant'])
-      }
-    ]
-  } else {
-    return []
-  }
-})
-const attBuzLayout = reactive({
-  title: 'Att vs Buz', xaxis: { title: 'Att' }, yaxis: { title: 'Buz' } })
-
-const attValueBuzValueData = computed(() => {
-  if (allContestantStatDataWithBox.value) {
-    return [
-      {
-        x: d3.map(allContestantStatDataWithBox.value, d => d['AttValue']),
-        y: d3.map(allContestantStatDataWithBox.value, d => d['Buz$']),
-        autobinx: false,
-        xbins: { start: 0, end: 50000, size: 1000 },
-        ybins: { start: -10000, end: 50000, size: 2000 },
-        type: 'histogram2d',
-        colorscale : [['0' , 'white'],['1', '#999999']]
-      },
-      {
-        x: d3.map(gameContestantStatDataWithBox.value, d => d['AttValue']),
-        y: d3.map(gameContestantStatDataWithBox.value, d => d['Buz$']),
-        mode: 'markers+text',
-        marker: {
-            symbol: 'circle',
-            size: 6,
-            opacity: 1,
-            line: {
-                color: 'black',
-                width: 0.5
-            },
-            color: d3.map(gameContestantStatDataWithBox.value, d => color.value(d['Jometry Contestant Id'])),
-        },
-        type: 'scatter',
-        textcolor: d3.map(gameContestantStatDataWithBox.value, d => color.value(d['Jometry Contestant Id'])),
-        textfont: {
-            family: 'Roboto'
-        },
-        textposition: 'center right',
-        text: d3.map(gameContestantStatDataWithBox.value, d => d['Contestant'])
-      }
-    ]
-  } else {
-    return []
-  }
-})
-const attBuzValueLayout = reactive({
-  title: 'AttValue vs BuzValue', xaxis: { title: 'AttValue' }, yaxis: { title: 'BuzValue' } })
 
 </script>
 
@@ -261,8 +179,50 @@ const attBuzValueLayout = reactive({
       :rowData="gameContestantStatData"
       />
   </div>
-  <ReactiveChart :chart="{ traces: attBuzData, layout: attBuzLayout }"/>
-  <ReactiveChart :chart="{ traces: attValueBuzValueData, layout: attBuzValueLayout }"/>
+  <ScatterHistogram
+    :histogramData="allContestantStatDataWithBox"
+    :scatterData="gameContestantStatDataWithBox"
+    :colorFunction="color"
+    :title="'Att vs Buz'"
+    :xLabel="'Att'"
+    :xFunction="d => d['Att']"
+    :xBins="{ start: -0.5, end: 57.5, size: 1 }"
+    :yLabel="'Buz'"
+    :yFunction="d => d['Buz']"
+    :yBins="{ start: 0, end: 50, size: 1 }" />
+  <ScatterHistogram
+    :histogramData="allContestantStatDataWithBox"
+    :scatterData="gameContestantStatDataWithBox"
+    :colorFunction="color"
+    :title="'AttValue vs BuzValue'"
+    :xLabel="'AttValue'"
+    :xFunction="d => d['AttValue']"
+    :xBins="{ start: 0, end: 50000, size: 1000 }"
+    :yLabel="'BuzValue'"
+    :yFunction="d => d['BuzValue']"
+    :yBins="{ start: 0, end: 30000, size: 1000 }" />
+  <ScatterHistogram
+    :histogramData="allContestantStatDataWithBox"
+    :scatterData="gameContestantStatDataWithBox"
+    :colorFunction="color"
+    :title="'BuzValue vs Buz$'"
+    :xLabel="'BuzValue'"
+    :xFunction="d => d['BuzValue']"
+    :xBins="{ start: 0, end: 30000, size: 1000 }"
+    :yLabel="'Buz$'"
+    :yFunction="d => d['Buz$']"
+    :yBins="{ start: -10000, end: 30000, size: 1000 }" />
+  <ScatterHistogram
+    :histogramData="allContestantStatDataWithBox"
+    :scatterData="gameContestantStatDataWithBox"
+    :colorFunction="color"
+    :title="'Timing vs Solo'"
+    :xLabel="'Timing'"
+    :xFunction="d => d['Timing']"
+    :xBins="{ start: -20, end: 20, size: 1 }"
+    :yLabel="'Solo'"
+    :yFunction="d => d['Solo']"
+    :yBins="{ start: 0, end: 20, size: 1 }" />
   {{ gameContestantStatData ? gameContestantStatData[0] : '' }}
 </template>
 
