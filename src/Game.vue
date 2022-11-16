@@ -5,7 +5,7 @@ import { playClassificationConfigurationData } from '@/configuration'
 import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
-import ReactiveChart from './components/util/ReactiveChart.vue'
+import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
@@ -37,6 +37,11 @@ const allGameStatData = computed(() => {
 const gameStatData = computed(() => {
   if (allGameStatData.value) return d3.filter(allGameStatData.value, d => d['gameId'] === gameId)[0]
   else return {}
+})
+
+const gameRounds = computed(() => {
+  if (gameStatData.value) return gameStatData.value['rounds']
+  return 2
 })
 
 const gameContestantStatData = computed(() => {
@@ -74,7 +79,7 @@ const scoringTablePanels = computed(() => {
         { label: 'DJBuz$', attributeFunction: d => d['DJBuz$']},
         { label: 'DJFinal$', attributeFunction: d => d['DJFinal$']}
       ]
-  if (gameStatData.value && gameStatData.value['rounds'] >= 3) {
+  if (gameRounds.value >= 3) {
     columns = columns.concat([
         { label: 'TJDDF', attributeFunction: d => d['TJDDF']},
         { label: 'TJDD+', sortValueFunction: d => d['TJDD+'], attributeFunction: d => formatNumber(d['TJDD+'], 2, false, true)},
@@ -158,7 +163,7 @@ const conversionMetricTablePanels = computed(() => {
       ]
     }
   ]
-  if (gameStatData.value && gameStatData.value['rounds'] >= 3) {
+  if (gameRounds.value >= 3) {
     panels.push({
       label: 'Triple Jeopardy Round',
       columns: [
@@ -200,6 +205,92 @@ const gameContestantStatDataWithBox = computed(() => {
 })
 
 //Charts
+const attGraphAttribute = computed(() => ({
+  label: 'Att',
+  requiresBox: true,
+  generatingFunctions: [d => d['Att'], d => d['JAtt'], d => d['DJAtt']].concat(gameRounds.value >= 3 ? [d => d['TJAtt']] : []),
+  bins: { size: 1 }
+}))
+
+const buzGraphAttribute = computed(() => ({
+  label: 'Buz',
+  requiresBox: false,
+  generatingFunctions: [d => d['Buz'], d => d['JBuz'], d => d['DJBuz']].concat(gameRounds.value >= 3 ? [d => d['TJBuz']] : []),
+  bins: { size: 1 }
+}))
+
+const attValueGraphAttribute = computed(() => ({
+  label: 'AttValue',
+  requiresBox: true,
+  generatingFunctions: [d => d['AttValue'], d => d['JAttValue'], d => d['DJAttValue']].concat(gameRounds.value >= 3 ? [d => d['TJAttValue']] : []),
+  bins: { size: 1000 }
+}))
+
+const buzValueGraphAttribute = computed(() => ({
+  label: 'BuzValue',
+  requiresBox: false,
+  generatingFunctions: [d => d['BuzValue'], d => d['JBuzValue'], d => d['DJBuzValue']].concat(gameRounds.value >= 3 ? [d => d['TJBuzValue']] : []),
+  bins: { size: 1000 }
+}))
+
+const buzScoreGraphAttribute = computed(() => ({
+  label: 'Buz$',
+  requiresBox: false,
+  generatingFunctions: [d => d['Buz$'], d => d['JBuz$'], d => d['DJBuz$']].concat(gameRounds.value >= 3 ? [d => d['TJBuz$']] : []),
+  bins: { size: 1000 }
+}))
+
+const buzValueScoreConversionGraphAttribute = computed(() => ({
+  label: 'Buz$%',
+  requiresBox: false,
+  generatingFunctions: [d => 100.0 * d['Buz$'] / d['BuzValue'], 
+    d => 100.0 * d['JBuz$'] / d['JBuzValue'], 
+    d => 100.0 * d['DJBuz$'] / d['DJBuzValue']].concat(gameRounds.value >= 3 ? [d => 100.0 * d['TJBuz$'] / d['TJBuzValue']] : []),
+  bins: { size: 5 }
+}))
+
+const timingGraphAttribute = computed(() => ({
+  label: 'Timing',
+  requiresBox: true,
+  generatingFunctions: [d => d['Timing'], d => d['JTiming'], d => d['DJTiming']].concat(gameRounds.value >= 3 ? [d => d['TJTiming']] : []),
+  bins: { size: 0.5 }
+}))
+
+const soloGraphAttribute = computed(() => ({
+  label: 'Solo',
+  requiresBox: true,
+  generatingFunctions: [d => d['Solo'], d => d['JSolo'], d => d['DJSolo']].concat(gameRounds.value >= 3 ? [d => d['TJSolo']] : []),
+  bins: { start:0, size: 0.5 }
+}))
+
+function specifyScatterHistogram(xAttr, yAttr) {
+  return {
+    histogramData: xAttr['requiresBox'] || yAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
+    scatterData: xAttr['requiresBox'] || yAttr['requiresBox'] ? gameContestantStatDataWithBox.value : gameContestantStatData.value,
+    scatterLabelFunction: d => d['Contestant'],
+    scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
+    title: xAttr['label'] + ' vs ' + yAttr['label'],
+    xLabel: xAttr['label'],
+    xFunction: xAttr['generatingFunctions'][0],
+    xBins: xAttr['bins'],
+    yLabel: yAttr['label'],
+    yFunction: yAttr['generatingFunctions'][0],
+    yBins: yAttr['bins'],
+  }
+}
+
+function specifyHighlightHistogram(xAttr) {
+  return {
+    histogramData: xAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
+    scatterData: xAttr['requiresBox'] ? gameContestantStatDataWithBox.value : gameContestantStatData.value,
+    scatterLabelFunction: d => d['Contestant'],
+    scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
+    title: xAttr['label'],
+    xLabel: xAttr['label'],
+    xFunction: xAttr['generatingFunctions'][0],
+    xBins: xAttr['bins']
+  }
+}
 
 </script>
 
@@ -219,60 +310,17 @@ const gameContestantStatDataWithBox = computed(() => {
       />
   </div>
   <ScatterHistogram
-    :histogramData="allContestantStatDataWithBox"
-    :scatterData="gameContestantStatDataWithBox"
-    :colorFunction="color"
-    :title="'Att vs Buz'"
-    :xLabel="'Att'"
-    :xFunction="d => d['Att']"
-    :xBins="{ start: -0.5, size: 1 }"
-    :yLabel="'Buz'"
-    :yFunction="d => d['Buz']"
-    :yBins="{ start: -0.5, size: 1 }" />
+    v-bind="specifyScatterHistogram(attGraphAttribute, buzGraphAttribute)" />
   <ScatterHistogram
-    :histogramData="allContestantStatDataWithBox"
-    :scatterData="gameContestantStatDataWithBox"
-    :colorFunction="color"
-    :title="'AttValue vs BuzValue'"
-    :xLabel="'AttValue'"
-    :xFunction="d => d['AttValue']"
-    :xBins="{ start: 0, size: 1000 }"
-    :yLabel="'BuzValue'"
-    :yFunction="d => d['BuzValue']"
-    :yBins="{ start: 0, size: 1000 }" />
+    v-bind="specifyScatterHistogram(attValueGraphAttribute, buzValueGraphAttribute)" />
   <ScatterHistogram
-    :histogramData="allContestantStatData"
-    :scatterData="gameContestantStatData"
-    :colorFunction="color"
-    :title="'BuzValue vs Buz$'"
-    :xLabel="'BuzValue'"
-    :xFunction="d => d['BuzValue']"
-    :xBins="{ start: 0, size: 1000 }"
-    :yLabel="'Buz$'"
-    :yFunction="d => d['Buz$']"
-    :yBins="{ size: 1000 }" />
+    v-bind="specifyScatterHistogram(buzValueGraphAttribute, buzScoreGraphAttribute)" />
   <ScatterHistogram
-    :histogramData="allContestantStatData"
-    :scatterData="gameContestantStatData"
-    :colorFunction="color"
-    :title="'BuzValue vs Buz$%'"
-    :xLabel="'BuzValue'"
-    :xFunction="d => d['BuzValue']"
-    :xBins="{ start: 0, size: 1000 }"
-    :yLabel="'Buz$%'"
-    :yFunction="d => 100.0 * d['Buz$'] / d['BuzValue']"
-    :yBins="{ size: 2 }" />
+    v-bind="specifyScatterHistogram(buzValueGraphAttribute, buzValueScoreConversionGraphAttribute)" />
   <ScatterHistogram
-    :histogramData="allContestantStatDataWithBox"
-    :scatterData="gameContestantStatDataWithBox"
-    :colorFunction="color"
-    :title="'Timing vs Solo'"
-    :xLabel="'Timing'"
-    :xFunction="d => d['Timing']"
-    :xBins="{ size: 1 }"
-    :yLabel="'Solo'"
-    :yFunction="d => d['Solo']"
-    :yBins="{ start: 0, size: 1 }" />
+    v-bind="specifyScatterHistogram(timingGraphAttribute, soloGraphAttribute)" />
+  <HighlightHistogram
+    v-bind="specifyHighlightHistogram(attGraphAttribute)" />
   {{ gameStatData }}
   {{ gameContestantStatData ? gameContestantStatData[0] : '' }}
 </template>

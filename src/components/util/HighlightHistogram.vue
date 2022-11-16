@@ -11,10 +11,7 @@ const props = defineProps({
   title: String,
   xLabel: String,
   xFunction: Function,
-  xBins: Object,
-  yLabel: String,
-  yFunction: Function,
-  yBins: Object
+  xBins: Object
 })
 
 const traces = computed(() => {
@@ -22,18 +19,20 @@ const traces = computed(() => {
   if (props.histogramData) {
     t.push({
       x: d3.map(props.histogramData, props.xFunction),
-      y: d3.map(props.histogramData, props.yFunction),
       autobinx: false,
       xbins: props.xBins,
-      ybins: props.yBins,
-      type: 'histogram2d',
-      colorscale : [['0' , '#FFFFFF00'],['1', '#999999FF']]
+      type: 'histogram',
+      marker: {
+        color: '#CCCCCC'
+      },
+      showlegend: false
     })
   }
   if (props.scatterData) {
+
     t.push({
       x: d3.map(props.scatterData, props.xFunction),
-      y: d3.map(props.scatterData, props.yFunction),
+      y: d3.range(1, 2 * (props.scatterData.length + 1), 2),
       mode: 'markers+text',
       marker: {
           symbol: 'circle',
@@ -51,13 +50,15 @@ const traces = computed(() => {
           family: 'Roboto'
       },
       textposition: 'center right',
-      text: d3.map(props.scatterData, props.scatterLabelFunction)
+      text: d3.map(props.scatterData, props.scatterLabelFunction),
+      showlegend: false
     })
   }
   return t
 })
 const layout = reactive({
-  title: props.title, xaxis: { title: props.xLabel }, yaxis: { title: props.yLabel } })
+  bargap: 0.05,
+  title: props.title, xaxis: { title: props.xLabel }, yaxis: { title: 'Count' } })
 
 
 </script>
