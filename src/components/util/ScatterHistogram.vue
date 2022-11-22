@@ -56,8 +56,8 @@ const traces = computed(() => {
   }
   return t
 })
-const layout = reactive({
-  title: props.title, xaxis: { title: props.xLabel }, yaxis: { title: props.yLabel } })
+const layout = computed(() => ({
+  title: props.title, xaxis: { title: props.xLabel }, yaxis: { title: props.yLabel } }))
 
 
 </script>

@@ -29,7 +29,6 @@ const traces = computed(() => {
     })
   }
   if (props.scatterData) {
-
     t.push({
       x: d3.map(props.scatterData, props.xFunction),
       y: d3.range(1, 2 * (props.scatterData.length + 1), 2),
@@ -56,9 +55,9 @@ const traces = computed(() => {
   }
   return t
 })
-const layout = reactive({
+const layout = computed(() => ({
   bargap: 0.05,
-  title: props.title, xaxis: { title: props.xLabel }, yaxis: { title: 'Count' } })
+  title: props.title, xaxis: { title: props.xLabel }, yaxis: { title: 'Count' } }))
 
 
 </script>

@@ -263,6 +263,31 @@ const soloGraphAttribute = computed(() => ({
   bins: { start:0, size: 0.5 }
 }))
 
+const timingValueGraphAttribute = computed(() => ({
+  label: 'TimingValue',
+  requiresBox: true,
+  generatingFunctions: [d => d['TimingValue'], d => d['JTimingValue'], d => d['DJTimingValue']].concat(gameRounds.value >= 3 ? [d => d['TJTimingValue']] : []),
+  bins: { size: 1000 }
+}))
+
+const soloValueGraphAttribute = computed(() => ({
+  label: 'SoloValue',
+  requiresBox: true,
+  generatingFunctions: [d => d['SoloValue'], d => d['JSoloValue'], d => d['DJSoloValue']].concat(gameRounds.value >= 3 ? [d => d['TJSoloValue']] : []),
+  bins: { start:0, size: 1000 }
+}))
+
+const graphAttributes = computed(() => [
+  attGraphAttribute, buzGraphAttribute, attValueGraphAttribute, buzValueGraphAttribute,
+  buzScoreGraphAttribute, buzValueScoreConversionGraphAttribute, timingGraphAttribute, soloGraphAttribute,
+  timingValueGraphAttribute, soloValueGraphAttribute
+])
+const xGraphAttributeIdx = ref(0)
+const xGraphAttribute = computed(() => graphAttributes.value[xGraphAttributeIdx.value])
+const yGraphAttributeIdx = ref(null)
+const yGraphAttribute = computed(() => graphAttributes.value[yGraphAttributeIdx.value])
+const graphRoundIdx = ref(0)
+
 function specifyScatterHistogram(xAttr, yAttr) {
   return {
     histogramData: xAttr['requiresBox'] || yAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
@@ -271,15 +296,16 @@ function specifyScatterHistogram(xAttr, yAttr) {
     scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
     title: xAttr['label'] + ' vs ' + yAttr['label'],
     xLabel: xAttr['label'],
-    xFunction: xAttr['generatingFunctions'][0],
+    xFunction: xAttr['generatingFunctions'][graphRoundIdx.value],
     xBins: xAttr['bins'],
     yLabel: yAttr['label'],
-    yFunction: yAttr['generatingFunctions'][0],
+    yFunction: yAttr['generatingFunctions'][graphRoundIdx.value],
     yBins: yAttr['bins'],
   }
 }
 
 function specifyHighlightHistogram(xAttr) {
+  console.log(xAttr['label'])
   return {
     histogramData: xAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
     scatterData: xAttr['requiresBox'] ? gameContestantStatDataWithBox.value : gameContestantStatData.value,
@@ -287,7 +313,7 @@ function specifyHighlightHistogram(xAttr) {
     scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
     title: xAttr['label'],
     xLabel: xAttr['label'],
-    xFunction: xAttr['generatingFunctions'][0],
+    xFunction: xAttr['generatingFunctions'][graphRoundIdx.value],
     xBins: xAttr['bins']
   }
 }
@@ -309,20 +335,25 @@ function specifyHighlightHistogram(xAttr) {
       :rowData="gameContestantStatData"
       />
   </div>
-  <ScatterHistogram
-    v-bind="specifyScatterHistogram(attGraphAttribute, buzGraphAttribute)" />
-  <ScatterHistogram
-    v-bind="specifyScatterHistogram(attValueGraphAttribute, buzValueGraphAttribute)" />
-  <ScatterHistogram
-    v-bind="specifyScatterHistogram(buzValueGraphAttribute, buzScoreGraphAttribute)" />
-  <ScatterHistogram
-    v-bind="specifyScatterHistogram(buzValueGraphAttribute, buzValueScoreConversionGraphAttribute)" />
-  <ScatterHistogram
-    v-bind="specifyScatterHistogram(timingGraphAttribute, soloGraphAttribute)" />
-  <HighlightHistogram
-    v-bind="specifyHighlightHistogram(attGraphAttribute)" />
-  {{ gameStatData }}
-  {{ gameContestantStatData ? gameContestantStatData[0] : '' }}
+  <select v-model="xGraphAttributeIdx">
+    <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
+      {{ graphAttribute.value.label }}
+    </option>
+  </select>
+  <select v-model="yGraphAttributeIdx">
+    <option :value="null">None</option>
+    <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
+      {{ graphAttribute.value.label }}
+    </option>
+  </select>
+  <select v-model="graphRoundIdx">
+    <option :value="0">Full Game</option>
+    <option :value="1">J! Round</option>
+    <option :value="2">DJ! Round</option>
+    <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
+  </select><br/>
+  <ScatterHistogram v-if="yGraphAttribute" v-bind="specifyScatterHistogram(xGraphAttribute.value, yGraphAttribute.value)" />
+  <HighlightHistogram v-else v-bind="specifyHighlightHistogram(xGraphAttribute.value)" />
 </template>
 
 <style scoped>
