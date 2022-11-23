@@ -81,6 +81,8 @@ var gameStatDataFromContestantStatData = function(data) {
                 { id: gameData[1]['Jometry Contestant Id'], name: gameData[1]['Contestant'] },            
                 { id: gameData[2]['Jometry Contestant Id'], name: gameData[2]['Contestant'] }
             ],
+            tocPeriod: gameData[0]['TOC Period'],
+            playClassification: gameData[0]['Play Classification'],
             season: gameData[0]['Season'],
             gameInSeason: gameData[0]['Game In Season'],
             rounds: gameData[0]['TJRead'] === undefined || gameData[0]['TJRead'] === 0 ? 2 : 3

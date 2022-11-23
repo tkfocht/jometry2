@@ -1,7 +1,6 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat } from '@/util'
-import { playClassificationConfigurationData } from '@/configuration'
 import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
@@ -9,21 +8,19 @@ import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
-const playClassificationId = urlParams.get('toc_period_id')
 const gameId = +urlParams.get('game_id')
-const playClassificationConfiguration = playClassificationConfigurationData[playClassificationId]
 
 const allContestantStatData = ref([])
 
-async function fetchData(playClassification) {
+async function fetchData() {
   const res = await d3.csv(
-    'https://j-ometry.com/csvs/' + playClassification + '_full.csv',
+    'https://j-ometry.com/csvs/all_standard.csv',
     csvDataAccessor
   )
   var resResult = await res
   allContestantStatData.value = resResult
 }
-fetchData(playClassificationId)
+fetchData()
 
 const allGameStatData = computed(() => {
     if (allContestantStatData.value) {
@@ -322,40 +319,46 @@ function specifyHighlightHistogram(xAttr) {
 
 <template>
   <Header />
-  <div v-if="gameStatData" class="section">
-    <h1><span id="toc-period-id">{{ playClassificationConfiguration.label }}</span> Season <span id="season">{{ gameStatData.season }}</span> Game <span id="game-number">{{ gameStatData.gameInSeason }}</span> <span id="game-date">{{ dateFormat(gameStatData.date) }}</span></h1>
-    <h2>Scoring and Daily Doubles</h2>
-    <CarouselTable 
-      :panels="scoringTablePanels"
-      :rowData="gameContestantStatData"
-      />
-    <h2>Buzzing and Conversion Metrics</h2>
-    <CarouselTable 
-      :panels="conversionMetricTablePanels"
-      :rowData="gameContestantStatData"
-      />
+  <div class="body-section">
+    <div v-if="gameStatData" class="section">
+      <h1>Season <span id="season">{{ gameStatData.season }}</span> Game <span id="game-number">{{ gameStatData.gameInSeason }}</span>, <span id="game-date">{{ dateFormat(gameStatData.date) }}</span></h1>
+      <h2>Scoring and Daily Doubles</h2>
+      <CarouselTable 
+        :panels="scoringTablePanels"
+        :rowData="gameContestantStatData"
+        />
+      <h2>Buzzing and Conversion Metrics</h2>
+      <CarouselTable 
+        :panels="conversionMetricTablePanels"
+        :rowData="gameContestantStatData"
+        />
+    </div>
+    <select v-model="xGraphAttributeIdx">
+      <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
+        {{ graphAttribute.value.label }}
+      </option>
+    </select>
+    <select v-model="yGraphAttributeIdx">
+      <option :value="null">None</option>
+      <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
+        {{ graphAttribute.value.label }}
+      </option>
+    </select>
+    <select v-model="graphRoundIdx">
+      <option :value="0">Full Game</option>
+      <option :value="1">J! Round</option>
+      <option :value="2">DJ! Round</option>
+      <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
+    </select><br/>
+    <ScatterHistogram v-if="yGraphAttribute" v-bind="specifyScatterHistogram(xGraphAttribute.value, yGraphAttribute.value)" />
+    <HighlightHistogram v-else v-bind="specifyHighlightHistogram(xGraphAttribute.value)" />
   </div>
-  <select v-model="xGraphAttributeIdx">
-    <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
-      {{ graphAttribute.value.label }}
-    </option>
-  </select>
-  <select v-model="yGraphAttributeIdx">
-    <option :value="null">None</option>
-    <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
-      {{ graphAttribute.value.label }}
-    </option>
-  </select>
-  <select v-model="graphRoundIdx">
-    <option :value="0">Full Game</option>
-    <option :value="1">J! Round</option>
-    <option :value="2">DJ! Round</option>
-    <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
-  </select><br/>
-  <ScatterHistogram v-if="yGraphAttribute" v-bind="specifyScatterHistogram(xGraphAttribute.value, yGraphAttribute.value)" />
-  <HighlightHistogram v-else v-bind="specifyHighlightHistogram(xGraphAttribute.value)" />
 </template>
 
 <style scoped>
+
+.body-section {
+  margin: 2em 1em;
+}
 
 </style>
