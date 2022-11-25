@@ -1,18 +1,21 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat } from '@/util'
+import { csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData,
+  dateFormat, roundName } from '@/util'
 import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
+import ReactiveChart from './components/util/ReactiveChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
 const gameId = +urlParams.get('game_id')
 
-const allContestantStatData = ref([])
+const allContestantStatData = ref(null)
+const gameClueData = ref(null)
 
-async function fetchData() {
+async function fetchContestantStatData() {
   const res = await d3.csv(
     'https://j-ometry.com/csvs/all_standard.csv',
     csvDataAccessor
@@ -20,7 +23,28 @@ async function fetchData() {
   var resResult = await res
   allContestantStatData.value = resResult
 }
-fetchData()
+fetchContestantStatData()
+
+async function fetchGameClueData(gameId) {
+  const res = await d3.csv(
+    'https://j-ometry.com/csvs/game_clue/' + gameId + '.csv',
+    gameClueDataAccessor
+  )
+  var resResult = await res
+  gameClueData.value = resResult
+}
+fetchGameClueData(gameId)
+
+const gameClueCorrectResponses = computed(() => {
+  if (!gameClueData.value) return {}
+  var r = d3.rollup(gameClueData.value, v => {
+    if (v.length === 0) return { 'dd': 0, 'corrects': [-1] }
+    var corrects = d3.filter([1,2,3], idx => { return v[0]['Correct' + idx] === 1; })
+    if (corrects.length === 0) corrects = [0]
+    return { 'dd': v[0]['DD'], 'corrects': corrects }
+  }, d => d['Round of Game'], d => d['Base Value'], d => d['Column'])
+  return r
+})
 
 const allGameStatData = computed(() => {
     if (allContestantStatData.value) {
@@ -61,6 +85,29 @@ function contestantLink (contestantStatData) {
     contestantStatData['Jometry Contestant Id'] + 
     '">' + contestantStatData['Contestant'] + '</a>'
 }
+
+const gameScoreChartData = computed(() => {
+  if (!gameClueData.value || !gameContestantStatData.value) {
+    return {
+      'traces': [],
+      'layout': {}
+    }
+  }
+  var x = ['0'].concat(d3.map(gameClueData.value, d => d['Round of Game'] + "-" + d['Clue of Round']));
+  return {
+    'traces': d3.map([1,2,3], idx => ({
+      x: x,
+      y: [0].concat(d3.map(gameClueData.value, d => d['PostScore' + idx])),
+      type: 'scatter',
+      mode: 'lines',
+      name: gameContestantStatData.value[idx-1]['Contestant'],
+      line: {
+          color: threeColorSet[idx-1]
+      }
+    })),
+    'layout': {}
+  }
+})
 
 const scoringTablePanels = computed(() => {
   var columns = [
@@ -302,7 +349,6 @@ function specifyScatterHistogram(xAttr, yAttr) {
 }
 
 function specifyHighlightHistogram(xAttr) {
-  console.log(xAttr['label'])
   return {
     histogramData: xAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
     scatterData: xAttr['requiresBox'] ? gameContestantStatDataWithBox.value : gameContestantStatData.value,
@@ -333,6 +379,28 @@ function specifyHighlightHistogram(xAttr) {
         :rowData="gameContestantStatData"
         />
     </div>
+    <div id="view-boards">
+      <h2>Correct Responses</h2>
+      <div v-for="round in d3.range(1, gameRounds + 1)">
+        <h3>{{ roundName(round) }} Round</h3>
+        <table class="view-board" v-if="gameClueCorrectResponses.get(round)" >
+          <tr v-for="row in d3.range(1,6)">
+            <td v-for="column in d3.range(1,7)">
+              <div :class="gameClueCorrectResponses.get(round).get(row * round * 200).get(column)['dd'] === 1 ? 'daily-double' : ''">
+                <div v-for="correctResponseItem in gameClueCorrectResponses.get(round).get(row * round * 200).get(column)['corrects']"
+                  :style="'background-color: ' + (correctResponseItem === -1 ? 'black' : (correctResponseItem === 0 ? 'gray' : threeColorSet[correctResponseItem-1]))"
+                  >
+                </div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h2>Score</h2>
+      <ReactiveChart :chart="gameScoreChartData"/>
+    </div>
     <select v-model="xGraphAttributeIdx">
       <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
         {{ graphAttribute.value.label }}
@@ -359,6 +427,30 @@ function specifyHighlightHistogram(xAttr) {
 
 .body-section {
   margin: 2em 1em;
+}
+
+table.view-board td {
+    width: 40px;
+    height: 30px;
+    border: 1px solid black;
+}
+
+table.view-board div {
+    height: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+table.view-board div.daily-double {
+    padding: 5px 5px;
+    background-color: yellow;
+}
+
+table.view-board div div {
+    height: 100%;
+    width: auto;
+    flex-grow: 1;
 }
 
 </style>

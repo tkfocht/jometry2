@@ -7,7 +7,7 @@ import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import ToggleableGameListing from './components/index/ToggleableGameListing.vue'
 
-const gameStatData = ref([])
+const gameStatData = ref(null)
 
 async function fetchData() {
   const res = await d3.csv(
@@ -25,12 +25,14 @@ fetchData()
 
 <template>
   <Header />
-  <div v-for="tocPeriod in [2023, 2022, 2021, 2019]" class="toc-period">
-    <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions</div>
-    <div v-for="season in gameStatData.get(tocPeriod).keys()">
-      <div v-for="playClassification in gameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
-        <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}</div>
-        <ToggleableGameListing :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
+  <div v-if="gameStatData">
+    <div v-for="tocPeriod in [2023, 2022, 2021, 2019]" class="toc-period">
+      <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions</div>
+      <div v-for="season in gameStatData.get(tocPeriod).keys()">
+        <div v-for="playClassification in gameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
+          <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}</div>
+          <ToggleableGameListing :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
+        </div>
       </div>
     </div>
   </div>

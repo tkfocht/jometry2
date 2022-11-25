@@ -89,4 +89,49 @@ var gameStatDataFromContestantStatData = function(data) {
         }));
 }
 
-export { csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat };
+var gameClueDataAccessor = function(row) {
+    var r = {};
+    for (var k in row) {
+        if (k === 'Date') {
+            r[k] = csvDateParse(row[k]);
+        } else if (row[k] === '') {
+            r[k] = undefined;
+        } else {
+            r[k] = +row[k];
+            if (isNaN(r[k])) {
+                r[k] = row[k];
+            }
+        }
+    }
+    return r;
+};
+
+var clueBaseValue = function(roundCount) {
+    if (roundCount === 3) return 100
+    return 200
+}
+
+var roundName = function(roundNumber) {
+    if (roundNumber === 1) {
+        return 'Jeopardy!'
+    } else if (roundNumber === 2) {
+        return 'Double Jeopardy!'
+    } else if (roundNumber === 3) {
+        return 'Triple Jeopardy!'
+    }
+    return ''
+}
+
+var roundAbbreviation = function(roundNumber) {
+    if (roundNumber === 1) {
+        return 'J'
+    } else if (roundNumber === 2) {
+        return 'DJ'
+    } else if (roundNumber === 3) {
+        return 'TJ'
+    }
+    return ''
+}
+
+export { csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
+    clueBaseValue, roundName, roundAbbreviation };
