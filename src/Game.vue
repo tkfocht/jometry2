@@ -8,6 +8,7 @@ import CarouselTable from './components/util/CarouselTable.vue'
 import ReactiveChart from './components/util/ReactiveChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
+import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
 const gameId = +urlParams.get('game_id')
@@ -471,6 +472,28 @@ function specifyHighlightHistogram(xAttr) {
     <div>
       <h2>Score</h2>
       <ReactiveChart :chart="gameScoreChartData"/>
+    </div>
+    <div>
+    <h2>Attempts</h2>
+      <StackValueBarChart
+        :data="gameContestantStatData"
+        :xCoreLabelFunction="d => d['Contestant']"
+        :xGroupLabels="['J','DJ']"
+        :yFunctionGroups="[[d => d['JBuzC'], d => d['JBuz'], d => d['JAtt']],[d => d['DJBuzC'], d => d['DJBuz'], d => d['DJAtt']]]"
+        :colorFunction="d => color(d['Jometry Contestant Id'])"
+        :yLabel="'BuzC -> Buz -> Att'"
+        :title="'Attempts'"/>
+    </div>
+    <div>
+    <h2>Attempt Value</h2>
+      <StackValueBarChart
+        :data="gameContestantStatData"
+        :xCoreLabelFunction="d => d['Contestant']"
+        :xGroupLabels="['J','DJ']"
+        :yFunctionGroups="[[d => d['JBuz$'], d => d['JBuzValue'], d => formatNumber(d['JAttValue'], 0)],[d => d['DJBuz$'], d => d['DJBuzValue'], d => formatNumber(d['DJAttValue'],0)]]"
+        :colorFunction="d => color(d['Jometry Contestant Id'])"
+        :yLabel="'Buz$ -> BuzValue -> AttValue'"
+        :title="'Attempt Value'"/>
     </div>
     <select v-model="xGraphAttributeIdx">
       <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
