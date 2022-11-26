@@ -36,7 +36,7 @@ async function fetchGameClueData(gameId) {
 fetchGameClueData(gameId)
 
 const gameClueCorrectResponses = computed(() => {
-  if (!gameClueData.value) return {}
+  if (!gameClueData.value) return null
   var r = d3.rollup(gameClueData.value, v => {
     if (v.length === 0) return { 'dd': 0, 'corrects': [-1] }
     var corrects = d3.filter([1,2,3], idx => { return v[0]['Correct' + idx] === 1; })
@@ -57,12 +57,17 @@ const allGameStatData = computed(() => {
 
 const gameStatData = computed(() => {
   if (allGameStatData.value) return d3.filter(allGameStatData.value, d => d['gameId'] === gameId)[0]
-  else return {}
+  else return null
 })
 
 const gameRounds = computed(() => {
   if (gameStatData.value) return gameStatData.value['rounds']
   return 2
+})
+
+const gameBaseValueMultiple = computed(() => {
+  if (gameStatData.value && gameStatData.value['rounds'] === 3) return 100
+  return 200
 })
 
 const gameContestantStatData = computed(() => {
@@ -107,6 +112,33 @@ const gameScoreChartData = computed(() => {
     })),
     'layout': {}
   }
+})
+
+const finalJeopardyMatrixCells = computed(() => {
+  if (!gameClueData.value || !gameRounds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
+  var combinations = [[true, true, true],
+                        [true, true, false],
+                        [true, false, true],
+                        [true, false, false],
+                        [false, true, true],
+                        [false, true, false],
+                        [false, false, true],
+                        [false, false, false]]
+  var fjRecord = d3.filter(gameClueData.value, d => d['Round of Game'] === gameRounds.value + 1 && d['Clue of Round'] === 1)[0];
+  var fjInitialScores = d3.map([1,2,3], p => fjRecord['PreScore' + p]);  
+  var fjWagers = d3.map([1,2,3], p => fjRecord['Wager' + p]);
+  var mapped = d3.map(combinations, combo => {
+    var fjFinalScores = d3.map([0,1,2], p => fjInitialScores[p] + (fjWagers[p] * (combo[p] ? 1 : -1)));
+    var winningScore = d3.max(fjFinalScores);
+    var winners = d3.filter([0,1,2], idx => fjFinalScores[idx] === winningScore);
+    winners = d3.map(winners, w => w+1);
+    if (winningScore <= 0) {
+      return [-1]
+    } else {
+      return winners
+    }
+  })
+  return mapped
 })
 
 const scoringTablePanels = computed(() => {
@@ -383,11 +415,11 @@ function specifyHighlightHistogram(xAttr) {
       <h2>Correct Responses</h2>
       <div v-for="round in d3.range(1, gameRounds + 1)">
         <h3>{{ roundName(round) }} Round</h3>
-        <table class="view-board" v-if="gameClueCorrectResponses.get(round)" >
+        <table class="view-board" v-if="gameClueCorrectResponses && gameClueCorrectResponses.get(round)" >
           <tr v-for="row in d3.range(1,6)">
             <td v-for="column in d3.range(1,7)">
-              <div :class="gameClueCorrectResponses.get(round).get(row * round * 200).get(column)['dd'] === 1 ? 'daily-double' : ''">
-                <div v-for="correctResponseItem in gameClueCorrectResponses.get(round).get(row * round * 200).get(column)['corrects']"
+              <div :class="gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)['dd'] === 1 ? 'daily-double' : ''">
+                <div v-for="correctResponseItem in gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)['corrects']"
                   :style="'background-color: ' + (correctResponseItem === -1 ? 'black' : (correctResponseItem === 0 ? 'gray' : threeColorSet[correctResponseItem-1]))"
                   >
                 </div>
@@ -396,6 +428,45 @@ function specifyHighlightHistogram(xAttr) {
           </tr>
         </table>
       </div>
+    </div>
+    <div>
+      <h2>Final Jeopardy! Win Matrix</h2>
+      <table id="fj-matrix">
+        <tr>
+          <td class="empty"></td>
+          <th colspan="2" :style="'background-color: ' + threeColorSet[1]">Correct</th>
+          <th colspan="2" :style="'background-color: ' + threeColorSet[1]">Incorrect</th>
+        </tr>
+        <tr>
+          <td class="empty"></td>
+          <th :style="'background-color: ' + threeColorSet[2]">Correct</th>
+          <th :style="'background-color: ' + threeColorSet[2]">Incorrect</th>
+          <th :style="'background-color: ' + threeColorSet[2]">Correct</th>
+          <th :style="'background-color: ' + threeColorSet[2]">Incorrect</th>
+        </tr>
+        <tr>
+          <th :style="'background-color: ' + threeColorSet[0]">Correct</th>
+          <td v-for="idx in [0,1,2,3]">
+            <div>
+              <div v-for="winnerItem in finalJeopardyMatrixCells[idx]"
+                  :style="'background-color: ' + (winnerItem === -1 ? 'black' : (winnerItem === 0 ? 'gray' : threeColorSet[winnerItem-1]))"
+                  >
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th :style="'background-color: ' + threeColorSet[0]">Incorrect</th>
+          <td v-for="idx in [4,5,6,7]">
+            <div>
+              <div v-for="winnerItem in finalJeopardyMatrixCells[idx]"
+                  :style="'background-color: ' + (winnerItem === -1 ? 'black' : (winnerItem === 0 ? 'gray' : threeColorSet[winnerItem-1]))"
+                  >
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
     </div>
     <div>
       <h2>Score</h2>
@@ -448,6 +519,29 @@ table.view-board div.daily-double {
 }
 
 table.view-board div div {
+    height: 100%;
+    width: auto;
+    flex-grow: 1;
+}
+
+table#fj-matrix td, table#fj-matrix th {
+    width: 70px;
+    height: 40px;
+    border: 1px solid black;
+}
+
+table#fj-matrix td.empty {
+  border: 0px solid white;
+}
+
+table#fj-matrix div {
+    height: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+}
+
+table#fj-matrix div div {
     height: 100%;
     width: auto;
     flex-grow: 1;
