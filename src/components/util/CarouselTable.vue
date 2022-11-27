@@ -4,7 +4,8 @@ import * as d3 from 'd3'
 
 const props = defineProps({
   panels: Array,
-  rowData: Array
+  rowData: Array,
+  defaultSortFunction: Function
 })
 
 const displayPanelIndex = ref(0)
@@ -13,7 +14,7 @@ const displayPanel = computed(() => {
     else return {}
 })
 
-const sortAttrFunction = ref(d => d['Podium'])
+const sortAttrFunction = ref(props.defaultSortFunction)
 const sortDirectionDescending = ref(false)
 const sortedRowData = computed(() => {
     var sortedData = props.rowData.slice()

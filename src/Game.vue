@@ -2,6 +2,7 @@
 import { ref, reactive, computed } from 'vue'
 import { csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData,
   dateFormat, roundName } from '@/util'
+import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
@@ -282,87 +283,11 @@ const gameContestantStatDataWithBox = computed(() => {
 })
 
 //Charts
-const attGraphAttribute = computed(() => ({
-  label: 'Att',
-  requiresBox: true,
-  generatingFunctions: [d => d['Att'], d => d['JAtt'], d => d['DJAtt']].concat(gameRounds.value >= 3 ? [d => d['TJAtt']] : []),
-  bins: { size: 1 }
-}))
-
-const buzGraphAttribute = computed(() => ({
-  label: 'Buz',
-  requiresBox: false,
-  generatingFunctions: [d => d['Buz'], d => d['JBuz'], d => d['DJBuz']].concat(gameRounds.value >= 3 ? [d => d['TJBuz']] : []),
-  bins: { size: 1 }
-}))
-
-const attValueGraphAttribute = computed(() => ({
-  label: 'AttValue',
-  requiresBox: true,
-  generatingFunctions: [d => d['AttValue'], d => d['JAttValue'], d => d['DJAttValue']].concat(gameRounds.value >= 3 ? [d => d['TJAttValue']] : []),
-  bins: { size: 1000 }
-}))
-
-const buzValueGraphAttribute = computed(() => ({
-  label: 'BuzValue',
-  requiresBox: false,
-  generatingFunctions: [d => d['BuzValue'], d => d['JBuzValue'], d => d['DJBuzValue']].concat(gameRounds.value >= 3 ? [d => d['TJBuzValue']] : []),
-  bins: { size: 1000 }
-}))
-
-const buzScoreGraphAttribute = computed(() => ({
-  label: 'Buz$',
-  requiresBox: false,
-  generatingFunctions: [d => d['Buz$'], d => d['JBuz$'], d => d['DJBuz$']].concat(gameRounds.value >= 3 ? [d => d['TJBuz$']] : []),
-  bins: { size: 1000 }
-}))
-
-const buzValueScoreConversionGraphAttribute = computed(() => ({
-  label: 'Buz$%',
-  requiresBox: false,
-  generatingFunctions: [d => 100.0 * d['Buz$'] / d['BuzValue'], 
-    d => 100.0 * d['JBuz$'] / d['JBuzValue'], 
-    d => 100.0 * d['DJBuz$'] / d['DJBuzValue']].concat(gameRounds.value >= 3 ? [d => 100.0 * d['TJBuz$'] / d['TJBuzValue']] : []),
-  bins: { size: 5 }
-}))
-
-const timingGraphAttribute = computed(() => ({
-  label: 'Timing',
-  requiresBox: true,
-  generatingFunctions: [d => d['Timing'], d => d['JTiming'], d => d['DJTiming']].concat(gameRounds.value >= 3 ? [d => d['TJTiming']] : []),
-  bins: { size: 0.5 }
-}))
-
-const soloGraphAttribute = computed(() => ({
-  label: 'Solo',
-  requiresBox: true,
-  generatingFunctions: [d => d['Solo'], d => d['JSolo'], d => d['DJSolo']].concat(gameRounds.value >= 3 ? [d => d['TJSolo']] : []),
-  bins: { start:0, size: 0.5 }
-}))
-
-const timingValueGraphAttribute = computed(() => ({
-  label: 'TimingValue',
-  requiresBox: true,
-  generatingFunctions: [d => d['TimingValue'], d => d['JTimingValue'], d => d['DJTimingValue']].concat(gameRounds.value >= 3 ? [d => d['TJTimingValue']] : []),
-  bins: { size: 1000 }
-}))
-
-const soloValueGraphAttribute = computed(() => ({
-  label: 'SoloValue',
-  requiresBox: true,
-  generatingFunctions: [d => d['SoloValue'], d => d['JSoloValue'], d => d['DJSoloValue']].concat(gameRounds.value >= 3 ? [d => d['TJSoloValue']] : []),
-  bins: { start:0, size: 1000 }
-}))
-
-const graphAttributes = computed(() => [
-  attGraphAttribute, buzGraphAttribute, attValueGraphAttribute, buzValueGraphAttribute,
-  buzScoreGraphAttribute, buzValueScoreConversionGraphAttribute, timingGraphAttribute, soloGraphAttribute,
-  timingValueGraphAttribute, soloValueGraphAttribute
-])
+const graphAttributesList = computed(() => graphAttributes(gameRounds.value))
 const xGraphAttributeIdx = ref(0)
-const xGraphAttribute = computed(() => graphAttributes.value[xGraphAttributeIdx.value])
+const xGraphAttribute = computed(() => graphAttributesList.value[xGraphAttributeIdx.value])
 const yGraphAttributeIdx = ref(null)
-const yGraphAttribute = computed(() => graphAttributes.value[yGraphAttributeIdx.value])
+const yGraphAttribute = computed(() => graphAttributesList.value[yGraphAttributeIdx.value])
 const graphRoundIdx = ref(0)
 
 function specifyScatterHistogram(xAttr, yAttr) {
@@ -405,11 +330,13 @@ function specifyHighlightHistogram(xAttr) {
       <CarouselTable 
         :panels="scoringTablePanels"
         :rowData="gameContestantStatData"
+        :defaultSortFunction="d => d['Podium']"
         />
       <h2>Buzzing and Conversion Metrics</h2>
       <CarouselTable 
         :panels="conversionMetricTablePanels"
         :rowData="gameContestantStatData"
+        :defaultSortFunction="d => d['Podium']"
         />
     </div>
     <div id="view-boards">
@@ -474,7 +401,7 @@ function specifyHighlightHistogram(xAttr) {
       <ReactiveChart :chart="gameScoreChartData"/>
     </div>
     <div>
-    <h2>Attempts</h2>
+      <h2>Attempts</h2>
       <StackValueBarChart
         :data="gameContestantStatData"
         :xCoreLabelFunction="d => d['Contestant']"
@@ -485,7 +412,7 @@ function specifyHighlightHistogram(xAttr) {
         :title="'Attempts'"/>
     </div>
     <div>
-    <h2>Attempt Value</h2>
+      <h2>Attempt Value</h2>
       <StackValueBarChart
         :data="gameContestantStatData"
         :xCoreLabelFunction="d => d['Contestant']"
@@ -496,14 +423,14 @@ function specifyHighlightHistogram(xAttr) {
         :title="'Attempt Value'"/>
     </div>
     <select v-model="xGraphAttributeIdx">
-      <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
-        {{ graphAttribute.value.label }}
+      <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+        {{ graphAttribute.label }}
       </option>
     </select>
     <select v-model="yGraphAttributeIdx">
       <option :value="null">None</option>
-      <option v-for="(graphAttribute, idx) in graphAttributes" :value="idx">
-        {{ graphAttribute.value.label }}
+      <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+        {{ graphAttribute.label }}
       </option>
     </select>
     <select v-model="graphRoundIdx">
@@ -512,8 +439,8 @@ function specifyHighlightHistogram(xAttr) {
       <option :value="2">DJ! Round</option>
       <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
     </select><br/>
-    <ScatterHistogram v-if="yGraphAttribute" v-bind="specifyScatterHistogram(xGraphAttribute.value, yGraphAttribute.value)" />
-    <HighlightHistogram v-else v-bind="specifyHighlightHistogram(xGraphAttribute.value)" />
+    <ScatterHistogram v-if="yGraphAttribute" v-bind="specifyScatterHistogram(xGraphAttribute, yGraphAttribute)" />
+    <HighlightHistogram v-else v-bind="specifyHighlightHistogram(xGraphAttribute)" />
   </div>
 </template>
 

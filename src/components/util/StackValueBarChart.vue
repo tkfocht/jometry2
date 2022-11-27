@@ -39,8 +39,6 @@ const traces = computed(() => {
       traces.push(t)
     }
   }
-
-  console.log(traces)
   return traces
 })
 const layout = computed(() => {
@@ -64,7 +62,6 @@ const layout = computed(() => {
       }
     }
   }
-  console.log(l)
   return l
 })
 
