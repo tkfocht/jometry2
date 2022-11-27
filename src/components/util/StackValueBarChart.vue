@@ -59,7 +59,8 @@ const layout = computed(() => {
       title: {
         text: props.xGroupLabels[idx],
         standoff: 10
-      }
+      },
+      type: 'category'
     }
   }
   return l
