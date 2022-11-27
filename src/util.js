@@ -12,6 +12,20 @@ var getContestantNameFromData = function(data, contestantId) {
     }
 };
 
+var averageData = function(rows) {
+    const attrs = new Set()
+    for (const row of rows) {
+        for (const attr in row) {
+            attrs.add(attr)
+        }
+    }
+    const r = {}
+    for (const attr of attrs) {
+        r[attr] = d3.mean(rows, d => d[attr])
+    }
+    return r
+}
+
 var csvDataAccessor = function(row) {
     var r = {};
     for (var k in row) {
@@ -133,5 +147,5 @@ var roundAbbreviation = function(roundNumber) {
     return ''
 }
 
-export { csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
+export { averageData, csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
     clueBaseValue, roundName, roundAbbreviation };

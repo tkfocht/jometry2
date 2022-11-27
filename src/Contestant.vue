@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { csvDataAccessor, formatNumber, gameStatDataFromContestantStatData,
+import { averageData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData,
   dateFormat, roundName } from '@/util'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
@@ -35,6 +35,14 @@ const contestantStatDataWithBox = computed(() => {
   if (contestantStatData.value) return d3.filter(contestantStatData.value, d => d['Att'] !== contestantId)
   else return null
 })
+const contestantStatDataAugmented = computed(() => {
+  if (!contestantStatData.value || !allContestantStatData.value) return null
+  const cAvg = averageData(contestantStatData.value)
+  cAvg['Contestant'] = 'Contestant Avg'
+  const aAvg = averageData(allContestantStatData.value)
+  aAvg['Contestant'] = 'All Avg'
+  return contestantStatData.value.concat(cAvg).concat(aAvg)
+})
 const contestantData = computed(() => {
   if (contestantStatData.value) {
     return {
@@ -47,9 +55,18 @@ const contestantData = computed(() => {
 
 
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
+const averageAwareColorFunction = function(d) {
+  if (d['Contestant'] === 'Contestant Avg') return threeColorSet[2]
+  if (contestantData.value && d['Contestant'] === contestantData.value['contestantName']) return threeColorSet[0]
+  return 'black'
+}
+const averageAwareGameLabelFunction = function(d) {
+  if (d['Contestant'] === 'Contestant Avg') return 'Contestant Avg'
+  if (contestantData.value && d['Contestant'] === contestantData.value['contestantName']) return d['Season'] + '-' + d['Game In Season']
+  return 'All Avg'
+}
 
 function gameLink (contestantGameStatData) {
-  console.log(contestantGameStatData)
   return '<a href="/game.html?game_id=' + 
     contestantGameStatData['Jometry Game Id'] + 
     '">' + contestantGameStatData['Season'] + '-' + contestantGameStatData['Game In Season'] + '</a>&nbsp;' + dateFormat(contestantGameStatData['Date'])
@@ -215,22 +232,22 @@ function specifyHighlightHistogram(xAttr) {
     <div>
       <h2>Attempts</h2>
       <StackValueBarChart
-        :data="contestantStatData"
-        :xCoreLabelFunction="d => d['Season'] + '-' + d['Game In Season']"
+        :data="contestantStatDataAugmented"
+        :xCoreLabelFunction="averageAwareGameLabelFunction"
         :xGroupLabels="['Game']"
-        :yFunctionGroups="[[d => d['BuzC'], d => d['Buz'], d => d['Att']]]"
-        :colorFunction="d => threeColorSet[0]"
+        :yFunctionGroups="[[d => formatNumber(d['BuzC'],1), d => formatNumber(d['Buz'],1), d => formatNumber(d['Att'],1)]]"
+        :colorFunction="averageAwareColorFunction"
         :yLabel="'BuzC -> Buz -> Att'"
         :title="'Attempts'"/>
     </div>
     <div>
       <h2>Attempt Value</h2>
       <StackValueBarChart
-        :data="contestantStatData"
-        :xCoreLabelFunction="d => d['Season'] + '-' + d['Game In Season']"
+        :data="contestantStatDataAugmented"
+        :xCoreLabelFunction="averageAwareGameLabelFunction"
         :xGroupLabels="['Game']"
-        :yFunctionGroups="[[d => d['Buz$'], d => d['BuzValue'], d => formatNumber(d['AttValue'],0)]]"
-        :colorFunction="d => threeColorSet[0]"
+        :yFunctionGroups="[[d => formatNumber(d['Buz$'],0), d => formatNumber(d['BuzValue'], 0), d => formatNumber(d['AttValue'],0)]]"
+        :colorFunction="averageAwareColorFunction"
         :yLabel="'Buz$ -> BuzValue -> AttValue'"
         :title="'Attempt Values'"/>
     </div>
