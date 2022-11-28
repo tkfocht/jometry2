@@ -5,6 +5,7 @@ import * as d3 from 'd3'
 const props = defineProps({
   panels: Array,
   rowData: Array,
+  footerRowData: Array,
   defaultSortFunction: Function
 })
 
@@ -62,6 +63,9 @@ function displayPanelRight() {
         </thead>
         <tbody>
             <tr v-for="row in sortedRowData">
+                <td v-for="attr in displayPanel.columns"><span v-html="attr.attributeFunction(row)"></span></td>
+            </tr>
+            <tr v-for="row in props.footerRowData">
                 <td v-for="attr in displayPanel.columns"><span v-html="attr.attributeFunction(row)"></span></td>
             </tr>
         </tbody>
