@@ -346,10 +346,15 @@ function specifyHighlightHistogram(xAttr) {
         <table class="view-board" v-if="gameClueCorrectResponses && gameClueCorrectResponses.get(round)" >
           <tr v-for="row in d3.range(1,6)">
             <td v-for="column in d3.range(1,7)">
-              <div :class="gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)['dd'] === 1 ? 'daily-double' : ''">
+              <div v-if="gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)"
+                  :class="gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)['dd'] === 1 ? 'daily-double' : ''">
                 <div v-for="correctResponseItem in gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)['corrects']"
                   :style="'background-color: ' + (correctResponseItem === -1 ? 'black' : (correctResponseItem === 0 ? 'gray' : threeColorSet[correctResponseItem-1]))"
                   >
+                </div>
+              </div>
+              <div v-else>
+                <div style="background-color: black">
                 </div>
               </div>
             </td>
