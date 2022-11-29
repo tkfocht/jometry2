@@ -9,7 +9,8 @@ const props = defineProps({
 })
 
 onMounted(() => {
-    Plotly.newPlot(c.value, props.chart.traces, props.chart.layout)
+    if (props.chart) Plotly.newPlot(c.value, props.chart.traces, props.chart.layout)
+    else Plotly.newPlot(c.value, [], {})
 })
 
 watch(() => props.chart, (newValue, oldValue) => {

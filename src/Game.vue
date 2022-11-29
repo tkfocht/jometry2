@@ -94,17 +94,36 @@ function contestantLink (contestantStatData) {
 }
 
 const gameScoreChartData = computed(() => {
-  if (!gameClueData.value || !gameContestantStatData.value) {
-    return {
-      'traces': [],
-      'layout': {}
-    }
-  }
+  if (!gameClueData.value || !gameContestantStatData.value) return undefined
   var x = ['0'].concat(d3.map(gameClueData.value, d => d['Round of Game'] + "-" + d['Clue of Round']));
   return {
     'traces': d3.map([1,2,3], idx => ({
       x: x,
       y: [0].concat(d3.map(gameClueData.value, d => d['PostScore' + idx])),
+      type: 'scatter',
+      mode: 'lines',
+      name: gameContestantStatData.value[idx-1]['Contestant'],
+      line: {
+          color: threeColorSet[idx-1]
+      }
+    })),
+    'layout': {}
+  }
+})
+
+const leadRatioChartData = computed(() => {
+  if (!gameScoreChartData.value) return undefined
+  var x = ['0'].concat(d3.map(gameClueData.value, d => d['Round of Game'] + "-" + d['Clue of Round']));
+  return {
+    'traces': d3.map([1,2,3], idx => ({
+      x: x,
+      y: [0].concat(d3.map(d3.filter(gameClueData.value, d1 => d1['Round of Game'] <= gameRounds.value), d => {
+        const scoresSorted = d3.map([1,2,3], psIdx => d['PostScore' + psIdx])
+        scoresSorted.sort(d3.descending)
+        if (scoresSorted[0] <= 0) return 0
+        if (scoresSorted[0] === d['PostScore' + idx]) return d['PostScore' + idx] * 1.0 / Math.max(0, scoresSorted[1])
+        return d['PostScore' + idx] * 1.0 / scoresSorted[0]
+      })),
       type: 'scatter',
       mode: 'lines',
       name: gameContestantStatData.value[idx-1]['Contestant'],
@@ -404,6 +423,10 @@ function specifyHighlightHistogram(xAttr) {
     <div>
       <h2>Score</h2>
       <ReactiveChart :chart="gameScoreChartData"/>
+    </div>
+    <div>
+      <h2>Lead Ratio</h2>
+      <ReactiveChart :chart="leadRatioChartData"/>
     </div>
     <div>
       <h2>Attempts</h2>
