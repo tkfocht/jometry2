@@ -12,7 +12,7 @@ var getContestantNameFromData = function(data, contestantId) {
     }
 };
 
-var averageData = function(rows) {
+var rollupData = function(rows, rollupFunction) {
     const attrs = new Set()
     for (const row of rows) {
         for (const attr in row) {
@@ -21,9 +21,17 @@ var averageData = function(rows) {
     }
     const r = {}
     for (const attr of attrs) {
-        r[attr] = d3.mean(rows, d => d[attr])
+        if (d3.every(rows, d => d[attr] === undefined)) {
+            r[attr] = undefined
+        } else {
+            r[attr] = rollupFunction(rows, d => d[attr])
+        }
     }
     return r
+}
+
+var averageData = function(rows) {
+    return rollupData(rows, d3.mean)
 }
 
 var csvDataAccessor = function(row) {
@@ -31,6 +39,8 @@ var csvDataAccessor = function(row) {
     for (var k in row) {
         if (k === 'Date') {
             r[k] = csvDateParse(row[k]);
+        } else if (k === 'Season' || k === 'TOC Period') {
+            r[k] = row[k];
         } else if (row[k] === '') {
             r[k] = undefined;
         } else {
@@ -65,6 +75,7 @@ var csvDataAccessor = function(row) {
     r['TJDD$'] = d3.sum(d3.map(['TJDD1','TJDD2','TJDD3'], k => r[k] === undefined ? 0 : r[k]));
     r['DD$'] = r['JDD$'] + r['DJDD$'] + r['TJDD$'];
     r['FJ$'] = r['FJCor'] === undefined ? (r['FJWager'] === 0 || r['FJWager'] === undefined ? 0 : undefined) : (-1 + (2 * r['FJCor'])) * r['FJWager'];
+    r['Win$'] = r['FJFinal$'] * r['Wins'];
     return r;
 };
 
@@ -147,5 +158,5 @@ var roundAbbreviation = function(roundNumber) {
     return ''
 }
 
-export { averageData, csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
+export { averageData, rollupData, csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
     clueBaseValue, roundName, roundAbbreviation };

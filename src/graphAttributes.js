@@ -26,6 +26,15 @@ const buzValueGraphAttribute = (rounds) => ({
     bins: { size: 1000 }
 })
 
+const attValueBuzValueConversionGraphAttribute = (rounds) => ({
+    label: 'BuzV/AttV %',
+    requiresBox: false,
+    generatingFunctions: [d => 100.0 * d['BuzValue'] / d['AttValue'], 
+        d => 100.0 * d['JBuzValue'] / d['JAttValue'], 
+        d => 100.0 * d['DJBuzValue'] / d['DJAttValue']].concat(rounds >= 3 ? [d => 100.0 * d['TJBuzValue'] / d['TJAttValue']] : []),
+    bins: { size: 5 }
+})
+
 const buzScoreGraphAttribute = (rounds) => ({
     label: 'Buz$',
     requiresBox: false,
@@ -34,7 +43,7 @@ const buzScoreGraphAttribute = (rounds) => ({
 })
 
 const buzValueScoreConversionGraphAttribute = (rounds) => ({
-    label: 'Buz$%',
+    label: 'Buz$/BuzV %',
     requiresBox: false,
     generatingFunctions: [d => 100.0 * d['Buz$'] / d['BuzValue'], 
         d => 100.0 * d['JBuz$'] / d['JBuzValue'], 
@@ -71,7 +80,9 @@ const soloValueGraphAttribute = (rounds) => ({
 })
 
 const graphAttributes = (rounds) => [
-    attGraphAttribute(rounds), buzGraphAttribute(rounds), attValueGraphAttribute(rounds), buzValueGraphAttribute(rounds),
+    attGraphAttribute(rounds), buzGraphAttribute(rounds),
+    attValueGraphAttribute(rounds), buzValueGraphAttribute(rounds),
+    attValueBuzValueConversionGraphAttribute(rounds),
     buzScoreGraphAttribute(rounds), buzValueScoreConversionGraphAttribute(rounds), timingGraphAttribute(rounds), soloGraphAttribute(rounds),
     timingValueGraphAttribute(rounds), soloValueGraphAttribute(rounds)
 ]
