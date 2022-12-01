@@ -9,24 +9,33 @@ const props = defineProps({
   xGroupLabels: Array,
   yFunctionGroups: Array,
   colorFunction: Function,
+  sortFunction: Function,
   title: String,
   yLabel: String
 })
 
-const traces = computed(() => {
+const sortedData = computed(() => {
   if (!props.data) return undefined
+  if (!props.sortFunction) return props.data
+  const sortedData = props.data.slice()
+  sortedData.sort(props.sortFunction)
+  return sortedData
+})
+
+const traces = computed(() => {
+  if (!sortedData.value) return undefined
   var traces = []
 
   for (const yFunctionGroupIdx in props.yFunctionGroups) {
     const yFunctionGroup = props.yFunctionGroups[yFunctionGroupIdx]
     for (const yFunctionIdx in yFunctionGroup) {
       var t = {
-        x: d3.map(props.data, props.xCoreLabelFunction),
-        y: d3.map(props.data, d => yFunctionGroup[yFunctionIdx](d) - (yFunctionIdx > 0 ? yFunctionGroup[yFunctionIdx-1](d) : 0)),
-        text: d3.map(props.data, yFunctionGroup[yFunctionIdx]),
+        x: d3.map(sortedData.value, props.xCoreLabelFunction),
+        y: d3.map(sortedData.value, d => yFunctionGroup[yFunctionIdx](d) - (yFunctionIdx > 0 ? yFunctionGroup[yFunctionIdx-1](d) : 0)),
+        text: d3.map(sortedData.value, yFunctionGroup[yFunctionIdx]),
         type: 'bar',
         marker: {
-            color: d3.map(props.data, props.colorFunction),
+            color: d3.map(sortedData.value, props.colorFunction),
             line: {
                 color: 'black',
                 width: 1

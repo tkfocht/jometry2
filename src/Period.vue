@@ -86,6 +86,23 @@ const displayContestantIds = computed(() => {
   return d3.filter(contestantIds, i => winRollup.get(i) >= winThreshold)
 })
 
+const colorSet = computed(() => {
+  if (!displayContestantIds.value) return undefined
+  return d3.scaleOrdinal()
+    .domain(displayContestantIds.value)
+    .range(d3.schemeCategory10.concat(d3.schemeDark2).concat(d3.schemeAccent))
+})
+
+const color = computed(() => {
+  return cid => {
+    if (displayContestantIds.value && displayContestantIds.value.includes(cid)) {
+      return colorSet.value(cid);
+    } else {
+      return "black";
+    }
+  }
+})
+
 const filteredDisplayContestantStatData = computed(() => {
   if (!filteredAllContestantStatData.value || !displayContestantIds.value) return undefined
   return d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id']))
@@ -97,12 +114,11 @@ const filteredDisplayContestantStatSummaries = computed(() => {
 })
 
 function contestantLink (contestantStatData) {
-  return contestantStatData['Contestant']
-  /*return '<span style="color: ' + 
+  return '<span style="color: ' + 
     color.value(contestantStatData['Jometry Contestant Id']) + 
     '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
     contestantStatData['Jometry Contestant Id'] + 
-    '">' + contestantStatData['Contestant'] + '</a>'*/
+    '">' + contestantStatData['Contestant'] + '</a>'
 }
 
 const leaderboardTablePanels = computed(() => {
@@ -150,6 +166,30 @@ const leaderboardTablePanels = computed(() => {
           :rowData="filteredDisplayContestantStatSummaries"
           :defaultSortFunction="d => displayContestantIds.indexOf(d['Jometry Contestant Id'])"
           />
+    </div>
+    <div>
+      <h2>Attempts</h2>
+      <StackValueBarChart
+        :data="filteredDisplayContestantStatSummaries"
+        :xCoreLabelFunction="d => d['Contestant']"
+        :xGroupLabels="['Contestants']"
+        :yFunctionGroups="[[d => formatNumber(d['mean']['BuzC'],1,false), d => formatNumber(d['mean']['Buz'],1,false), d => formatNumber(d['mean']['Att'],1,false)]]"
+        :colorFunction="d => color(d['Jometry Contestant Id'])"
+        :sortFunction="(a,b) => d3.descending(a['mean']['BuzC'], b['mean']['BuzC'])"
+        :yLabel="'BuzC -> Buz -> Att'"
+        :title="'Attempts'"/>
+    </div>
+    <div>
+      <h2>Attempt Values</h2>
+      <StackValueBarChart
+        :data="filteredDisplayContestantStatSummaries"
+        :xCoreLabelFunction="d => d['Contestant']"
+        :xGroupLabels="['Contestants']"
+        :yFunctionGroups="[[d => formatNumber(d['mean']['Buz$'],0), d => formatNumber(d['mean']['BuzValue'],0), d => formatNumber(d['mean']['AttValue'],0)]]"
+        :colorFunction="d => color(d['Jometry Contestant Id'])"
+        :sortFunction="(a,b) => d3.descending(a['mean']['Buz$'], b['mean']['Buz$'])"
+        :yLabel="'Buz$ -> BuzV -> AttV'"
+        :title="'Attempt Values'"/>
     </div>
     {{ displayContestantIds }}
     {{ filteredAllContestantStatDataByContestant }}
