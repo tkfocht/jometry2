@@ -5,11 +5,12 @@ import { averageData, rollupData, csvDataAccessor, formatNumber, gameStatDataFro
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
 import Header from './components/Header.vue'
+import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
-import ReactiveChart from './components/util/ReactiveChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
+import { sort } from 'plotly.js-dist'
 
 let urlParams = new URLSearchParams(window.location.search);
 const seasonSearchParameterString = urlParams.get('season')
@@ -161,11 +162,42 @@ const histogramGraphAttributeIdx = ref(0)
 const histogramGraphAttribute = computed(() => graphAttributesList.value[histogramGraphAttributeIdx.value])
 const histogramGraphRoundIdx = ref(0)
 
+const boxWhiskerGraphAttributeIdx = ref(0)
+const boxWhiskerGraphAttribute = computed(() => graphAttributesList.value[boxWhiskerGraphAttributeIdx.value])
+const boxWhiskerGraphRoundIdx = ref(0)
+
 const xScatterGraphAttributeIdx = ref(0)
 const yScatterGraphAttributeIdx = ref(1)
 const xScatterGraphAttribute = computed(() => graphAttributesList.value[xScatterGraphAttributeIdx.value])
 const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatterGraphAttributeIdx.value])
 const scatterGraphRoundIdx = ref(0)
+
+const boxWhiskerGraphSpecification = computed(() => {
+  if (!filteredAllContestantStatDataByContestant.value || !displayContestantIds.value) return undefined
+  var sortedKeys = displayContestantIds.value.slice()
+  sortedKeys = d3.filter(sortedKeys, k => filteredAllContestantStatDataByContestant.value.get(k).some(d => boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value](d) !== undefined))
+  sortedKeys.sort((a,b) => d3.descending(
+    d3.mean(filteredAllContestantStatDataByContestant.value.get(a), boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value]),
+    d3.mean(filteredAllContestantStatDataByContestant.value.get(b), boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value])
+  ))
+  return {
+    dataByKey: filteredAllContestantStatDataByContestant.value,
+    orderedKeys: sortedKeys,
+    xLabel: ds => ds[0]['Contestant'],
+    yFunction: boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value],
+    yLabel: d => d['Season'] + '-' + d['Game In Season'],
+    idColorFunction: color.value,
+    title: boxWhiskerGraphAttribute.value['label'],
+    additionalBoxes: [
+      {
+        label: 'All Others',
+        yLabel: d => d['Contestant'] + ' ' + d['Season'] + '-' + d['Game In Season'],
+        filter: d => !sortedKeys.includes(d['Jometry Contestant Id']),
+        color: 'black'
+      }
+    ]
+  }
+})
 
 const scatterHistogramSpecification = computed(() => ({
   histogramData: filteredAllContestantStatData.value,
@@ -249,19 +281,19 @@ const attemptValueBarChartSpecification = computed(() => ({
       <h2>Attempt Values</h2>
       <StackValueBarChart v-bind="attemptValueBarChartSpecification" />
     </div>
-    <div v-if="filteredAllContestantStatData && displayContestantIds">
-      <select v-model="histogramGraphAttributeIdx">
+    <div v-if="filteredAllContestantStatDataByContestant && displayContestantIds">
+      <select v-model="boxWhiskerGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
         </option>
       </select>
-      <select v-model="histogramGraphRoundIdx">
+      <select v-model="boxWhiskerGraphRoundIdx">
         <option :value="0">Full Game</option>
         <option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
         <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
       </select><br/>
-      <HighlightHistogram v-bind="highlightHistogramSpecification" />
+      <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
     <div v-if="filteredAllContestantStatData && displayContestantIds">
       <select v-model="xScatterGraphAttributeIdx">
