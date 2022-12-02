@@ -347,7 +347,7 @@ function specifyHighlightHistogram(xAttr) {
 
 <template>
   <Header />
-  <div class="body-section">
+  <div class="component-body">
     <div v-if="gameStatData" class="section">
       <h1>Season <span id="season">{{ gameStatData.season }}</span> Game <span id="game-number">{{ gameStatData.gameInSeason }}</span>, <span id="game-date">{{ dateFormat(gameStatData.date) }}</span></h1>
       <h2>Scoring and Daily Doubles</h2>
@@ -363,8 +363,8 @@ function specifyHighlightHistogram(xAttr) {
         :defaultSortFunction="d => d['Podium']"
         />
     </div>
-    <div id="view-boards">
-      <h2>Correct Responses</h2>
+    <h2>Correct Responses</h2>
+    <div id="view-boards" class="section">
       <div v-for="round in d3.range(1, gameRounds + 1)">
         <h3>{{ roundName(round) }} Round</h3>
         <table class="view-board" v-if="gameClueCorrectResponses && gameClueCorrectResponses.get(round)" >
@@ -386,8 +386,8 @@ function specifyHighlightHistogram(xAttr) {
         </table>
       </div>
     </div>
-    <div>
-      <h2>Final Jeopardy! Win Matrix</h2>
+    <h2>Final Jeopardy! Win Matrix</h2>
+    <div id="fj-matrix-container" class="section">
       <table id="fj-matrix">
         <tr>
           <td class="empty"></td>
@@ -425,15 +425,15 @@ function specifyHighlightHistogram(xAttr) {
         </tr>
       </table>
     </div>
-    <div>
+    <div class="section">
       <h2>Score</h2>
       <ReactiveChart :chart="gameScoreChartData"/>
     </div>
-    <div>
+    <div class="section">
       <h2>Lead Ratio</h2>
       <ReactiveChart :chart="leadRatioChartData"/>
     </div>
-    <div>
+    <div class="section">
       <h2>Attempts</h2>
       <StackValueBarChart
         :data="gameContestantStatData"
@@ -444,7 +444,7 @@ function specifyHighlightHistogram(xAttr) {
         :yLabel="'BuzC -> Buz -> Att'"
         :title="'Attempts'"/>
     </div>
-    <div>
+    <div class="section">
       <h2>Attempt Value</h2>
       <StackValueBarChart
         :data="gameContestantStatData"
@@ -455,7 +455,7 @@ function specifyHighlightHistogram(xAttr) {
         :yLabel="'Buz$ -> BuzValue -> AttValue'"
         :title="'Attempt Value'"/>
     </div>
-    <div>
+    <div class="section">
       <select v-model="histogramGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
@@ -469,7 +469,7 @@ function specifyHighlightHistogram(xAttr) {
       </select><br/>
       <HighlightHistogram v-bind="specifyHighlightHistogram(histogramGraphAttribute)" />
     </div>
-    <div>
+    <div class="section">
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
@@ -493,8 +493,14 @@ function specifyHighlightHistogram(xAttr) {
 
 <style scoped>
 
-.body-section {
-  margin: 2em 1em;
+.component-body {
+  margin: 0 2em;
+}
+
+.section {
+  padding: 0.5em 0 2em 0;
+  border-bottom: 1px solid black;
+  width: 960px;
 }
 
 table.view-board td {
@@ -542,6 +548,12 @@ table#fj-matrix div div {
     height: 100%;
     width: auto;
     flex-grow: 1;
+}
+
+div#view-boards, div#fj-matrix-container {
+    display: flex;
+    flex-flow: row-wrap;
+    justify-content: space-around;
 }
 
 </style>

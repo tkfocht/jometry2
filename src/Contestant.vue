@@ -233,7 +233,7 @@ function specifyHighlightHistogram(xAttr) {
 
 <template>
   <Header />
-  <div class="body-section">
+  <div class="component-body">
     <div v-if="contestantStatData" class="section">
       <h1>{{ contestantData['contestantName'] }}</h1>
       <h2>Scoring and Daily Doubles</h2>
@@ -251,7 +251,7 @@ function specifyHighlightHistogram(xAttr) {
         :defaultSortFunction="d => d['Date']"
         />
     </div>
-    <div v-if="contestantStatData">
+    <div v-if="contestantStatData" class="section">
       <h2>Attempts</h2>
       <StackValueBarChart
         :data="contestantStatData.concat(contestantAverageStatData).concat(winningContestantAverageStatData).concat(allContestantAverageStatData)"
@@ -262,7 +262,7 @@ function specifyHighlightHistogram(xAttr) {
         :yLabel="'BuzC -> Buz -> Att'"
         :title="'Attempts'"/>
     </div>
-    <div v-if="contestantStatData">
+    <div v-if="contestantStatData" class="section">
       <h2>Attempt Value</h2>
       <StackValueBarChart
         :data="contestantStatData.concat(contestantAverageStatData).concat(winningContestantAverageStatData).concat(allContestantAverageStatData)"
@@ -273,7 +273,7 @@ function specifyHighlightHistogram(xAttr) {
         :yLabel="'Buz$ -> BuzValue -> AttValue'"
         :title="'Attempt Values'"/>
     </div>
-    <div>
+    <div class="section">
       <select v-model="histogramGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
@@ -287,7 +287,7 @@ function specifyHighlightHistogram(xAttr) {
       </select><br/>
       <HighlightHistogram v-bind="specifyHighlightHistogram(histogramGraphAttribute)" />
     </div>
-    <div>
+    <div class="section">
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
@@ -313,8 +313,14 @@ function specifyHighlightHistogram(xAttr) {
 
 <style scoped>
 
-.body-section {
-  margin: 2em 1em;
+.component-body {
+  margin: 0 2em;
+}
+
+.section {
+  padding: 0.5em 0 2em 0;
+  border-bottom: 1px solid black;
+  width: 960px;
 }
 
 

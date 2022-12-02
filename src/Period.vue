@@ -1,16 +1,14 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { averageData, rollupData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData,
-  dateFormat, roundName } from '@/util'
+import { rollupData, csvDataAccessor, formatNumber } from '@/util'
+  import { playClassificationName } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
 import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
-import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
-import { sort } from 'plotly.js-dist'
 
 let urlParams = new URLSearchParams(window.location.search);
 const seasonSearchParameterString = urlParams.get('season')
@@ -264,8 +262,13 @@ const attemptValueBarChartSpecification = computed(() => ({
 
 <template>
   <Header />
-  <div class="body-section">
-    <div v-if="displayContestantIds && filteredDisplayContestantStatSummaries">
+  <div class="component-body">
+    <h1>
+      <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
+      <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
+      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationName(p, undefined)).join(", ") }}&nbsp;</span>Summary
+    </h1>
+    <div v-if="displayContestantIds && filteredDisplayContestantStatSummaries" class="section">
       <h2>Leaders</h2>
       <CarouselTable 
           :panels="leaderboardTablePanels"
@@ -273,15 +276,15 @@ const attemptValueBarChartSpecification = computed(() => ({
           :defaultSortFunction="d => displayContestantIds.indexOf(d['Jometry Contestant Id'])"
           />
     </div>
-    <div>
+    <div class="section">
       <h2>Attempts</h2>
       <StackValueBarChart v-bind="attemptBarChartSpecification" />
     </div>
-    <div>
+    <div class="section">
       <h2>Attempt Values</h2>
       <StackValueBarChart v-bind="attemptValueBarChartSpecification" />
     </div>
-    <div v-if="filteredAllContestantStatDataByContestant && displayContestantIds">
+    <div v-if="filteredAllContestantStatDataByContestant && displayContestantIds" class="section">
       <select v-model="boxWhiskerGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
@@ -295,7 +298,7 @@ const attemptValueBarChartSpecification = computed(() => ({
       </select><br/>
       <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
-    <div v-if="filteredAllContestantStatData && displayContestantIds">
+    <div v-if="filteredAllContestantStatData && displayContestantIds" class="section">
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
@@ -322,8 +325,14 @@ const attemptValueBarChartSpecification = computed(() => ({
 
 <style scoped>
 
-.body-section {
-  margin: 2em 1em;
+.component-body {
+  margin: 0 2em;
+}
+
+.section {
+  padding: 0.5em 0 2em 0;
+  border-bottom: 1px solid black;
+  width: 960px;
 }
 
 
