@@ -200,7 +200,7 @@ const boxWhiskerGraphSpecification = computed(() => {
 const scatterHistogramSpecification = computed(() => ({
   histogramData: filteredAllContestantStatData.value,
   scatterData: d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
-  scatterLabelFunction: d => '',
+  scatterLabelFunction: d => d['Contestant'] + ' ' + d['Season'] + '-' + d['Game In Season'],
   scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
   title: xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
   xLabel: xScatterGraphAttribute.value['label'],
@@ -208,7 +208,8 @@ const scatterHistogramSpecification = computed(() => ({
   xBins: xScatterGraphAttribute.value['bins'],
   yLabel: yScatterGraphAttribute.value['label'],
   yFunction: yScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
-  yBins: yScatterGraphAttribute.value['bins']
+  yBins: yScatterGraphAttribute.value['bins'],
+  scatterMode: 'markers'
 }))
 
 const scatterAverageHistogramSpecification = computed(() => ({

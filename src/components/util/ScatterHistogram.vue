@@ -14,7 +14,8 @@ const props = defineProps({
   xBins: Object,
   yLabel: String,
   yFunction: Function,
-  yBins: Object
+  yBins: Object,
+  scatterMode: String
 })
 
 const traces = computed(() => {
@@ -34,7 +35,7 @@ const traces = computed(() => {
     t.push({
       x: d3.map(props.scatterData, props.xFunction),
       y: d3.map(props.scatterData, props.yFunction),
-      mode: 'markers+text',
+      mode: props.scatterMode ? props.scatterMode : 'markers+text',
       marker: {
           symbol: 'circle',
           size: 6,
