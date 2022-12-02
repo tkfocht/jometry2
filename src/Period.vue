@@ -154,6 +154,80 @@ const leaderboardTablePanels = computed(() => {
   return panels
 })
 
+//Charts
+const graphAttributesList = computed(() => graphAttributes(displayRounds.value))
+
+const histogramGraphAttributeIdx = ref(0)
+const histogramGraphAttribute = computed(() => graphAttributesList.value[histogramGraphAttributeIdx.value])
+const histogramGraphRoundIdx = ref(0)
+
+const xScatterGraphAttributeIdx = ref(0)
+const yScatterGraphAttributeIdx = ref(1)
+const xScatterGraphAttribute = computed(() => graphAttributesList.value[xScatterGraphAttributeIdx.value])
+const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatterGraphAttributeIdx.value])
+const scatterGraphRoundIdx = ref(0)
+
+const scatterHistogramSpecification = computed(() => ({
+  histogramData: filteredAllContestantStatData.value,
+  scatterData: d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
+  scatterLabelFunction: d => '',
+  scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
+  title: xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
+  xLabel: xScatterGraphAttribute.value['label'],
+  xFunction: xScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
+  xBins: xScatterGraphAttribute.value['bins'],
+  yLabel: yScatterGraphAttribute.value['label'],
+  yFunction: yScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
+  yBins: yScatterGraphAttribute.value['bins']
+}))
+
+const scatterAverageHistogramSpecification = computed(() => ({
+  histogramData: Array.from(filteredAllContestantStatSummariesByContestant.value.values()),
+  scatterData: d3.filter(filteredAllContestantStatSummariesByContestant.value.values(), d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
+  scatterLabelFunction: d => d['Contestant'],
+  scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
+  title: xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
+  xLabel: xScatterGraphAttribute.value['label'],
+  xFunction: d => xScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value](d['mean']),
+  xBins: xScatterGraphAttribute.value['bins'],
+  yLabel: yScatterGraphAttribute.value['label'],
+  yFunction: d => yScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value](d['mean']),
+  yBins: yScatterGraphAttribute.value['bins'],
+}))
+
+const highlightHistogramSpecification = computed(() => ({
+  histogramData: filteredAllContestantStatData.value,
+  scatterData: d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
+  scatterLabelFunction: d => d['Season'] + '-' + d['Game In Season'],
+  scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
+  title: histogramGraphAttribute.value['label'],
+  xLabel: histogramGraphAttribute.value['label'],
+  xFunction: histogramGraphAttribute.value['generatingFunctions'][histogramGraphRoundIdx.value],
+  xBins: histogramGraphAttribute.value['bins']
+}))
+
+const attemptBarChartSpecification = computed(() => ({
+  data: filteredDisplayContestantStatSummaries.value,
+  xCoreLabelFunction: d => d['Contestant'],
+  xGroupLabels: ['Contestants'],
+  yFunctionGroups: [[d => formatNumber(d['mean']['BuzC'],1,false), d => formatNumber(d['mean']['Buz'],1,false), d => formatNumber(d['mean']['Att'],1,false)]],
+  colorFunction: d => color.value(d['Jometry Contestant Id']),
+  sortFunction: (a,b) => d3.descending(a['mean']['BuzC'], b['mean']['BuzC']),
+  yLabel: 'BuzC -> Buz -> Att',
+  title: 'Attempts'
+}))
+
+const attemptValueBarChartSpecification = computed(() => ({
+  data: filteredDisplayContestantStatSummaries.value,
+  xCoreLabelFunction: d => d['Contestant'],
+  xGroupLabels: ['Contestants'],
+  yFunctionGroups: [[d => formatNumber(d['mean']['Buz$'],0), d => formatNumber(d['mean']['BuzValue'],0), d => formatNumber(d['mean']['AttValue'],0)]],
+  colorFunction: d => color.value(d['Jometry Contestant Id']),
+  sortFunction: (a,b) => d3.descending(a['mean']['Buz$'], b['mean']['Buz$']),
+  yLabel: 'Buz$ -> BuzV -> AttV',
+  title: 'Attempt Values'
+}))
+
 </script>
 
 <template>
@@ -169,30 +243,47 @@ const leaderboardTablePanels = computed(() => {
     </div>
     <div>
       <h2>Attempts</h2>
-      <StackValueBarChart
-        :data="filteredDisplayContestantStatSummaries"
-        :xCoreLabelFunction="d => d['Contestant']"
-        :xGroupLabels="['Contestants']"
-        :yFunctionGroups="[[d => formatNumber(d['mean']['BuzC'],1,false), d => formatNumber(d['mean']['Buz'],1,false), d => formatNumber(d['mean']['Att'],1,false)]]"
-        :colorFunction="d => color(d['Jometry Contestant Id'])"
-        :sortFunction="(a,b) => d3.descending(a['mean']['BuzC'], b['mean']['BuzC'])"
-        :yLabel="'BuzC -> Buz -> Att'"
-        :title="'Attempts'"/>
+      <StackValueBarChart v-bind="attemptBarChartSpecification" />
     </div>
     <div>
       <h2>Attempt Values</h2>
-      <StackValueBarChart
-        :data="filteredDisplayContestantStatSummaries"
-        :xCoreLabelFunction="d => d['Contestant']"
-        :xGroupLabels="['Contestants']"
-        :yFunctionGroups="[[d => formatNumber(d['mean']['Buz$'],0), d => formatNumber(d['mean']['BuzValue'],0), d => formatNumber(d['mean']['AttValue'],0)]]"
-        :colorFunction="d => color(d['Jometry Contestant Id'])"
-        :sortFunction="(a,b) => d3.descending(a['mean']['Buz$'], b['mean']['Buz$'])"
-        :yLabel="'Buz$ -> BuzV -> AttV'"
-        :title="'Attempt Values'"/>
+      <StackValueBarChart v-bind="attemptValueBarChartSpecification" />
     </div>
-    {{ displayContestantIds }}
-    {{ filteredAllContestantStatDataByContestant }}
+    <div v-if="filteredAllContestantStatData && displayContestantIds">
+      <select v-model="histogramGraphAttributeIdx">
+        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+          {{ graphAttribute.label }}
+        </option>
+      </select>
+      <select v-model="histogramGraphRoundIdx">
+        <option :value="0">Full Game</option>
+        <option :value="1">J! Round</option>
+        <option :value="2">DJ! Round</option>
+        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
+      </select><br/>
+      <HighlightHistogram v-bind="highlightHistogramSpecification" />
+    </div>
+    <div v-if="filteredAllContestantStatData && displayContestantIds">
+      <select v-model="xScatterGraphAttributeIdx">
+        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+          {{ graphAttribute.label }}
+        </option>
+      </select>
+      <select v-model="yScatterGraphAttributeIdx">
+        <option :value="null">None</option>
+        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+          {{ graphAttribute.label }}
+        </option>
+      </select>
+      <select v-model="scatterGraphRoundIdx">
+        <option :value="0">Full Game</option>
+        <option :value="1">J! Round</option>
+        <option :value="2">DJ! Round</option>
+        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
+      </select><br/>
+      <ScatterHistogram v-bind="scatterHistogramSpecification" />
+      <ScatterHistogram v-bind="scatterAverageHistogramSpecification" />
+    </div>
   </div>
 
 </template>
