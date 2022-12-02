@@ -27,10 +27,14 @@ fetchData()
   <Header />
   <div v-if="gameStatData">
     <div v-for="tocPeriod in ['2023', '2022', '2021', '2019']" class="toc-period">
-      <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions</div>
+      <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
+        <a :href="'/period.html?toc_period=' + tocPeriod">Summary</a>
+        <a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
+        </div>
       <div v-for="season in gameStatData.get(tocPeriod).keys()">
         <div v-for="playClassification in gameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
-          <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}</div>
+          <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
           <ToggleableGameListing :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
         </div>
       </div>
@@ -54,6 +58,14 @@ fetchData()
 
 .toc-period-play-class .toc-period-play-class-header {
     font-size: 24px;
+}
+
+.toc-period-play-class .toc-period-play-class-header a {
+    font-size: 16px;
+}
+.toc-period .toc-period-header a {
+    font-size: 16px;
+    margin-left: 1em;
 }
 
 </style>
