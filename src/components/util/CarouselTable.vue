@@ -62,8 +62,9 @@ function displayPanelRight() {
             <tr>
                 <th v-for="attr in displayPanel.columns"
                     @click="setSortAttrFunction(attr.sortValueFunction ? attr.sortValueFunction : attr.attributeFunction)"
-                    class="sort-control">
-                    {{ attr.label }}
+                    class="sort-control tooltip">
+                    <span :style="attr.description ? 'text-decoration-line: underline; text-decoration-style: dotted;' : ''">{{ attr.label }}</span>
+                    <span class="tooltiptext" v-if="attr.description">{{ attr.description }}</span>
                 </th>
             </tr>
         </thead>
@@ -77,7 +78,7 @@ function displayPanelRight() {
         </tbody>
     </table>
     <div class="table-footer">
-        Click on column headers to sort.
+        Click on column headers to sort. Columns marked with dotted underlines can be hovered on for a description.
     </div>
 </template>
 
@@ -101,6 +102,27 @@ function displayPanelRight() {
 .table-display-control-tab.current {
     background-color: #0072B2;
     color: white;
+}
+
+th.tooltip {
+    position: relative;
+}
+
+th.tooltip span.tooltiptext {
+  visibility: hidden;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 6px 6px;
+  border-radius: 6px; 
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 100%;
+}
+
+th.tooltip:hover span.tooltiptext {
+  visibility: visible;
 }
 
 table {

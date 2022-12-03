@@ -90,20 +90,20 @@ function gameLink (contestantGameStatData) {
 const scoringTablePanels = computed(() => {
   var columns = [
         { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
-        { label: 'JDDF', sortValueFunction: d => d['JDDF'], attributeFunction: d => formatNumber(d['JDDF'], 2)},
-        { label: 'JDD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true)},
-        { label: 'JDD$', sortValueFunction: d => d['JDD$'], attributeFunction: d => formatNumber(d['JDD$'], 0)},
-        { label: 'JBuz$', sortValueFunction: d => d['JBuz$'], attributeFunction: d => formatNumber(d['JBuz$'], 0)},
-        { label: 'JFinal$', sortValueFunction: d => d['JFinal$'], attributeFunction: d => formatNumber(d['JFinal$'], 0)},
-        { label: 'DJDDF', sortValueFunction: d => d['DJDDF'], attributeFunction: d => formatNumber(d['DJDDF'], 2)},
-        { label: 'DJDD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true)},
-        { label: 'DJDD$', sortValueFunction: d => d['DJDD$'], attributeFunction: d => formatNumber(d['DJDD$'], 0)},
-        { label: 'DJBuz$', sortValueFunction: d => d['DJBuz$'], attributeFunction: d => formatNumber(d['DJBuz$'], 0)},
-        { label: 'DJFinal$', sortValueFunction: d => d['DJFinal$'], attributeFunction: d => formatNumber(d['DJFinal$'], 0)}
+        { label: 'JDDF', sortValueFunction: d => d['JDDF'], attributeFunction: d => formatNumber(d['JDDF'], 2), description: 'Daily Doubles found in Jeopardy round'},
+        { label: 'JDD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Jeopardy round'},
+        { label: 'JDD$', sortValueFunction: d => d['JDD$'], attributeFunction: d => formatNumber(d['JDD$'], 0), description: 'Score on Daily Doubles in Jeopardy round'},
+        { label: 'JBuz$', sortValueFunction: d => d['JBuz$'], attributeFunction: d => formatNumber(d['JBuz$'], 0), description: 'Score on buzzing in Jeopardy round'},
+        { label: 'JFinal$', sortValueFunction: d => d['JFinal$'], attributeFunction: d => formatNumber(d['JFinal$'], 0), description: 'Score at end of Jeopardy round'},
+        { label: 'DJDDF', sortValueFunction: d => d['DJDDF'], attributeFunction: d => formatNumber(d['DJDDF'], 2), description: 'Daily Doubles found in Double Jeopardy round'},
+        { label: 'DJDD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Double Jeopardy round'},
+        { label: 'DJDD$', sortValueFunction: d => d['DJDD$'], attributeFunction: d => formatNumber(d['DJDD$'], 0), description: 'Score on Daily Doubles in Double Jeopardy round'},
+        { label: 'DJBuz$', sortValueFunction: d => d['DJBuz$'], attributeFunction: d => formatNumber(d['DJBuz$'], 0), description: 'Score on buzzing in Double Jeopardy round'},
+        { label: 'DJFinal$', sortValueFunction: d => d['DJFinal$'], attributeFunction: d => formatNumber(d['DJFinal$'], 0), description: 'Score at end of Double Jeopardy round'}
       ]
   columns = columns.concat([
-        { label: 'FJ$', sortValueFunction: d => d['FJ$'], attributeFunction: d => formatNumber(d['FJ$'], 0)},
-        { label: 'FJFinal$', sortValueFunction: d => d['FJFinal$'], attributeFunction: d => formatNumber(d['FJFinal$'], 0)},
+        { label: 'FJ$', sortValueFunction: d => d['FJ$'], attributeFunction: d => formatNumber(d['FJ$'], 0), description: 'Score change in Final Jeopardy round'},
+        { label: 'FJFinal$', sortValueFunction: d => d['FJFinal$'], attributeFunction: d => formatNumber(d['FJFinal$'], 0), description: 'Score at end of Final Jeopardy'},
       ])
   return [
     {
@@ -119,60 +119,60 @@ const conversionMetricTablePanels = computed(() => {
       label: 'Conversion',
       columns: [
         { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
-        { label: 'Att', sortValueFunction: d => d['Att'], attributeFunction: d => formatNumber(d['Att'], 1)},
-        { label: 'Buz', sortValueFunction: d => d['Buz'], attributeFunction: d => formatNumber(d['Buz'], 1)},
-        { label: '%', sortValueFunction: d => d['Buz%'], attributeFunction: d => formatNumber(d['Buz%'], 1, false, false)},
-        { label: 'BuzC', sortValueFunction: d => d['BuzC'], attributeFunction: d => formatNumber(d['BuzC'], 1)},
-        { label: '%', sortValueFunction: d => d['BuzC'] / d['Buz'], attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Buz'], 1, false, false)},
-        { label: 'Time', sortValueFunction: d => d['Timing'], attributeFunction: d => formatNumber(d['Timing'], 1, false, true)},
-        { label: 'Solo', sortValueFunction: d => d['Solo'], attributeFunction: d => formatNumber(d['Solo'], 1, false, false)},
-        { label: 'AttV', sortValueFunction: d => d['AttV'], attributeFunction: d => formatNumber(d['AttValue'], 0, false, false)},
-        { label: 'BuzV', sortValueFunction: d => d['BuzValue'], attributeFunction: d => formatNumber(d['BuzValue'], 0)},
-        { label: '%', sortValueFunction: d => d['BuzValue'] / d['AttValue'], attributeFunction: d => formatNumber(100.0 * d['BuzValue'] / d['AttValue'], 1, false, false)},
-        { label: 'Buz$', sortValueFunction: d => d['Buz$'], attributeFunction: d => formatNumber(d['Buz$'], 0)},
-        { label: '%', sortValueFunction: d => d['Buz$'] / d['BuzValue'], attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['BuzValue'], 1, false, false)},
-        { label: 'TimeV', sortValueFunction: d => d['TimingValue'], attributeFunction: d => formatNumber(d['TimingValue'], 0, false, true)},
-        { label: 'SoloV', sortValueFunction: d => d['SoloValue'], attributeFunction: d => formatNumber(d['SoloValue'], 0, false, false)}
+        { label: 'Att', sortValueFunction: d => d['Att'], attributeFunction: d => formatNumber(d['Att'], 1), description: 'Attempts'},
+        { label: 'Buz', sortValueFunction: d => d['Buz'], attributeFunction: d => formatNumber(d['Buz'], 1), description: 'Buzzes'},
+        { label: '%', sortValueFunction: d => d['Buz%'], attributeFunction: d => formatNumber(d['Buz%'], 1, false, false), description: 'Buz as percentage of Att'},
+        { label: 'BuzC', sortValueFunction: d => d['BuzC'], attributeFunction: d => formatNumber(d['BuzC'], 1), description: 'Correct responses on buzzes'},
+        { label: '%', sortValueFunction: d => d['BuzC'] / d['Buz'], attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Buz'], 1, false, false), description: 'BuzC as percentage of Buz'},
+        { label: 'Time', sortValueFunction: d => d['Timing'], attributeFunction: d => formatNumber(d['Timing'], 1, false, true), description: 'Estimated buzzes earned through timing'},
+        { label: 'Solo', sortValueFunction: d => d['Solo'], attributeFunction: d => formatNumber(d['Solo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
+        { label: 'AttV', sortValueFunction: d => d['AttV'], attributeFunction: d => formatNumber(d['AttValue'], 0, false, false), description: 'Estimated clue value attempted'},
+        { label: 'BuzV', sortValueFunction: d => d['BuzValue'], attributeFunction: d => formatNumber(d['BuzValue'], 0), description: 'Clue value buzzed in on'},
+        { label: '%', sortValueFunction: d => d['BuzValue'] / d['AttValue'], attributeFunction: d => formatNumber(100.0 * d['BuzValue'] / d['AttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
+        { label: 'Buz$', sortValueFunction: d => d['Buz$'], attributeFunction: d => formatNumber(d['Buz$'], 0), description: 'Score on buzzes'},
+        { label: '%', sortValueFunction: d => d['Buz$'] / d['BuzValue'], attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['BuzValue'], 1, false, false), description: 'Buz$ as percentage of BuzV'},
+        { label: 'TimeV', sortValueFunction: d => d['TimingValue'], attributeFunction: d => formatNumber(d['TimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
+        { label: 'SoloV', sortValueFunction: d => d['SoloValue'], attributeFunction: d => formatNumber(d['SoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
       ]
     },
     {
       label: 'Conversion (J)',
       columns: [
         { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
-        { label: 'Att', sortValueFunction: d => d['JAtt'], attributeFunction: d => formatNumber(d['JAtt'], 1)},
-        { label: 'Buz', sortValueFunction: d => d['JBuz'], attributeFunction: d => formatNumber(d['JBuz'], 1)},
-        { label: '%', sortValueFunction: d => d['JBuz%'], attributeFunction: d => formatNumber(d['JBuz%'], 1, false, false)},
-        { label: 'BuzC', sortValueFunction: d => d['JBuzC'], attributeFunction: d => formatNumber(d['JBuzC'], 1)},
-        { label: '%', sortValueFunction: d => d['JBuzC'] / d['JBuz'], attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JBuz'], 1, false, false)},
-        { label: 'Time', sortValueFunction: d => d['JTiming'], attributeFunction: d => formatNumber(d['JTiming'], 1, false, true)},
-        { label: 'Solo', sortValueFunction: d => d['JSolo'], attributeFunction: d => formatNumber(d['JSolo'], 1, false, false)},
-        { label: 'AttV', sortValueFunction: d => d['JAttV'], attributeFunction: d => formatNumber(d['JAttValue'], 0, false, false)},
-        { label: 'BuzV', sortValueFunction: d => d['JBuzValue'], attributeFunction: d => formatNumber(d['JBuzValue'], 0)},
-        { label: '%', sortValueFunction: d => d['JBuzValue'] / d['JAttValue'], attributeFunction: d => formatNumber(100.0 * d['JBuzValue'] / d['JAttValue'], 1, false, false)},
-        { label: 'Buz$', sortValueFunction: d => d['JBuz$'], attributeFunction: d => formatNumber(d['JBuz$'], 0)},
-        { label: '%', sortValueFunction: d => d['JBuz$'] / d['JBuzValue'], attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JBuzValue'], 1, false, false)},
-        { label: 'TimeV', sortValueFunction: d => d['JTimingValue'], attributeFunction: d => formatNumber(d['JTimingValue'], 0, false, true)},
-        { label: 'SoloV', sortValueFunction: d => d['JSoloValue'], attributeFunction: d => formatNumber(d['JSoloValue'], 0, false, false)}
+        { label: 'Att', sortValueFunction: d => d['JAtt'], attributeFunction: d => formatNumber(d['JAtt'], 1), description: 'Attempts'},
+        { label: 'Buz', sortValueFunction: d => d['JBuz'], attributeFunction: d => formatNumber(d['JBuz'], 1), description: 'Buzzes'},
+        { label: '%', sortValueFunction: d => d['JBuz%'], attributeFunction: d => formatNumber(d['JBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
+        { label: 'BuzC', sortValueFunction: d => d['JBuzC'], attributeFunction: d => formatNumber(d['JBuzC'], 1), description: 'Correct responses on buzzes'},
+        { label: '%', sortValueFunction: d => d['JBuzC'] / d['JBuz'], attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JBuz'], 1, false, false), description: 'BuzC as percentage of Buz'},
+        { label: 'Time', sortValueFunction: d => d['JTiming'], attributeFunction: d => formatNumber(d['JTiming'], 1, false, true), description: 'Estimated buzzes earned through timing'},
+        { label: 'Solo', sortValueFunction: d => d['JSolo'], attributeFunction: d => formatNumber(d['JSolo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
+        { label: 'AttV', sortValueFunction: d => d['JAttV'], attributeFunction: d => formatNumber(d['JAttValue'], 0, false, false), description: 'Estimated clue value attempted'},
+        { label: 'BuzV', sortValueFunction: d => d['JBuzValue'], attributeFunction: d => formatNumber(d['JBuzValue'], 0), description: 'Clue value buzzed in on'},
+        { label: '%', sortValueFunction: d => d['JBuzValue'] / d['JAttValue'], attributeFunction: d => formatNumber(100.0 * d['JBuzValue'] / d['JAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
+        { label: 'Buz$', sortValueFunction: d => d['JBuz$'], attributeFunction: d => formatNumber(d['JBuz$'], 0), description: 'Score on buzzes'},
+        { label: '%', sortValueFunction: d => d['JBuz$'] / d['JBuzValue'], attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JBuzValue'], 1, false, false), description: 'Buz$ as percentage of BuzV'},
+        { label: 'TimeV', sortValueFunction: d => d['JTimingValue'], attributeFunction: d => formatNumber(d['JTimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
+        { label: 'SoloV', sortValueFunction: d => d['JSoloValue'], attributeFunction: d => formatNumber(d['JSoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
       ]
     },
     {
       label: 'Conversion (DJ)',
       columns: [
         { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
-        { label: 'Att', sortValueFunction: d => d['DJAtt'], attributeFunction: d => formatNumber(d['DJAtt'], 1)},
-        { label: 'Buz', sortValueFunction: d => d['DJBuz'], attributeFunction: d => formatNumber(d['DJBuz'], 1)},
-        { label: '%', sortValueFunction: d => d['DJBuz%'], attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false)},
-        { label: 'BuzC', sortValueFunction: d => d['DJBuzC'], attributeFunction: d => formatNumber(d['DJBuzC'], 1)},
-        { label: '%', sortValueFunction: d => d['DJBuzC'] / d['DJBuz'], attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false)},
-        { label: 'Time', sortValueFunction: d => d['DJTiming'], attributeFunction: d => formatNumber(d['DJTiming'], 1, false, true)},
-        { label: 'Solo', sortValueFunction: d => d['DJSolo'], attributeFunction: d => formatNumber(d['DJSolo'], 1, false, false)},
-        { label: 'AttV', sortValueFunction: d => d['DJAttV'], attributeFunction: d => formatNumber(d['DJAttValue'], 0, false, false)},
-        { label: 'BuzV', sortValueFunction: d => d['DJBuzValue'], attributeFunction: d => formatNumber(d['DJBuzValue'], 0)},
-        { label: '%', sortValueFunction: d => d['DJBuzValue'] / d['DJAttValue'], attributeFunction: d => formatNumber(100.0 * d['DJBuzValue'] / d['DJAttValue'], 1, false, false)},
-        { label: 'Buz$', sortValueFunction: d => d['DJBuz$'], attributeFunction: d => formatNumber(d['DJBuz$'], 0)},
-        { label: '%', sortValueFunction: d => d['DJBuz$'] / d['DJBuzValue'], attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJBuzValue'], 1, false, false)},
-        { label: 'TimeV', sortValueFunction: d => d['DJTimingValue'], attributeFunction: d => formatNumber(d['DJTimingValue'], 0, false, true)},
-        { label: 'SoloV', sortValueFunction: d => d['DJSoloValue'], attributeFunction: d => formatNumber(d['DJSoloValue'], 0, false, false)}
+        { label: 'Att', sortValueFunction: d => d['DJAtt'], attributeFunction: d => formatNumber(d['DJAtt'], 1), description: 'Attempts'},
+        { label: 'Buz', sortValueFunction: d => d['DJBuz'], attributeFunction: d => formatNumber(d['DJBuz'], 1), description: 'Buzzes'},
+        { label: '%', sortValueFunction: d => d['DJBuz%'], attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
+        { label: 'BuzC', sortValueFunction: d => d['DJBuzC'], attributeFunction: d => formatNumber(d['DJBuzC'], 1), description: 'Correct responses on buzzes'},
+        { label: '%', sortValueFunction: d => d['DJBuzC'] / d['DJBuz'], attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false), description: 'BuzC as percentage of Buz'},
+        { label: 'Time', sortValueFunction: d => d['DJTiming'], attributeFunction: d => formatNumber(d['DJTiming'], 1, false, true), description: 'Estimated buzzes earned through timing'},
+        { label: 'Solo', sortValueFunction: d => d['DJSolo'], attributeFunction: d => formatNumber(d['DJSolo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
+        { label: 'AttV', sortValueFunction: d => d['DJAttV'], attributeFunction: d => formatNumber(d['DJAttValue'], 0, false, false), description: 'Estimated clue value attempted'},
+        { label: 'BuzV', sortValueFunction: d => d['DJBuzValue'], attributeFunction: d => formatNumber(d['DJBuzValue'], 0), description: 'Clue value buzzed in on'},
+        { label: '%', sortValueFunction: d => d['DJBuzValue'] / d['DJAttValue'], attributeFunction: d => formatNumber(100.0 * d['DJBuzValue'] / d['DJAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
+        { label: 'Buz$', sortValueFunction: d => d['DJBuz$'], attributeFunction: d => formatNumber(d['DJBuz$'], 0), description: 'Score on buzzes'},
+        { label: '%', sortValueFunction: d => d['DJBuz$'] / d['DJBuzValue'], attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJBuzValue'], 1, false, false), description: 'Buz$ as percentage of BuzV'},
+        { label: 'TimeV', sortValueFunction: d => d['DJTimingValue'], attributeFunction: d => formatNumber(d['DJTimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
+        { label: 'SoloV', sortValueFunction: d => d['DJSoloValue'], attributeFunction: d => formatNumber(d['DJSoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
       ]
     }
   ]
@@ -239,7 +239,7 @@ function specifyHighlightHistogram(xAttr) {
       <CarouselTable 
         :panels="scoringTablePanels.concat(conversionMetricTablePanels)"
         :rowData="contestantStatData"
-        :footerRowData="[contestantAverageStatData].concat(winningContestantAverageStatData).concat(allContestantAverageStatData)"
+        :footerRowData="[contestantAverageStatData]"
         :defaultSortFunction="d => d['Date']"
         />
     </div>
