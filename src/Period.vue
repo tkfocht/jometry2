@@ -16,6 +16,7 @@ const seasonSearchParameterString = urlParams.get('season')
 const tocPeriodSearchParameterString = urlParams.get('toc_period')
 const playClassificationSearchParameterString = urlParams.get('play_classification')
 
+const winThresholdString = urlParams.get('win_threshold')
 const displayContestantIdsString = urlParams.get('contestants')
 
 const allContestantStatData = ref(null)
@@ -66,7 +67,8 @@ const filteredAllContestantStatSummariesByContestant = computed(() => {
       'Contestant': rs[0]['Contestant'],
       'mean': rollupData(rs, d3.mean),
       'max': rollupData(rs, d3.max),
-      'sum': rollupData(rs, d3.sum)
+      'sum': rollupData(rs, d3.sum),
+      'count': rollupData(rs, d3.count)
     }]))
 })
 
@@ -82,7 +84,7 @@ const displayContestantIds = computed(() => {
   if (contestantIds.length <= 10) {
     return contestantIds
   }
-  var winThreshold = Math.max(Math.min(winRollup.get(contestantIds[9]), 4), contestantIds.length > 21 ? 1 + winRollup.get(contestantIds[20]) : 0)
+  var winThreshold = winThresholdString ? +winThresholdString : Math.max(Math.min(winRollup.get(contestantIds[9]), 4), contestantIds.length > 21 ? 1 + winRollup.get(contestantIds[20]) : 0)
   return d3.filter(contestantIds, i => winRollup.get(i) >= winThreshold)
 })
 
@@ -103,9 +105,47 @@ const color = computed(() => {
   }
 })
 
+const filteredAllContestantSummary = computed(() => {
+  if (!filteredAllContestantStatData.value) return undefined
+  return [{
+      'Contestant': 'All Contestants',
+      'mean': rollupData(filteredAllContestantStatData.value, d3.mean),
+      'max': rollupData(filteredAllContestantStatData.value, d3.max),
+      'sum': rollupData(filteredAllContestantStatData.value, d3.sum),
+      'count': rollupData(filteredAllContestantStatData.value, d3.count)
+  }]
+})
+
 const filteredDisplayContestantStatData = computed(() => {
   if (!filteredAllContestantStatData.value || !displayContestantIds.value) return undefined
   return d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id']))
+})
+
+const filteredDisplayContestantSummary = computed(() => {
+  if (!filteredDisplayContestantStatData.value) return undefined
+  return [{
+      'Contestant': 'All Selected Contestants',
+      'mean': rollupData(filteredDisplayContestantStatData.value, d3.mean),
+      'max': rollupData(filteredDisplayContestantStatData.value, d3.max),
+      'sum': rollupData(filteredDisplayContestantStatData.value, d3.sum),
+      'count': rollupData(filteredDisplayContestantStatData.value, d3.count)
+  }]
+})
+
+const filteredWinningContestantStatData = computed(() => {
+  if (!filteredAllContestantStatData.value || !displayContestantIds.value) return undefined
+  return d3.filter(filteredAllContestantStatData.value, d => d['Wins'] === 1)
+})
+
+const filteredWinningContestantSummary = computed(() => {
+  if (!filteredWinningContestantStatData.value) return undefined
+  return [{
+      'Contestant': 'All Winning Contestants',
+      'mean': rollupData(filteredWinningContestantStatData.value, d3.mean),
+      'max': rollupData(filteredWinningContestantStatData.value, d3.max),
+      'sum': rollupData(filteredWinningContestantStatData.value, d3.sum),
+      'count': rollupData(filteredWinningContestantStatData.value, d3.count)
+  }]
 })
 
 const filteredDisplayContestantStatSummaries = computed(() => {
@@ -114,6 +154,7 @@ const filteredDisplayContestantStatSummaries = computed(() => {
 })
 
 function contestantLink (contestantStatData) {
+  if (!contestantStatData['Jometry Contestant Id']) return contestantStatData['Contestant']
   return '<span style="color: ' + 
     color.value(contestantStatData['Jometry Contestant Id']) + 
     '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
@@ -124,6 +165,39 @@ function contestantLink (contestantStatData) {
 const leaderboardTablePanels = computed(() => {
   var panels = [
     {
+      label: 'Game Averages - Buzzing and Conversion',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
+        { label: 'Att', sortValueFunction: d => d['mean']['Att'], attributeFunction: d => formatNumber(d['mean']['Att'], 1, false)},
+        { label: 'Buz', sortValueFunction: d => d['mean']['Buz'], attributeFunction: d => formatNumber(d['mean']['Buz'], 1, false)},
+        { label: '%', sortValueFunction: d => d['mean']['Buz%'], attributeFunction: d => formatNumber(d['mean']['Buz%'], 1, false)},
+        { label: 'BuzC', sortValueFunction: d => d['mean']['BuzC'], attributeFunction: d => formatNumber(d['mean']['BuzC'], 1, false)},
+        { label: '%', sortValueFunction: d => d['mean']['BuzC%'], attributeFunction: d => formatNumber(d['mean']['BuzC%'], 1, false)},
+        { label: 'Time', sortValueFunction: d => d['mean']['Timing'], attributeFunction: d => formatNumber(d['mean']['Timing'], 1, false, true)},
+        { label: 'Solo', sortValueFunction: d => d['mean']['Solo'], attributeFunction: d => formatNumber(d['mean']['Solo'], 1, false)},
+        { label: 'AttV', sortValueFunction: d => d['mean']['AttValue'], attributeFunction: d => formatNumber(d['mean']['AttValue'], 0, false)},
+        { label: 'BuzV', sortValueFunction: d => d['mean']['BuzValue'], attributeFunction: d => formatNumber(d['mean']['BuzValue'], 0, false)},
+        { label: '%', sortValueFunction: d => d['mean']['BuzValue%'], attributeFunction: d => formatNumber(d['mean']['BuzValue%'], 1, false)},
+        { label: 'Buz$', sortValueFunction: d => d['mean']['Buz$'], attributeFunction: d => formatNumber(d['mean']['Buz$'], 0, false)},
+        { label: '%', sortValueFunction: d => d['mean']['Buz$%'], attributeFunction: d => formatNumber(d['mean']['Buz$%'], 1, false)},
+        { label: 'TimeV', sortValueFunction: d => d['mean']['TimingValue'], attributeFunction: d => formatNumber(d['mean']['TimingValue'], 0, false, true)},
+        { label: 'SoloV', sortValueFunction: d => d['mean']['SoloValue'], attributeFunction: d => formatNumber(d['mean']['SoloValue'], 0, false)},
+      ]
+    },
+    {
+      label: 'Game Averages - DDs and Scoring',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
+        { label: 'DDF', sortValueFunction: d => d['mean']['DDF'], attributeFunction: d => formatNumber(d['mean']['DDF'], 1, false)},
+        { label: 'DD+', sortValueFunction: d => d['mean']['DD+'], attributeFunction: d => formatNumber(d['mean']['DD+'], 1, false, true)},
+        { label: 'DD$', sortValueFunction: d => d['mean']['DD$'], attributeFunction: d => formatNumber(d['mean']['DD$'], 0, false, true)},
+        { label: 'JFinal$', sortValueFunction: d => d['mean']['JFinal$'], attributeFunction: d => formatNumber(d['mean']['JFinal$'], 0, false)},
+        { label: 'DJFinal$', sortValueFunction: d => d['mean']['DJFinal$'], attributeFunction: d => formatNumber(d['mean']['DJFinal$'], 0, false)},
+        { label: 'FJ$', sortValueFunction: d => d['mean']['FJ$'], attributeFunction: d => formatNumber(d['mean']['FJ$'], 0, false, true)},
+        { label: 'FJFinal$', sortValueFunction: d => d['mean']['FJFinal$'], attributeFunction: d => formatNumber(d['mean']['FJFinal$'], 0, false)},
+      ]
+    },
+    {
       label: 'Totals',
       columns: [
         { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
@@ -131,22 +205,15 @@ const leaderboardTablePanels = computed(() => {
         { label: 'Win$', sortValueFunction: d => d['sum']['Win$'], attributeFunction: d => formatNumber(d['sum']['Win$'], 0, false)},
         { label: 'Att', sortValueFunction: d => d['sum']['Att'], attributeFunction: d => formatNumber(d['sum']['Att'], 0, false)},
         { label: 'Buz', sortValueFunction: d => d['sum']['Buz'], attributeFunction: d => formatNumber(d['sum']['Buz'], 0, false)},
-        { label: '%', sortValueFunction: d => d['sum']['Buz'] / d['sum']['Att'], attributeFunction: d => formatNumber(100.0 * d['sum']['Buz'] / d['sum']['Att'], 1, false)},
         { label: 'BuzC', sortValueFunction: d => d['sum']['BuzC'], attributeFunction: d => formatNumber(d['sum']['BuzC'], 0, false)},
-        { label: '%', sortValueFunction: d => d['sum']['BuzC'] / d['sum']['Buz'], attributeFunction: d => formatNumber(100.0 * d['sum']['BuzC'] / d['sum']['Buz'], 1, false)},
+        { label: 'AttV', sortValueFunction: d => d['sum']['AttValue'], attributeFunction: d => formatNumber(d['sum']['AttValue'], 0, false)},
+        { label: 'BuzV', sortValueFunction: d => d['sum']['BuzValue'], attributeFunction: d => formatNumber(d['sum']['BuzValue'], 0, false)},
+        { label: 'Buz$', sortValueFunction: d => d['sum']['Buz$'], attributeFunction: d => formatNumber(d['sum']['Buz$'], 0, false)},
         { label: 'DDF', sortValueFunction: d => d['sum']['DDF'], attributeFunction: d => formatNumber(d['sum']['DDF'], 0)},
         { label: 'DD+', sortValueFunction: d => d['sum']['DD+'], attributeFunction: d => formatNumber(d['sum']['DD+'], 1, false, true)},
-      ]
-    },
-    {
-      label: 'Game Averages',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
-        { label: 'Att', sortValueFunction: d => d['mean']['Att'], attributeFunction: d => formatNumber(d['mean']['Att'], 1, false)},
-        { label: 'Buz', sortValueFunction: d => d['mean']['Buz'], attributeFunction: d => formatNumber(d['mean']['Buz'], 1, false)},
-        { label: '%', sortValueFunction: d => d['mean']['Buz%'], attributeFunction: d => formatNumber(d['mean']['Buz%'], 1, false)},
-        { label: 'DDF', sortValueFunction: d => d['mean']['DDF'], attributeFunction: d => formatNumber(d['mean']['DDF'], 1, false)},
-        { label: 'DD+', sortValueFunction: d => d['mean']['DD+'], attributeFunction: d => formatNumber(d['mean']['DD+'], 1, false, true)},
+        { label: 'DD$', sortValueFunction: d => d['sum']['DD$'], attributeFunction: d => formatNumber(d['sum']['DD$'], 0, false)},
+        { label: 'FJ', sortValueFunction: d => d['sum']['FJCor'], attributeFunction: d => formatNumber(d['sum']['FJCor'], 0, false) + '/' + formatNumber(d['count']['FJFinal$'], 0, false)},
+        { label: 'FJ$', sortValueFunction: d => d['sum']['FJ$'], attributeFunction: d => formatNumber(d['sum']['FJ$'], 0, false)},
       ]
     },
   ]
@@ -156,10 +223,6 @@ const leaderboardTablePanels = computed(() => {
 
 //Charts
 const graphAttributesList = computed(() => graphAttributes(displayRounds.value))
-
-const histogramGraphAttributeIdx = ref(0)
-const histogramGraphAttribute = computed(() => graphAttributesList.value[histogramGraphAttributeIdx.value])
-const histogramGraphRoundIdx = ref(0)
 
 const boxWhiskerGraphAttributeIdx = ref(0)
 const boxWhiskerGraphAttribute = computed(() => graphAttributesList.value[boxWhiskerGraphAttributeIdx.value])
@@ -227,17 +290,6 @@ const scatterAverageHistogramSpecification = computed(() => ({
   yBins: yScatterGraphAttribute.value['bins'],
 }))
 
-const highlightHistogramSpecification = computed(() => ({
-  histogramData: filteredAllContestantStatData.value,
-  scatterData: d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
-  scatterLabelFunction: d => d['Season'] + '-' + d['Game In Season'],
-  scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
-  title: histogramGraphAttribute.value['label'],
-  xLabel: histogramGraphAttribute.value['label'],
-  xFunction: histogramGraphAttribute.value['generatingFunctions'][histogramGraphRoundIdx.value],
-  xBins: histogramGraphAttribute.value['bins']
-}))
-
 const attemptBarChartSpecification = computed(() => ({
   data: filteredDisplayContestantStatSummaries.value,
   xCoreLabelFunction: d => d['Contestant'],
@@ -275,6 +327,7 @@ const attemptValueBarChartSpecification = computed(() => ({
       <CarouselTable 
           :panels="leaderboardTablePanels"
           :rowData="filteredDisplayContestantStatSummaries"
+          :footerRowData="filteredDisplayContestantSummary.concat(filteredWinningContestantSummary).concat(filteredAllContestantSummary)"
           :defaultSortFunction="d => displayContestantIds.indexOf(d['Jometry Contestant Id'])"
           />
     </div>
@@ -287,6 +340,7 @@ const attemptValueBarChartSpecification = computed(() => ({
       <StackValueBarChart v-bind="attemptValueBarChartSpecification" />
     </div>
     <div v-if="filteredAllContestantStatDataByContestant && displayContestantIds" class="section">
+      <h2>Selectable Box and Whisker Plots</h2>
       <select v-model="boxWhiskerGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
@@ -301,6 +355,7 @@ const attemptValueBarChartSpecification = computed(() => ({
       <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
     <div v-if="filteredAllContestantStatData && displayContestantIds" class="section">
+      <h2>Selectable Scatter Plots</h2>
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}

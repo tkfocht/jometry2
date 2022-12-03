@@ -52,10 +52,10 @@ var csvDataAccessor = function(row) {
     }
     if (r['FJCor'] === '') r['FJCor'] = undefined;
 
-    r['Buz%'] = 100.0 * r['Buz'] / r['Att'];
-    r['JBuz%'] = 100.0 * r['JBuz'] / r['JAtt'];
-    r['DJBuz%'] = 100.0 * r['DJBuz'] / r['DJAtt'];
-    r['TJBuz%'] = 100.0 * r['TJBuz'] / r['TJAtt'];
+    r['Buz%'] = r['Att'] === undefined ? undefined : 100.0 * r['Buz'] / r['Att'];
+    r['JBuz%'] = r['JAtt'] === undefined ? undefined : 100.0 * r['JBuz'] / r['JAtt'];
+    r['DJBuz%'] = r['DJAtt'] === undefined ? undefined : 100.0 * r['DJBuz'] / r['DJAtt'];
+    r['TJBuz%'] = r['TJAtt'] === undefined ? undefined : 100.0 * r['TJBuz'] / r['TJAtt'];
     r['BuzC'] = r['JBuzC'] + r['DJBuzC'] + ('TJBuzC' in r ? r['TJBuzC'] : 0);
     r['BuzInc'] = r['JBuzInc'] + r['DJBuzInc'] + ('TJBuzInc' in r ? r['TJBuzInc'] : 0);
     r['BuzI'] = r['BuzInc'];
@@ -68,6 +68,8 @@ var csvDataAccessor = function(row) {
     r['TJBuzC%'] = 100.0 * r['TJBuzC'] / r['TJBuz'];
     r['BuzC$'] = r['JBuzC$'] + r['DJBuzC$'] + ('TJBuzC$' in r ? r['TJBuzC$'] : 0);
     r['BuzI$'] = r['JBuzI$'] + r['DJBuzI$'] + ('TJBuzI$' in r ? r['TJBuzI$'] : 0);
+    r['BuzValue%'] = r['AttValue'] === undefined ? undefined : 100.0 * r['BuzValue'] / r['AttValue'];
+    r['Buz$%'] = 100.0 * r['Buz$'] / r['BuzValue'];
     r['DDF'] = r['JDDF'] + r['DJDDF'] + ('TJDDF' in r ? r['TJDDF'] : 0);
     r['DD+'] = r['JDD+'] + r['DJDD+'] + ('TJDD+' in r ? r['TJDD+'] : 0);
     r['JDD$'] = d3.sum(d3.map(['JDD'], k => r[k] === undefined ? 0 : r[k]));
