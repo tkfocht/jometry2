@@ -17,7 +17,6 @@
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: flex-end;
-    width: 100vw;
 
     border-bottom: 2px solid black;
 }

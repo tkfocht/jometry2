@@ -107,7 +107,7 @@ const scoringTablePanels = computed(() => {
       ])
   return [
     {
-      label: 'Game',
+      label: 'Standard',
       columns: columns
     }
   ]
@@ -116,7 +116,7 @@ const scoringTablePanels = computed(() => {
 const conversionMetricTablePanels = computed(() => {
   var panels = [
     {
-      label: 'Game',
+      label: 'Conversion',
       columns: [
         { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
         { label: 'Att', sortValueFunction: d => d['Att'], attributeFunction: d => formatNumber(d['Att'], 1)},
@@ -136,7 +136,7 @@ const conversionMetricTablePanels = computed(() => {
       ]
     },
     {
-      label: 'Jeopardy Round',
+      label: 'Conversion (J)',
       columns: [
         { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
         { label: 'Att', sortValueFunction: d => d['JAtt'], attributeFunction: d => formatNumber(d['JAtt'], 1)},
@@ -156,7 +156,7 @@ const conversionMetricTablePanels = computed(() => {
       ]
     },
     {
-      label: 'Double Jeopardy Round',
+      label: 'Conversion (DJ)',
       columns: [
         { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
         { label: 'Att', sortValueFunction: d => d['DJAtt'], attributeFunction: d => formatNumber(d['DJAtt'], 1)},
@@ -235,16 +235,9 @@ function specifyHighlightHistogram(xAttr) {
   <div class="component-body">
     <div v-if="contestantStatData" class="section">
       <h1>{{ contestantData['contestantName'] }}</h1>
-      <h2>Scoring and Daily Doubles</h2>
+      <h2>Statistics</h2>
       <CarouselTable 
-        :panels="scoringTablePanels"
-        :rowData="contestantStatData"
-        :footerRowData="[contestantAverageStatData].concat(winningContestantAverageStatData).concat(allContestantAverageStatData)"
-        :defaultSortFunction="d => d['Date']"
-        />
-      <h2>Buzzing and Conversion Metrics</h2>
-      <CarouselTable 
-        :panels="conversionMetricTablePanels"
+        :panels="scoringTablePanels.concat(conversionMetricTablePanels)"
         :rowData="contestantStatData"
         :footerRowData="[contestantAverageStatData].concat(winningContestantAverageStatData).concat(allContestantAverageStatData)"
         :defaultSortFunction="d => d['Date']"

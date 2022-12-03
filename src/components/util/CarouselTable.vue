@@ -33,6 +33,10 @@ function setSortAttrFunction(newSortAttrFunction) {
     }
 }
 
+function setDisplayPanel(index) {
+    displayPanelIndex.value = index
+}
+
 function displayPanelLeft() {
     displayPanelIndex.value = displayPanelIndex.value - 1
     if (displayPanelIndex.value < 0) displayPanelIndex.value = props.panels.length - 1
@@ -46,19 +50,21 @@ function displayPanelRight() {
 </script>
 
 <template>
+    <div class="table-display-control">
+        <div v-for="(panel, idx) in props.panels"
+            :class="'table-display-control-tab' + (displayPanelIndex === idx ? ' current' : '')"
+            @click="setDisplayPanel(idx)">
+            {{ panel.label }}
+        </div>
+    </div>
     <table v-if="displayPanel && props.rowData">
         <thead>
             <tr>
-                <th :colspan="displayPanel.columns.length">
-                    <span class="control-container">
-                        <span v-if="props.panels.length > 1" @click="displayPanelLeft" class="control">&#9664;</span>
-                        <span style="flex-grow: 1;">{{ displayPanel.label }}</span>
-                        <span v-if="props.panels.length > 1" @click="displayPanelRight" class="control">&#9654;</span>
-                    </span>
+                <th v-for="attr in displayPanel.columns"
+                    @click="setSortAttrFunction(attr.sortValueFunction ? attr.sortValueFunction : attr.attributeFunction)"
+                    class="sort-control">
+                    {{ attr.label }}
                 </th>
-            </tr>
-            <tr>
-                <th v-for="attr in displayPanel.columns" @click="setSortAttrFunction(attr.sortValueFunction ? attr.sortValueFunction : attr.attributeFunction)" class="sort-control">{{ attr.label }}</th>
             </tr>
         </thead>
         <tbody>
@@ -77,13 +83,33 @@ function displayPanelRight() {
 
 <style scoped>
 
+.table-display-control {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-end;
+}
+
+.table-display-control-tab {
+    padding: 0.25em 0.5em;
+    cursor: pointer;
+    border-width: 1px 1px 0 1px;
+    border-color: #999999;
+    border-style: solid;
+}
+
+.table-display-control-tab.current {
+    background-color: #0072B2;
+    color: white;
+}
+
 table {
     border-collapse: collapse;
     font-size: 13px;
 }
 
 table th, table td {
-    padding: 2px 8px;
+    padding: 2px 5px;
     border: 1px solid #999999;
 }
 

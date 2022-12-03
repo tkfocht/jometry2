@@ -192,7 +192,7 @@ const scoringTablePanels = computed(() => {
       ])
   return [
     {
-      label: 'Game',
+      label: 'Standard',
       columns: columns
     }
   ]
@@ -201,7 +201,7 @@ const scoringTablePanels = computed(() => {
 const conversionMetricTablePanels = computed(() => {
   var panels = [
     {
-      label: 'Game',
+      label: 'Conversion',
       columns: [
         { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['Att']},
@@ -221,7 +221,7 @@ const conversionMetricTablePanels = computed(() => {
       ]
     },
     {
-      label: 'Jeopardy Round',
+      label: 'Conversion (J)',
       columns: [
         { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['JAtt']},
@@ -241,7 +241,7 @@ const conversionMetricTablePanels = computed(() => {
       ]
     },
     {
-      label: 'Double Jeopardy Round',
+      label: 'Conversion (DJ)',
       columns: [
         { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['DJAtt']},
@@ -263,7 +263,7 @@ const conversionMetricTablePanels = computed(() => {
   ]
   if (gameRounds.value >= 3) {
     panels.push({
-      label: 'Triple Jeopardy Round',
+      label: 'Conversion (TJ)',
       columns: [
         { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['TJAtt']},
@@ -351,15 +351,9 @@ function specifyHighlightHistogram(xAttr) {
   <div class="component-body">
     <div v-if="gameStatData" class="section">
       <h1>Season <span id="season">{{ gameStatData.season }}</span> Game <span id="game-number">{{ gameStatData.gameInSeason }}</span>, <span id="game-date">{{ dateFormat(gameStatData.date) }}</span></h1>
-      <h2>Scoring and Daily Doubles</h2>
+      <h2>Statistics</h2>
       <CarouselTable 
-        :panels="scoringTablePanels"
-        :rowData="gameContestantStatData"
-        :defaultSortFunction="d => d['Podium']"
-        />
-      <h2>Buzzing and Conversion Metrics</h2>
-      <CarouselTable 
-        :panels="conversionMetricTablePanels"
+        :panels="scoringTablePanels.concat(conversionMetricTablePanels)"
         :rowData="gameContestantStatData"
         :defaultSortFunction="d => d['Podium']"
         />
