@@ -457,6 +457,7 @@ function specifyHighlightHistogram(xAttr) {
         :title="'Attempt Value'"/>
     </div>
     <div class="section">
+      <h2>Selectable Histograms</h2>
       <select v-model="histogramGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
@@ -471,6 +472,7 @@ function specifyHighlightHistogram(xAttr) {
       <HighlightHistogram v-bind="specifyHighlightHistogram(histogramGraphAttribute)" />
     </div>
     <div class="section">
+      <h2>Selectable Scatter Plots</h2>
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}

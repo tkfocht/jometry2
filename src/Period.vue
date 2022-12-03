@@ -281,7 +281,7 @@ const scatterAverageHistogramSpecification = computed(() => ({
   scatterData: d3.filter(filteredAllContestantStatSummariesByContestant.value.values(), d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
   scatterLabelFunction: d => d['Contestant'],
   scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
-  title: xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
+  title: 'Average ' + xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
   xLabel: xScatterGraphAttribute.value['label'],
   xFunction: d => xScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value](d['mean']),
   xBins: xScatterGraphAttribute.value['bins'],
