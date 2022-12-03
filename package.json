@@ -1,7 +1,18 @@
 {
   "name": "jometry2",
-  "packageManager": "yarn@3.3.0",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "dependencies": {
-    "vue-cli-plugin-s3-deploy": "next"
+    "d3": "^7.6.1",
+    "plotly.js-dist": "^2.16.1",
+    "vue": "^3.2.41"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^3.1.2",
+    "vite": "^3.1.8"
   }
 }
