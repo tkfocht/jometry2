@@ -1,12 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { averageData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData,
-  dateFormat, roundName } from '@/util'
+import { averageData, csvDataAccessor, formatNumber, dateFormat } from '@/util'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
+import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
-import ReactiveChart from './components/util/ReactiveChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
@@ -308,7 +307,7 @@ function specifyHighlightHistogram(xAttr) {
       <ScatterHistogram v-bind="specifyScatterHistogram(xScatterGraphAttribute, yScatterGraphAttribute)" />
     </div>
   </div>
-
+  <Footer/>
 </template>
 
 <style scoped>

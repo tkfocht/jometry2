@@ -4,6 +4,7 @@ import { playClassificationName } from '@/configuration'
 import { csvDataAccessor, gameStatDataFromContestantStatData } from '@/util'
 
 import * as d3 from 'd3'
+import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import ToggleableGameListing from './components/index/ToggleableGameListing.vue'
 
@@ -40,6 +41,7 @@ fetchData()
       </div>
     </div>
   </div>
+  <Footer />
 </template>
 
 <style scoped>

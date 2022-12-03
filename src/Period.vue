@@ -4,6 +4,7 @@ import { rollupData, csvDataAccessor, formatNumber } from '@/util'
   import { playClassificationName } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
+import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
@@ -316,12 +317,18 @@ const attemptValueBarChartSpecification = computed(() => ({
         <option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
         <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
-      </select><br/>
-      <ScatterHistogram v-bind="scatterHistogramSpecification" />
-      <ScatterHistogram v-bind="scatterAverageHistogramSpecification" />
+      </select>
+      <div class="graph-subsection">
+        <h3>All Games</h3>
+        <ScatterHistogram v-bind="scatterHistogramSpecification" />
+      </div>
+      <div class="graph-subsection">
+        <h3>Average by Contestant</h3>
+        <ScatterHistogram v-bind="scatterAverageHistogramSpecification" />
+      </div>
     </div>
   </div>
-
+  <Footer />
 </template>
 
 <style scoped>
@@ -336,6 +343,8 @@ const attemptValueBarChartSpecification = computed(() => ({
   width: 960px;
 }
 
-
+.graph-subsection {
+  margin-top: 1em;
+}
 
 </style>

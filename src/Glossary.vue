@@ -1,4 +1,5 @@
 <script setup>
+import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 </script>
 
@@ -89,7 +90,7 @@ import Header from './components/Header.vue'
       </div>
     </div>
   </div>
-
+  <Footer />
 </template>
 
 <style scoped>

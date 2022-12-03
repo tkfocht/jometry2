@@ -1,9 +1,10 @@
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData,
   dateFormat, roundName } from '@/util'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
+import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
 import ReactiveChart from './components/util/ReactiveChart.vue'
@@ -489,6 +490,7 @@ function specifyHighlightHistogram(xAttr) {
       <ScatterHistogram v-bind="specifyScatterHistogram(xScatterGraphAttribute, yScatterGraphAttribute)" />
     </div>
   </div>
+  <Footer/>
 </template>
 
 <style scoped>

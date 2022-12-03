@@ -1,16 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { rollupData, csvDataAccessor, formatNumber } from '@/util'
-  import { playClassificationName } from '@/configuration'
-import { graphAttributes } from '@/graphAttributes'
+import { csvDataAccessor } from '@/util'
 import * as d3 from 'd3'
+import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
-import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
-import CarouselTable from './components/util/CarouselTable.vue'
-import ScatterHistogram from './components/util/ScatterHistogram.vue'
-import StackValueBarChart from './components/util/StackValueBarChart.vue'
-
-let urlParams = new URLSearchParams(window.location.search);
 
 const allContestantStatData = ref(null)
 
@@ -58,6 +51,7 @@ const contestantSummariesSorted = computed(() => {
       </div>
     </div>
   </div>
+  <Footer />
 
 </template>
 
