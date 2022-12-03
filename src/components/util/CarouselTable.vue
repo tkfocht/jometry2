@@ -70,6 +70,9 @@ function displayPanelRight() {
             </tr>
         </tbody>
     </table>
+    <div class="table-footer">
+        Click on column headers to sort.
+    </div>
 </template>
 
 <style scoped>
@@ -107,6 +110,11 @@ table th span.control {
 
 table th.sort-control {
     cursor: pointer;
+}
+
+.table-footer {
+    font-style: italic;
+    font-size: 12px;
 }
 
 </style>
