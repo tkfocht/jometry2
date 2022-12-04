@@ -290,8 +290,8 @@ const conversionMetricTablePanels = computed(() => {
 const gameStatisticPanels = computed(() => {
   var columns = [
         { label: 'Date', attributeFunction: d => dateFormat(d['date'])},
-        { label: 'J Contention', attributeFunction: d => formatNumber(100 * d['JContention'], 1), description: 'Percentage of clues attempted by multiple contestants in Jeopardy round'},
-        { label: 'DJ Contention', attributeFunction: d => formatNumber(100 * d['DJContention'], 1), description: 'Percentage of clues attempted by multiple contestants in Double Jeopardy round'}
+        { label: 'J Contention', attributeFunction: d => formatNumber(100 * d['JContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Jeopardy round'},
+        { label: 'DJ Contention', attributeFunction: d => formatNumber(100 * d['DJContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Double Jeopardy round'}
       ]
   if (gameRounds.value >= 3) {
     columns.push(
