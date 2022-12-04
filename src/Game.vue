@@ -11,6 +11,7 @@ import ReactiveChart from './components/util/ReactiveChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
+import { formatDate } from 'plotly.js-dist'
 
 let urlParams = new URLSearchParams(window.location.search);
 const gameId = +urlParams.get('game_id')
@@ -286,6 +287,25 @@ const conversionMetricTablePanels = computed(() => {
   return panels
 })
 
+const gameStatisticPanels = computed(() => {
+  var columns = [
+        { label: 'Date', attributeFunction: d => dateFormat(d['date'])},
+        { label: 'J Contention', attributeFunction: d => formatNumber(100 * d['JContention'], 1), description: 'Percentage of clues attempted by multiple contestants in Jeopardy round'},
+        { label: 'DJ Contention', attributeFunction: d => formatNumber(100 * d['DJContention'], 1), description: 'Percentage of clues attempted by multiple contestants in Double Jeopardy round'}
+      ]
+  if (gameRounds.value >= 3) {
+    columns.push(
+      { label: 'TJ Contention', attributeFunction: d => d['TJContention'], description: 'Percentage of clues attempted by multiple contestants in Triple Jeopardy round'}
+    )
+  } 
+  return [
+    {
+      label: 'Contention',
+      columns: columns
+    }
+  ]
+})
+
 const allContestantStatDataWithBox = computed(() => {
   if (allContestantStatData.value) {
     return d3.filter(allContestantStatData.value, d => d['Att'] !== undefined)
@@ -351,11 +371,17 @@ function specifyHighlightHistogram(xAttr) {
   <div class="component-body">
     <div v-if="gameStatData" class="section">
       <h1>Season <span id="season">{{ gameStatData.season }}</span> Game <span id="game-number">{{ gameStatData.gameInSeason }}</span>, <span id="game-date">{{ dateFormat(gameStatData.date) }}</span></h1>
-      <h2>Statistics</h2>
+      <h2>Player Statistics</h2>
       <CarouselTable 
         :panels="scoringTablePanels.concat(conversionMetricTablePanels)"
         :rowData="gameContestantStatData"
         :defaultSortFunction="d => d['Podium']"
+        />
+      <h2>Game Statistics</h2>
+      <CarouselTable v-if="gameStatData"
+        :panels="gameStatisticPanels"
+        :rowData="[gameStatData]"
+        :defaultSortFunction="d => 1"
         />
     </div>
     <h2>Correct Responses</h2>

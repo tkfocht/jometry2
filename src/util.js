@@ -112,7 +112,10 @@ var gameStatDataFromContestantStatData = function(data) {
             playClassification: gameData[0]['Play Classification'],
             season: gameData[0]['Season'],
             gameInSeason: gameData[0]['Game In Season'],
-            rounds: gameData[0]['TJRead'] === undefined || gameData[0]['TJRead'] === 0 ? 2 : 3
+            rounds: gameData[0]['TJRead'] === undefined || gameData[0]['TJRead'] === 0 ? 2 : 3,
+            'JContention': gameData[0]['JGCon'],
+            'DJContention': gameData[0]['DJGCon'],
+            'TJContention': gameData[0]['TJGCon'],
         }));
 }
 
