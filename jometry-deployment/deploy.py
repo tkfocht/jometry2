@@ -16,7 +16,7 @@ def get_content_type_for_path(path: Path) -> str:
     elif path.suffix == '.png':
         return 'image/png'
     elif path.suffix == '.ico':
-        return 'image/vnd.microsoft.icon'
+        return 'image/x-icon'
     elif path.suffix == '.txt':
         return 'text/plain'
     elif path.suffix == '.webmanifest':
