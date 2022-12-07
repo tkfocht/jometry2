@@ -5,6 +5,7 @@ var playClassificationName = function(playClassification, season) {
     if (playClassification === 'secondchance') return 'Second Chance'
     if (playClassification === 'professors') return 'Professors Tournament'
     if (playClassification === 'teachers') return 'Teachers Tournament'
+    if (playClassification === 'teen') return 'Teen Tournament'
     if (playClassification === 'college') {
         if (season === 'NCC2022') return 'National College Championship'
         return 'College Tournament'

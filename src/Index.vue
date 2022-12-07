@@ -40,6 +40,18 @@ fetchData()
         </div>
       </div>
     </div>
+    <div v-for="tocPeriod in ['T2019','T2018']" class="toc-period">
+      <div class="toc-period-header">{{ tocPeriod.substring(1) }} Teen Tournament
+        <a :href="'/period.html?toc_period=' + tocPeriod">Summary</a>
+        </div>
+      <div v-for="season in gameStatData.get(tocPeriod).keys()">
+        <div v-for="playClassification in gameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
+          <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
+          <ToggleableGameListing :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
+        </div>
+      </div>
+    </div>
   </div>
   <Footer />
 </template>
