@@ -193,13 +193,35 @@ const histogramGraphAttributeIdx = ref(0)
 const histogramGraphAttribute = computed(() => graphAttributesList.value[histogramGraphAttributeIdx.value])
 const histogramGraphRoundIdx = ref(0)
 
+const histogramSpecification = computed(() => {
+  const xAttr = histogramGraphAttribute.value
+  if (xAttr['requiresBox'] && !contestantStatDataWithBox.value) return {}
+  if (!xAttr['requiresBox'] && !contestantStatData.value) return {}
+  return {
+    histogramData: xAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
+    scatterData: xAttr['requiresBox'] ? contestantStatDataWithBox.value : contestantStatData.value,
+    scatterLabelFunction: d => d['Season'] + '-' + d['Game In Season'],
+    scatterColorFunction: d => threeColorSet[0],
+    title: xAttr['label'],
+    xLabel: xAttr['label'],
+    xFunction: xAttr['generatingFunctions'][histogramGraphRoundIdx.value],
+    xBins: xAttr['bins']
+  }
+})
+
+
+
 const xScatterGraphAttributeIdx = ref(0)
 const xScatterGraphAttribute = computed(() => graphAttributesList.value[xScatterGraphAttributeIdx.value])
 const yScatterGraphAttributeIdx = ref(1)
 const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatterGraphAttributeIdx.value])
 const scatterGraphRoundIdx = ref(0)
 
-function specifyScatterHistogram(xAttr, yAttr) {
+const scatterHistogramSpecification = computed(() => {
+  const xAttr = xScatterGraphAttribute.value
+  const yAttr = yScatterGraphAttribute.value
+  if ((xAttr['requiresBox'] || yAttr['requiresBox']) && !contestantStatDataWithBox.value) return {}
+  if (!(xAttr['requiresBox'] || yAttr['requiresBox']) && !contestantStatData.value) return {}
   return {
     histogramData: xAttr['requiresBox'] || yAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
     scatterData: xAttr['requiresBox'] || yAttr['requiresBox'] ? contestantStatDataWithBox.value : contestantStatData.value,
@@ -213,20 +235,7 @@ function specifyScatterHistogram(xAttr, yAttr) {
     yFunction: yAttr['generatingFunctions'][scatterGraphRoundIdx.value],
     yBins: yAttr['bins'],
   }
-}
-
-function specifyHighlightHistogram(xAttr) {
-  return {
-    histogramData: xAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
-    scatterData: xAttr['requiresBox'] ? contestantStatDataWithBox.value : contestantStatData.value,
-    scatterLabelFunction: d => d['Season'] + '-' + d['Game In Season'],
-    scatterColorFunction: d => threeColorSet[0],
-    title: xAttr['label'],
-    xLabel: xAttr['label'],
-    xFunction: xAttr['generatingFunctions'][histogramGraphRoundIdx.value],
-    xBins: xAttr['bins']
-  }
-}
+})
 
 </script>
 
@@ -278,7 +287,7 @@ function specifyHighlightHistogram(xAttr) {
         <option :value="2">DJ! Round</option>
         <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
       </select><br/>
-      <HighlightHistogram v-bind="specifyHighlightHistogram(histogramGraphAttribute)" />
+      <HighlightHistogram v-bind="histogramSpecification" />
     </div>
     <div class="section">
       <h2>Selectable Scatter Plots</h2>
@@ -299,7 +308,7 @@ function specifyHighlightHistogram(xAttr) {
         <option :value="2">DJ! Round</option>
         <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
       </select><br/>
-      <ScatterHistogram v-bind="specifyScatterHistogram(xScatterGraphAttribute, yScatterGraphAttribute)" />
+      <ScatterHistogram v-bind="scatterHistogramSpecification" />
     </div>
   </div>
   <Footer/>
