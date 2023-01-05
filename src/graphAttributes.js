@@ -143,6 +143,13 @@ const djFinalScoreGraphAttribute = (rounds) => ({
     bins: { size: 1000 }
 })
 
+const endOfRegulationBuzScoreRatio = (rounds) => ({
+    label: 'End of Regulation Buz$ Lead Ratio',
+    requiresBox: false,
+    generatingFunctions: [d => d['Buz$LeadRatio'], d => d['Buz$LeadRatio'], d => d['Buz$LeadRatio']].concat(rounds >= 3 ? [d => d['Buz$LeadRatio']] : []),
+    bins: { size: 0.2 }
+})
+
 const endOfRegulationRatio = (rounds) => ({
     label: 'End of Regulation Lead Ratio',
     requiresBox: false,
