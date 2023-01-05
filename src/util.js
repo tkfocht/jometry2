@@ -163,5 +163,6 @@ var roundAbbreviation = function(roundNumber) {
     return ''
 }
 
-export { averageData, rollupData, csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
+export { averageData, rollupData, 
+    csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
     clueBaseValue, roundName, roundAbbreviation };

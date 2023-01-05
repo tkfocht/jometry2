@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData,
   dateFormat, roundName } from '@/util'
+import { dataSourceAddress } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
 import Footer from './components/Footer.vue'
@@ -14,20 +15,23 @@ import StackValueBarChart from './components/util/StackValueBarChart.vue'
 import { formatDate } from 'plotly.js-dist'
 
 let urlParams = new URLSearchParams(window.location.search);
+const dataSourceString = urlParams.get('data_source')
+const dataSourceId = dataSourceString ? dataSourceString : 'standard'
+
 const gameId = +urlParams.get('game_id')
 
 const allContestantStatData = ref(null)
 const gameClueData = ref(null)
 
-async function fetchContestantStatData() {
+async function fetchContestantStatData(dataSourceId) {
   const res = await d3.csv(
-    'https://j-ometry.com/csvs/all_standard.csv',
+    dataSourceAddress(dataSourceId),
     csvDataAccessor
   )
   var resResult = await res
   allContestantStatData.value = resResult
 }
-fetchContestantStatData()
+fetchContestantStatData(dataSourceId)
 
 async function fetchGameClueData(gameId) {
   const res = await d3.csv(
@@ -459,8 +463,8 @@ function specifyHighlightHistogram(xAttr) {
       <StackValueBarChart
         :data="gameContestantStatData"
         :xCoreLabelFunction="d => d['Contestant']"
-        :xGroupLabels="['J','DJ']"
-        :yFunctionGroups="[[d => d['JBuzC'], d => d['JBuz'], d => d['JAtt']],[d => d['DJBuzC'], d => d['DJBuz'], d => d['DJAtt']]]"
+        :xGroupLabels="['J','DJ'].concat(gameRounds >= 3 ? ['TJ'] : [])"
+        :yFunctionGroups="[[d => d['JBuzC'], d => d['JBuz'], d => d['JAtt']],[d => d['DJBuzC'], d => d['DJBuz'], d => d['DJAtt']]].concat(gameRounds >= 3 ? [[d => d['TJBuzC'], d => d['TJBuz'], d => d['TJAtt']]] : [])"
         :colorFunction="d => color(d['Jometry Contestant Id'])"
         :yLabel="'BuzC -> Buz -> Att'"
         :title="'Attempts'"/>
@@ -470,8 +474,8 @@ function specifyHighlightHistogram(xAttr) {
       <StackValueBarChart
         :data="gameContestantStatData"
         :xCoreLabelFunction="d => d['Contestant']"
-        :xGroupLabels="['J','DJ']"
-        :yFunctionGroups="[[d => d['JBuz$'], d => d['JBuzValue'], d => formatNumber(d['JAttValue'], 0)],[d => d['DJBuz$'], d => d['DJBuzValue'], d => formatNumber(d['DJAttValue'],0)]]"
+        :xGroupLabels="['J','DJ'].concat(gameRounds >= 3 ? ['TJ'] : [])"
+        :yFunctionGroups="[[d => d['JBuz$'], d => d['JBuzValue'], d => formatNumber(d['JAttValue'], 0)],[d => d['DJBuz$'], d => d['DJBuzValue'], d => formatNumber(d['DJAttValue'],0)]].concat(gameRounds >= 3 ? [[d => d['TJBuz$'], d => d['TJBuzValue'], d => formatNumber(d['TJAttValue'], 0)]] : [])"
         :colorFunction="d => color(d['Jometry Contestant Id'])"
         :yLabel="'Buz$ -> BuzValue -> AttValue'"
         :title="'Attempt Value'"/>

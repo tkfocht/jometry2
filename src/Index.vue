@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { playClassificationName } from '@/configuration'
+import { dataSourceAddress, playClassificationName } from '@/configuration'
 import { csvDataAccessor, gameStatDataFromContestantStatData } from '@/util'
 
 import * as d3 from 'd3'
@@ -9,18 +9,25 @@ import Header from './components/Header.vue'
 import ToggleableGameListing from './components/index/ToggleableGameListing.vue'
 
 const gameStatData = ref(null)
+const celebrityGameStatData = ref(null)
 
-async function fetchData() {
+async function fetchData(dataSourceId) {
   const res = await d3.csv(
-    'https://j-ometry.com/csvs/all_standard.csv',
+    dataSourceAddress(dataSourceId),
     csvDataAccessor
   )
   var resResult = await res
   resResult = gameStatDataFromContestantStatData(resResult)
   resResult.sort((a,b) => d3.descending(a['date'], b['date'] || d3.descending(a['gameInSeason'], b['gameInSeason'])))
-  gameStatData.value = d3.group(resResult, d => d['tocPeriod'], d => d['season'], d => d['playClassification'])
+  if (dataSourceId === 'standard') {
+    gameStatData.value = d3.group(resResult, d => d['tocPeriod'], d => d['season'], d => d['playClassification'])
+  }
+  if (dataSourceId === 'celebrity') {
+    celebrityGameStatData.value = d3.group(resResult, d => d['tocPeriod'], d => d['season'], d => d['playClassification'])
+  }
 }
-fetchData()
+fetchData('standard')
+fetchData('celebrity')
 
 </script>
 
@@ -31,24 +38,38 @@ fetchData()
       <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
         <a :href="'/period.html?toc_period=' + tocPeriod">Summary</a>
         <a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
-        </div>
+      </div>
       <div v-for="season in gameStatData.get(tocPeriod).keys()">
         <div v-for="playClassification in gameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
           <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
             <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
-          <ToggleableGameListing :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
+          <ToggleableGameListing :dataSourceId="'standard'" :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
         </div>
       </div>
     </div>
     <div v-for="tocPeriod in ['T2019','T2018']" class="toc-period">
       <div class="toc-period-header">{{ tocPeriod.substring(1) }} Teen Tournament
         <a :href="'/period.html?toc_period=' + tocPeriod">Summary</a>
-        </div>
+      </div>
       <div v-for="season in gameStatData.get(tocPeriod).keys()">
         <div v-for="playClassification in gameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
           <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
             <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
-          <ToggleableGameListing :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
+          <ToggleableGameListing :dataSourceId="'standard'" :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div v-if="celebrityGameStatData">
+    <div v-for="tocPeriod in ['C2023']" class="toc-period">
+      <div class="toc-period-header">{{ tocPeriod.substring(1) }} Primetime Celebrity Tournament
+        <a :href="'/period.html?data_source=celebrity&toc_period=' + tocPeriod">Summary</a>
+      </div>
+      <div v-for="season in celebrityGameStatData.get(tocPeriod).keys()">
+        <div v-for="playClassification in celebrityGameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
+          <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <a :href="'/period.html?data_source=celebrity&toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
+          <ToggleableGameListing :dataSourceId="'celebrity'" :gameStatData="celebrityGameStatData.get(tocPeriod).get(season).get(playClassification)"/>
         </div>
       </div>
     </div>

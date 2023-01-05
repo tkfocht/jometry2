@@ -6,6 +6,7 @@ var playClassificationName = function(playClassification, season) {
     if (playClassification === 'professors') return 'Professors Tournament'
     if (playClassification === 'teachers') return 'Teachers Tournament'
     if (playClassification === 'teen') return 'Teen Tournament'
+    if (playClassification === 'celebrity') return 'Primetime Celebrity Tournament'
     if (playClassification === 'college') {
         if (season === 'NCC2022') return 'National College Championship'
         return 'College Tournament'
@@ -13,4 +14,13 @@ var playClassificationName = function(playClassification, season) {
     return 'p ' + playClassification
 }
 
-export { playClassificationName };
+var dataSourceAddress = function(dataSourceId) {
+    if (dataSourceId === 'celebrity') {
+        return 'https://j-ometry.com/csvs/PCJ2023_full.csv'
+    }
+    if (dataSourceId === 'standard') {
+        return 'https://j-ometry.com/csvs/all_standard.csv'
+    }
+}
+
+export { playClassificationName, dataSourceAddress };

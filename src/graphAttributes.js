@@ -136,12 +136,15 @@ const ddScoreGraphAttribute = (rounds) => ({
     bins: { size: 1000 }
 })
 
-const djFinalScoreGraphAttribute = (rounds) => ({
-    label: 'End of Regulation $',
-    requiresBox: false,
-    generatingFunctions: [d => d['DJFinal$'], d => d['DJFinal$'], d => d['DJFinal$']].concat(rounds >= 3 ? [d => d['TJFinal$']] : []),
-    bins: { size: 1000 }
-})
+const djFinalScoreGraphAttribute = (rounds) => {
+    const generatingFunction = d => rounds >= 3 ? d['TJFinal$'] : d['DJFinal$']
+    return {
+        label: 'End of Regulation $',
+        requiresBox: false,
+        generatingFunctions: [generatingFunction, generatingFunction, generatingFunction].concat(rounds >= 3 ? [generatingFunction] : []),
+        bins: { size: 1000 }
+    }
+}
 
 const endOfRegulationBuzScoreRatio = (rounds) => ({
     label: 'End of Regulation Buz$ Lead Ratio',

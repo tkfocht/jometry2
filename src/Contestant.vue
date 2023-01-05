@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { averageData, csvDataAccessor, formatNumber, dateFormat } from '@/util'
+import { dataSourceAddress } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
 import Footer from './components/Footer.vue'
@@ -11,20 +12,23 @@ import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
+const dataSourceString = urlParams.get('data_source')
+const dataSourceId = dataSourceString ? dataSourceString : 'standard'
+
 const contestantId = +urlParams.get('contestant_id')
 
 const allContestantStatData = ref(null)
 const displayRounds = ref(2)
 
-async function fetchContestantStatData() {
+async function fetchContestantStatData(dataSourceId) {
   const res = await d3.csv(
-    'https://j-ometry.com/csvs/all_standard.csv',
+    dataSourceAddress(dataSourceId),
     csvDataAccessor
   )
   var resResult = await res
   allContestantStatData.value = resResult
 }
-fetchContestantStatData()
+fetchContestantStatData(dataSourceId)
 
 const contestantStatData = computed(() => {
   if (allContestantStatData.value) return d3.filter(allContestantStatData.value, d => d['Jometry Contestant Id'] === contestantId)
@@ -81,7 +85,7 @@ function gameLink (contestantGameStatData) {
   if (contestantGameStatData['Contestant'] === 'Contestant Avg' || 
     contestantGameStatData['Contestant'] === 'Winners Avg' ||
     contestantGameStatData['Contestant'] === 'All Avg') return contestantGameStatData['Contestant']
-  return '<a href="/game.html?game_id=' + 
+  return '<a href="/game.html?data_source=' + dataSourceId + '&game_id=' + 
     contestantGameStatData['Jometry Game Id'] + 
     '">' + contestantGameStatData['Season'] + '-' + contestantGameStatData['Game In Season'] + '</a>&nbsp;' + dateFormat(contestantGameStatData['Date'])
 }

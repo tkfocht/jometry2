@@ -5,7 +5,8 @@ import * as d3 from 'd3'
 
 const showGames = ref(false)
 const props = defineProps({
-  gameStatData: Array
+  gameStatData: Array,
+  dataSourceId: String
 })
 
 function toggleGames() {
@@ -23,7 +24,7 @@ function toggleGames() {
         <table class="game-list">
             <tbody>
                 <tr v-for="game in gameStatData">
-                    <td><a :href="'game.html?game_id=' + game.gameId">Season {{ game.season }} Game {{ game.gameInSeason }}</a></td>
+                    <td><a :href="'game.html?data_source=' + dataSourceId + '&game_id=' + game.gameId">Season {{ game.season }} Game {{ game.gameInSeason }}</a></td>
                     <td>{{ dateFormat(game.date) }}</td>
                     <td>{{ d3.map(game.contestants, c => c.name).join(' vs ') }}</td>
                 </tr>
