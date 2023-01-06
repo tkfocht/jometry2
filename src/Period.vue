@@ -20,6 +20,8 @@ const tocPeriodSearchParameterString = urlParams.get('toc_period')
 const playClassificationSearchParameterString = urlParams.get('play_classification')
 
 const winThresholdString = urlParams.get('win_threshold')
+const winLimitString = urlParams.get('win_limit')
+const graphDisplayLimitString = urlParams.get('graph_display_limit')
 const displayContestantIdsString = urlParams.get('contestants')
 
 const allContestantStatData = ref(null)
@@ -82,14 +84,19 @@ const displayContestantIds = computed(() => {
   if (!filteredAllContestantStatData.value) return undefined
   const winRollup = d3.rollup(filteredAllContestantStatData.value, v => d3.sum(v, d1 => d1['Wins']), d => d['Jometry Contestant Id'])
   const winScoreRollup = d3.rollup(filteredAllContestantStatData.value, v => d3.sum(v, d1 => d1['Win$']), d => d['Jometry Contestant Id'])
+  const finalScoreRollup = d3.rollup(filteredAllContestantStatData.value, v => d3.sum(v, d1 => d1['FJFinal$']), d => d['Jometry Contestant Id'])
   const contestantIds = Array.from(winRollup.keys())
-  contestantIds.sort((a,b) => d3.descending(winRollup.get(a), winRollup.get(b)) || d3.descending(winScoreRollup.get(a), winScoreRollup.get(b)))
+  contestantIds.sort((a,b) => d3.descending(winRollup.get(a), winRollup.get(b)) || d3.descending(winScoreRollup.get(a), winScoreRollup.get(b)) || d3.descending(finalScoreRollup.get(a), finalScoreRollup.get(b)))
   if (contestantIds.length <= 10) {
     return contestantIds
   }
   var winThreshold = winThresholdString ? +winThresholdString : Math.max(Math.min(winRollup.get(contestantIds[9]), 4), contestantIds.length > 21 ? 1 + winRollup.get(contestantIds[20]) : 0)
-  return d3.filter(contestantIds, i => winRollup.get(i) >= winThreshold)
+  //Okay fine, if anyone ever wins 10001 games this will be a bug,
+  //but truthy values are weird when winLimit=0 is a primary case
+  var winLimit = winLimitString ? +winLimitString : 10000
+  return d3.filter(contestantIds, i => winRollup.get(i) >= winThreshold && winRollup.get(i) <= winLimit)
 })
+const graphDisplayLimit = ref(graphDisplayLimitString ? +graphDisplayLimitString : undefined)
 
 const colorSet = computed(() => {
   if (!displayContestantIds.value) return undefined
@@ -405,6 +412,9 @@ const boxWhiskerGraphSpecification = computed(() => {
     d3.mean(filteredAllContestantStatDataByContestant.value.get(a), boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value]),
     d3.mean(filteredAllContestantStatDataByContestant.value.get(b), boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value])
   ))
+  if (graphDisplayLimit.value) {
+    sortedKeys = sortedKeys.slice(0, graphDisplayLimit.value)
+  }
   return {
     dataByKey: filteredAllContestantStatDataByContestant.value,
     orderedKeys: sortedKeys,
@@ -460,6 +470,7 @@ const attemptBarChartSpecification = computed(() => ({
   yFunctionGroups: [[d => formatNumber(d['mean']['BuzC'],1,false), d => formatNumber(d['mean']['Buz'],1,false), d => formatNumber(d['mean']['Att'],1,false)]],
   colorFunction: d => color.value(d['Jometry Contestant Id']),
   sortFunction: (a,b) => d3.descending(a['mean']['BuzC'], b['mean']['BuzC']),
+  displayLimit: graphDisplayLimit.value,
   yLabel: 'BuzC -> Buz -> Att',
   title: 'Attempts'
 }))
@@ -471,6 +482,7 @@ const attemptValueBarChartSpecification = computed(() => ({
   yFunctionGroups: [[d => formatNumber(d['mean']['Buz$'],0), d => formatNumber(d['mean']['BuzValue'],0), d => formatNumber(d['mean']['AttValue'],0)]],
   colorFunction: d => color.value(d['Jometry Contestant Id']),
   sortFunction: (a,b) => d3.descending(a['mean']['Buz$'], b['mean']['Buz$']),
+  displayLimit: graphDisplayLimit.value,
   yLabel: 'Buz$ -> BuzV -> AttV',
   title: 'Attempt Values'
 }))

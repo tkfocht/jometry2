@@ -10,6 +10,7 @@ const props = defineProps({
   yFunctionGroups: Array,
   colorFunction: Function,
   sortFunction: Function,
+  displayLimit: Number,
   title: String,
   yLabel: String
 })
@@ -19,6 +20,7 @@ const sortedData = computed(() => {
   if (!props.sortFunction) return props.data
   const sortedData = props.data.slice()
   sortedData.sort(props.sortFunction)
+  if (props.displayLimit) return sortedData.slice(0, props.displayLimit)
   return sortedData
 })
 
