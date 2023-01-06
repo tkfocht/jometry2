@@ -299,7 +299,7 @@ const gameStatisticPanels = computed(() => {
       ]
   if (gameRounds.value >= 3) {
     columns.push(
-      { label: 'TJ Contention', attributeFunction: d => d['TJContention'], description: 'Percentage of clues attempted by multiple contestants in Triple Jeopardy round'}
+      { label: 'TJ Contention', attributeFunction: d => formatNumber(100 * d['TJContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Triple Jeopardy round'}
     )
   } 
   return [
