@@ -5,7 +5,7 @@
             <span class="navigation-item"><a href="/">Home</a></span>
             <span class="navigation-item"><a href="/contestant_index.html">Contestant&nbsp;Index</a></span>
             <span class="navigation-item"><a href="/glossary.html">Glossary</a></span>
-            <span class="navigation-item"><a href="/blog.html">Blog</a></span>
+            <span class="navigation-item"><a href="https:///jometry.substack.com">Substack</a></span>
             <span class="navigation-item"><a href="/about.html">About</a></span>
         </div>
     </div>
