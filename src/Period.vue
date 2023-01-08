@@ -192,7 +192,7 @@ const leaderboardTablePanels = computed(() => {
         { label: 'DDF', sortValueFunction: d => d['sum']['DDF'], attributeFunction: d => formatNumber(d['sum']['DDF'], 0)},
         { label: 'DD+', sortValueFunction: d => d['sum']['DD+'], attributeFunction: d => formatNumber(d['sum']['DD+'], 1, false, true)},
         { label: 'DD$', sortValueFunction: d => d['sum']['DD$'], attributeFunction: d => formatNumber(d['sum']['DD$'], 0, false)},
-        { label: 'FJ', sortValueFunction: d => d['sum']['FJCor'], attributeFunction: d => formatNumber(d['sum']['FJCor'], 0, false) + '/' + formatNumber(d['count']['FJFinal$'], 0, false)},
+        { label: 'FJ', sortValueFunction: d => d['sum']['FJCor'] === undefined ? 0 : d['sum']['FJCor'], attributeFunction: d => formatNumber(d['sum']['FJCor'] === undefined ? 0 : d['sum']['FJCor'], 0, false) + '/' + formatNumber(d['count']['FJCor'] === undefined ? 0 : d['count']['FJCor'], 0, false)},
         { label: 'FJ$', sortValueFunction: d => d['sum']['FJ$'], attributeFunction: d => formatNumber(d['sum']['FJ$'], 0, false)},
       ]
     },
