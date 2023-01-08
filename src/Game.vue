@@ -198,9 +198,60 @@ const scoringTablePanels = computed(() => {
   return [
     {
       label: 'Standard',
-      columns: columns
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'Buz', attributeFunction: d => d['Buz'], description: 'Buzzes'},
+        { label: 'BuzC', attributeFunction: d => d['BuzC'], description: 'Correct responses on buzzes'},
+        { label: 'Buz$', attributeFunction: d => d['Buz$'], description: 'Score on buzzing'},
+        { label: 'DDF', attributeFunction: d => d['DDF'], description: 'Daily Doubles found'},
+        { label: 'DD+', sortValueFunction: d => d['DD+'], attributeFunction: d => formatNumber(d['DD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
+        { label: 'DD$', attributeFunction: d => d['DD$'], description: 'Score on Daily Doubles'},
+        { label: 'FJStart$', attributeFunction: d => gameRounds.value >= 3 ? d['TJFinal$'] : d['DJFinal$'], description: 'Score at end of regular play'},
+        { label: 'FJ$', attributeFunction: d => d['FJ$'], description: 'Score change in Final Jeopardy'},
+        { label: 'FJFinal$', attributeFunction: d => d['FJFinal$'], description: 'Score at end of Final Jeopardy'},
+      ]
+    },
+    {
+      label: 'Standard (J)',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'Buz', attributeFunction: d => d['JBuz'], description: 'Buzzes'},
+        { label: 'BuzC', attributeFunction: d => d['JBuzC'], description: 'Correct responses on buzzes'},
+        { label: 'Buz$', attributeFunction: d => d['JBuz$'], description: 'Score on buzzing'},
+        { label: 'DDF', attributeFunction: d => d['JDDF'], description: 'Daily Doubles found'},
+        { label: 'DD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
+        { label: 'DD$', attributeFunction: d => d['JDD$'], description: 'Score on Daily Doubles'},
+        { label: 'JFinal$', attributeFunction: d => d['JFinal$'], description: 'Score at end of round'},
+      ]
+    },
+    {
+      label: 'Standard (DJ)',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'Buz', attributeFunction: d => d['DJBuz'], description: 'Buzzes'},
+        { label: 'BuzC', attributeFunction: d => d['DJBuzC'], description: 'Correct responses on buzzes'},
+        { label: 'Buz$', attributeFunction: d => d['DJBuz$'], description: 'Score on buzzing'},
+        { label: 'DDF', attributeFunction: d => d['DJDDF'], description: 'Daily Doubles found'},
+        { label: 'DD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
+        { label: 'DD$', attributeFunction: d => d['DJDD$'], description: 'Score on Daily Doubles'},
+        { label: 'DJFinal$', attributeFunction: d => d['DJFinal$'], description: 'Score at end ofround'},
+      ]
     }
-  ]
+  ].concat(gameRounds.value >= 3 ? [
+    {
+      label: 'Standard (TJ)',
+      columns: [
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
+        { label: 'Buz', attributeFunction: d => d['TJBuz'], description: 'Buzzes'},
+        { label: 'BuzC', attributeFunction: d => d['TJBuzC'], description: 'Correct responses on buzzes'},
+        { label: 'Buz$', attributeFunction: d => d['TJBuz$'], description: 'Score on buzzing'},
+        { label: 'DDF', attributeFunction: d => d['TJDDF'], description: 'Daily Doubles found'},
+        { label: 'DD+', sortValueFunction: d => d['TJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
+        { label: 'DD$', attributeFunction: d => d['TJDD$'], description: 'Score on Daily Doubles'},
+        { label: 'TJFinal$', attributeFunction: d => d['TJFinal$'], description: 'Score at end ofround'},
+      ]
+    }
+  ] : [])
 })
 
 const conversionMetricTablePanels = computed(() => {
@@ -211,16 +262,18 @@ const conversionMetricTablePanels = computed(() => {
         { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['Att'], description: 'Attempts'},
         { label: 'Buz', attributeFunction: d => d['Buz'], description: 'Buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(d['Buz%'], 1, false, false), description: 'Buz as percentage of Att'},
+        { label: 'Buz%', attributeFunction: d => formatNumber(d['Buz%'], 1, false, false), description: 'Buz as percentage of Att'},
         { label: 'BuzC', attributeFunction: d => d['BuzC'], description: 'Correct responses on buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Buz'], 1, false, false), description: 'BuzC as percentage of Buz'},
+        { label: 'Acc%', attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Buz'], 1, false, false), description: 'Accuracy: BuzC as percentage of Buz'},
+        { label: 'Conv%', attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Att'], 1, false, false), description: 'Conversion: BuzC as percentage of Att'},
         { label: 'Time', sortValueFunction: d => d['Timing'], attributeFunction: d => formatNumber(d['Timing'], 1, false, true), description: 'Estimated buzzes earned through timing'},
         { label: 'Solo', attributeFunction: d => formatNumber(d['Solo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
         { label: 'AttV', attributeFunction: d => formatNumber(d['AttValue'], 0, false, false), description: 'Estimated clue value attempted'},
         { label: 'BuzV', attributeFunction: d => d['BuzValue'], description: 'Clue value buzzed in on'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['BuzValue'] / d['AttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
+        { label: 'BuzV%', attributeFunction: d => formatNumber(100.0 * d['BuzValue'] / d['AttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
         { label: 'Buz$', attributeFunction: d => d['Buz$'], description: 'Score on buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['BuzValue'], 1, false, false), description: 'Buz$ as percentage of BuzV'},
+        { label: 'AccV%', attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['BuzValue'], 1, false, false), description: 'Accuracy Value: Buz$ as percentage of BuzV'},
+        { label: 'ConvV%', attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['AttValue'], 1, false, false), description: 'Conversion Value: Buz$ as percentage of AttV'},
         { label: 'TimeV', sortValueFunction: d => d['TimingValue'], attributeFunction: d => formatNumber(d['TimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
         { label: 'SoloV', attributeFunction: d => formatNumber(d['SoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
       ]
@@ -231,16 +284,18 @@ const conversionMetricTablePanels = computed(() => {
         { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['JAtt'], description: 'Attempts'},
         { label: 'Buz', attributeFunction: d => d['JBuz'], description: 'Buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(d['JBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
+        { label: 'Buz%', attributeFunction: d => formatNumber(d['JBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
         { label: 'BuzC', attributeFunction: d => d['JBuzC'], description: 'Correct responses on buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JBuz'], 1, false, false), description: 'BuzC as percentage of Buz'},
+        { label: 'Acc%', attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JBuz'], 1, false, false), description: 'Accuracy: BuzC as percentage of Buz'},
+        { label: 'Conv%', attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JAtt'], 1, false, false), description: 'Conversion: BuzC as percentage of Att'},
         { label: 'Time', sortValueFunction: d => d['JTiming'], attributeFunction: d => formatNumber(d['JTiming'], 1, false, true), description: 'Estimated buzzes earned through timing'},
         { label: 'Solo', attributeFunction: d => formatNumber(d['JSolo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
         { label: 'AttV', attributeFunction: d => formatNumber(d['JAttValue'], 0, false, false), description: 'Estimated clue value attempted'},
         { label: 'BuzV', attributeFunction: d => d['JBuzValue'], description: 'Clue value buzzed in on'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuzValue'] / d['JAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
+        { label: 'BuzV%', attributeFunction: d => formatNumber(100.0 * d['JBuzValue'] / d['JAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
         { label: 'Buz$', attributeFunction: d => d['JBuz$'], description: 'Score on buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JBuzValue'], 1, false, false), description: 'Buz$ as percentage of BuzV'},
+        { label: 'AccV%', attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JBuzValue'], 1, false, false), description: 'Accuracy Value: Buz$ as percentage of BuzV'},
+        { label: 'ConvV%', attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JAttValue'], 1, false, false), description: 'Conversion Value: Buz$ as percentage of AttV'},
         { label: 'TimeV', sortValueFunction: d => d['JTimingValue'], attributeFunction: d => formatNumber(d['JTimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
         { label: 'SoloV', attributeFunction: d => formatNumber(d['JSoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
       ]
@@ -251,16 +306,18 @@ const conversionMetricTablePanels = computed(() => {
         { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['DJAtt'], description: 'Attempts'},
         { label: 'Buz', attributeFunction: d => d['DJBuz'], description: 'Buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
+        { label: 'Buz%', attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
         { label: 'BuzC', attributeFunction: d => d['DJBuzC'], description: 'Correct responses on buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false), description: 'BuzC as percentage of Buz'},
+        { label: 'Acc%', attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false), description: 'Accuracy: BuzC as percentage of Buz'},
+        { label: 'Conv%', attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false), description: 'Conversion: BuzC as percentage of Buz'},
         { label: 'Time', sortValueFunction: d => d['DJTiming'], attributeFunction: d => formatNumber(d['DJTiming'], 1, false, true), description: 'Estimated buzzes earned through timing'},
         { label: 'Solo', attributeFunction: d => formatNumber(d['DJSolo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
         { label: 'AttV', attributeFunction: d => formatNumber(d['DJAttValue'], 0, false, false), description: 'Estimated clue value attempted'},
         { label: 'BuzV', attributeFunction: d => d['DJBuzValue'], description: 'Clue value buzzed in on'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuzValue'] / d['DJAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
+        { label: 'BuzV%', attributeFunction: d => formatNumber(100.0 * d['DJBuzValue'] / d['DJAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
         { label: 'Buz$', attributeFunction: d => d['DJBuz$'], description: 'Score on buzzes'},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJBuzValue'], 1, false, false), description: 'Buz$ as percentage of BuzV'},
+        { label: 'AccV%', attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJBuzValue'], 1, false, false), description: 'Accuracy Value: Buz$ as percentage of BuzV'},
+        { label: 'ConvV%', attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJAttValue'], 1, false, false), description: 'Conversion Value: Buz$ as percentage of AttV'},
         { label: 'TimeV', sortValueFunction: d => d['DJTimingValue'], attributeFunction: d => formatNumber(d['DJTimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
         { label: 'SoloV', attributeFunction: d => formatNumber(d['DJSoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
       ]
@@ -273,16 +330,18 @@ const conversionMetricTablePanels = computed(() => {
         { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['TJAtt']},
         { label: 'Buz', attributeFunction: d => d['TJBuz']},
-        { label: '%', attributeFunction: d => formatNumber(d['TJBuz%'], 1, false, false)},
+        { label: 'Buz%', attributeFunction: d => formatNumber(d['TJBuz%'], 1, false, false)},
         { label: 'BuzC', attributeFunction: d => d['TJBuzC']},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['TJBuzC'] / d['TJBuz'], 1, false, false)},
+        { label: 'Acc%', attributeFunction: d => formatNumber(100.0 * d['TJBuzC'] / d['TJBuz'], 1, false, false), description: 'Accuracy: BuzC as percentage of Buz'},
+        { label: 'Conv%', attributeFunction: d => formatNumber(100.0 * d['TJBuzC'] / d['TJBuz'], 1, false, false), description: 'Conversion: BuzC as percentage of Att'},
         { label: 'Time', sortValueFunction: d => d['TJTiming'], attributeFunction: d => formatNumber(d['TJTiming'], 1, false, true)},
         { label: 'Solo', attributeFunction: d => formatNumber(d['TJSolo'], 1, false, false)},
         { label: 'AttV', attributeFunction: d => formatNumber(d['TJAttValue'], 0, false, false)},
         { label: 'BuzV', attributeFunction: d => d['TJBuzValue']},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['TJBuzValue'] / d['TJAttValue'], 1, false, false)},
+        { label: 'BuzV%', attributeFunction: d => formatNumber(100.0 * d['TJBuzValue'] / d['TJAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
         { label: 'Buz$', attributeFunction: d => d['TJBuz$']},
-        { label: '%', attributeFunction: d => formatNumber(100.0 * d['TJBuz$'] / d['TJBuzValue'], 1, false, false)},
+        { label: 'AccV%', attributeFunction: d => formatNumber(100.0 * d['TJBuz$'] / d['TJBuzValue'], 1, false, false), description: 'Accuracy Value: Buz$ as percentage of BuzV'},
+        { label: 'ConvV%', attributeFunction: d => formatNumber(100.0 * d['TJBuz$'] / d['TJAttValue'], 1, false, false), description: 'Conversion Value: Buz$ as percentage of AttV'},
         { label: 'TimeV', sortValueFunction: d => d['TJTimingValue'], attributeFunction: d => formatNumber(d['TJTimingValue'], 0, false, true)},
         { label: 'SoloV', attributeFunction: d => formatNumber(d['TJSoloValue'], 0, false, false)}
       ]
@@ -292,22 +351,45 @@ const conversionMetricTablePanels = computed(() => {
 })
 
 const gameStatisticPanels = computed(() => {
-  var columns = [
-        { label: 'Date', attributeFunction: d => dateFormat(d['date'])},
-        { label: 'J Contention', attributeFunction: d => formatNumber(100 * d['JContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Jeopardy round'},
-        { label: 'DJ Contention', attributeFunction: d => formatNumber(100 * d['DJContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Double Jeopardy round'}
-      ]
-  if (gameRounds.value >= 3) {
-    columns.push(
-      { label: 'TJ Contention', attributeFunction: d => formatNumber(100 * d['TJContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Triple Jeopardy round'}
-    )
-  } 
   return [
     {
-      label: 'Contention',
-      columns: columns
+      label: 'Game',
+      columns: [
+        { label: 'Date', attributeFunction: d => dateFormat(d['date'])},
+        { label: 'Buz$', attributeFunction: d => d['Buz$']},
+        { label: 'BuzC$', attributeFunction: d => d['BuzC$']},
+        { label: 'Contention', attributeFunction: d => formatNumber(100 * d['Contention'], 1, false), description: 'Percentage of clues attempted by multiple contestants averages across rounds'},
+      ]
+    },
+    {
+      label: 'J',
+      columns: [
+        { label: 'Date', attributeFunction: d => dateFormat(d['date'])},
+        { label: 'Buz$', attributeFunction: d => d['JBuz$']},
+        { label: 'BuzC$', attributeFunction: d => d['JBuzC$']},
+        { label: 'Contention', attributeFunction: d => formatNumber(100 * d['JContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Jeopardy round'},
+      ]
+    },
+    {
+      label: 'DJ',
+      columns: [
+        { label: 'Date', attributeFunction: d => dateFormat(d['date'])},
+        { label: 'Buz$', attributeFunction: d => d['DJBuz$']},
+        { label: 'BuzC$', attributeFunction: d => d['DJBuzC$']},
+        { label: 'Contention', attributeFunction: d => formatNumber(100 * d['DJContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Double Jeopardy round'},
+      ]
     }
-  ]
+  ].concat(gameRounds.value >= 3 ? [
+    {
+      label: 'TJ',
+      columns: [
+        { label: 'Date', attributeFunction: d => dateFormat(d['date'])},
+        { label: 'Buz$', attributeFunction: d => d['TJBuz$']},
+        { label: 'BuzC$', attributeFunction: d => d['TJBuzC$']},
+        { label: 'Contention', attributeFunction: d => formatNumber(100 * d['TJContention'], 1, false), description: 'Percentage of clues attempted by multiple contestants in Triple Jeopardy round'},
+      ]
+    }
+  ] : [])
 })
 
 const allContestantStatDataWithBox = computed(() => {

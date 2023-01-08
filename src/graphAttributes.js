@@ -13,7 +13,7 @@ const buzGraphAttribute = (rounds) => ({
 })
 
 const attBuzConversionGraphAttribute = (rounds) => ({
-    label: 'Buz/Att %',
+    label: 'Buz%',
     requiresBox: false,
     generatingFunctions: [d => d['Att'] === undefined ? undefined : 100.0 * d['Buz'] / d['Att'], 
         d => d['JAtt'] === undefined ? undefined : 100.0 * d['JBuz'] / d['JAtt'], 
@@ -29,7 +29,7 @@ const buzCGraphAttribute = (rounds) => ({
 })
 
 const buzBuzCConversionGraphAttribute = (rounds) => ({
-    label: 'BuzC/Buz %',
+    label: 'Acc%',
     requiresBox: false,
     generatingFunctions: [d => 100.0 * d['BuzC'] / d['Buz'], 
         d => 100.0 * d['JBuzC'] / d['JBuz'], 
@@ -38,7 +38,7 @@ const buzBuzCConversionGraphAttribute = (rounds) => ({
 })
 
 const attBuzCConversionGraphAttribute = (rounds) => ({
-    label: 'BuzC/Att %',
+    label: 'Conv%',
     requiresBox: false,
     generatingFunctions: [d => d['Att'] === undefined ? undefined : 100.0 * d['BuzC'] / d['Att'], 
         d => d['JAtt'] === undefined ? undefined : 100.0 * d['JBuzC'] / d['JAtt'], 
@@ -61,7 +61,7 @@ const buzValueGraphAttribute = (rounds) => ({
 })
 
 const attValueBuzValueConversionGraphAttribute = (rounds) => ({
-    label: 'BuzV/AttV %',
+    label: 'BuzValue%',
     requiresBox: false,
     generatingFunctions: [d => d['AttValue'] === undefined ? undefined : 100.0 * d['BuzValue'] / d['AttValue'], 
         d => d['JAttValue'] === undefined ? undefined : 100.0 * d['JBuzValue'] / d['JAttValue'], 
@@ -77,7 +77,7 @@ const buzScoreGraphAttribute = (rounds) => ({
 })
 
 const buzValueScoreConversionGraphAttribute = (rounds) => ({
-    label: 'Buz$/BuzV %',
+    label: 'AccValue%',
     requiresBox: false,
     generatingFunctions: [d => 100.0 * d['Buz$'] / d['BuzValue'], 
         d => 100.0 * d['JBuz$'] / d['JBuzValue'], 
@@ -86,7 +86,7 @@ const buzValueScoreConversionGraphAttribute = (rounds) => ({
 })
 
 const attValueBuzScoreConversionGraphAttribute = (rounds) => ({
-    label: 'Buz$/AttV %',
+    label: 'ConvValue%',
     requiresBox: false,
     generatingFunctions: [d => d['AttValue'] === undefined ? undefined : 100.0 * d['Buz$'] / d['AttValue'], 
         d => d['JAttValue'] === undefined ? undefined : 100.0 * d['JBuz$'] / d['JAttValue'], 
@@ -139,7 +139,7 @@ const ddScoreGraphAttribute = (rounds) => ({
 const djFinalScoreGraphAttribute = (rounds) => {
     const generatingFunction = d => rounds >= 3 ? d['TJFinal$'] : d['DJFinal$']
     return {
-        label: 'End of Regulation $',
+        label: 'FJStart$',
         requiresBox: false,
         generatingFunctions: [generatingFunction, generatingFunction, generatingFunction].concat(rounds >= 3 ? [generatingFunction] : []),
         bins: { size: 1000 }
@@ -147,14 +147,14 @@ const djFinalScoreGraphAttribute = (rounds) => {
 }
 
 const endOfRegulationBuzScoreRatio = (rounds) => ({
-    label: 'End of Regulation Buz$ Lead Ratio',
+    label: 'FJStart Buz$ Lead Ratio',
     requiresBox: false,
     generatingFunctions: [d => d['Buz$LeadRatio'], d => d['Buz$LeadRatio'], d => d['Buz$LeadRatio']].concat(rounds >= 3 ? [d => d['Buz$LeadRatio']] : []),
     bins: { size: 0.2 }
 })
 
 const endOfRegulationRatio = (rounds) => ({
-    label: 'End of Regulation Lead Ratio',
+    label: 'FJStart Lead Ratio',
     requiresBox: false,
     generatingFunctions: [d => d['LeadRatio'], d => d['LeadRatio'], d => d['LeadRatio']].concat(rounds >= 3 ? [d => d['LeadRatio']] : []),
     bins: { size: 0.2 }

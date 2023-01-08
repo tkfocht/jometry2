@@ -94,9 +94,13 @@ function displayPanelRight() {
 .table-display-control-tab {
     padding: 0.25em 0.5em;
     cursor: pointer;
-    border-width: 1px 1px 0 1px;
+    border-width: 1px 1px 0 0;
     border-color: #999999;
     border-style: solid;
+}
+
+.table-display-control-tab:first-child {
+    border-left-width: 1px;
 }
 
 .table-display-control-tab.current {
@@ -128,11 +132,16 @@ th.tooltip:hover span.tooltiptext {
 table {
     border-collapse: collapse;
     font-size: 13px;
+    width: 100%;
 }
 
 table th, table td {
     padding: 2px 5px;
     border: 1px solid #999999;
+}
+
+table tr:hover td {
+    background-color: #EEEEEE;
 }
 
 table td {

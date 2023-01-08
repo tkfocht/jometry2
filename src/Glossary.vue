@@ -9,6 +9,18 @@ import Header from './components/Header.vue'
     <div class="section">
       <h1>Statistics</h1>
       <div class="entry">
+        <h2>Acc%: Accuracy</h2>
+        <div class="definition">
+          Percentage of buzzes that are correct: BuzC / Buz.
+        </div>
+      </div>
+      <div class="entry">
+        <h2>AccValue% (AccV%): Accuracy Value</h2>
+        <div class="definition">
+          Percentage of buzz value that becomes buzz score: Buz$ / BuzValue.
+        </div>
+      </div>
+      <div class="entry">
         <h2>Att: Attempts</h2>
         <div class="definition">
           Number of attempts to ring in, as given in the box score.
@@ -40,6 +52,18 @@ import Header from './components/Header.vue'
             this site was based soley on the box scores, and Coryat is not derivable from them. After that,
             I mostly just decided I liked Buz$ as an in-game contestant statistic better, as it only covers clues available
             to all players. I do believe Coryat is better for comparing performance at home, though.
+        </div>
+      </div>
+      <div class="entry">
+        <h2>Conv%: Conversion</h2>
+        <div class="definition">
+          Percentage of attempts that are correct buzzes: BuzC / Att.
+        </div>
+      </div>
+      <div class="entry">
+        <h2>ConvValue% (ConvV%): Conversion Value</h2>
+        <div class="definition">
+          Percentage of attempt value that becomes buzz score: Buz$ / AttValue.
         </div>
       </div>
       <div class="entry">

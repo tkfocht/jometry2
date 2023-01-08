@@ -66,10 +66,29 @@ var csvDataAccessor = function(row) {
     r['JBuzC%'] = 100.0 * r['JBuzC'] / r['JBuz'];
     r['DJBuzC%'] = 100.0 * r['DJBuzC'] / r['DJBuz'];
     r['TJBuzC%'] = 100.0 * r['TJBuzC'] / r['TJBuz'];
+    r['Acc%'] = 100.0 * r['BuzC'] / r['Buz'];
+    r['JAcc%'] = 100.0 * r['JBuzC'] / r['JBuz'];
+    r['DJAcc%'] = 100.0 * r['DJBuzC'] / r['DJBuz'];
+    r['TJAcc%'] = 100.0 * r['TJBuzC'] / r['TJBuz'];
+    r['Conv%'] = r['Att'] === undefined ? undefined : 100.0 * r['BuzC'] / r['Att'];
+    r['JConv%'] = r['JAtt'] === undefined ? undefined : 100.0 * r['JBuzC'] / r['JAtt'];
+    r['DJConv%'] = r['DJAtt'] === undefined ? undefined : 100.0 * r['DJBuzC'] / r['DJAtt'];
+    r['TJConv%'] = r['TJAtt'] === undefined ? undefined : 100.0 * r['TJBuzC'] / r['TJAtt'];
     r['BuzC$'] = r['JBuzC$'] + r['DJBuzC$'] + ('TJBuzC$' in r ? r['TJBuzC$'] : 0);
     r['BuzI$'] = r['JBuzI$'] + r['DJBuzI$'] + ('TJBuzI$' in r ? r['TJBuzI$'] : 0);
     r['BuzValue%'] = r['AttValue'] === undefined ? undefined : 100.0 * r['BuzValue'] / r['AttValue'];
+    r['JBuzValue%'] = r['JAttValue'] === undefined ? undefined : 100.0 * r['JBuzValue'] / r['JAttValue'];
+    r['DJBuzValue%'] = r['DJAttValue'] === undefined ? undefined : 100.0 * r['DJBuzValue'] / r['DJAttValue'];
+    r['TJBuzValue%'] = r['TJAttValue'] === undefined ? undefined : 100.0 * r['TJBuzValue'] / r['TJAttValue'];
     r['Buz$%'] = 100.0 * r['Buz$'] / r['BuzValue'];
+    r['AccValue%'] = 100.0 * r['Buz$'] / r['BuzValue'];
+    r['JAccValue%'] = 100.0 * r['JBuz$'] / r['JBuzValue'];
+    r['DJAccValue%'] = 100.0 * r['DJBuz$'] / r['DJBuzValue'];
+    r['TJAccValue%'] = 100.0 * r['TJBuz$'] / r['TJBuzValue'];
+    r['ConvValue%'] = r['AttValue'] === undefined ? undefined : 100.0 * r['Buz$'] / r['AttValue'];
+    r['JConvValue%'] = r['JAttValue'] === undefined ? undefined : 100.0 * r['JBuz$'] / r['JAttValue'];
+    r['DJConvValue%'] = r['DJAttValue'] === undefined ? undefined : 100.0 * r['DJBuz$'] / r['DJAttValue'];
+    r['TJConvValue%'] = r['TJAttValue'] === undefined ? undefined : 100.0 * r['TJBuz$'] / r['TJAttValue'];
     r['DDF'] = r['JDDF'] + r['DJDDF'] + ('TJDDF' in r ? r['TJDDF'] : 0);
     r['DD+'] = r['JDD+'] + r['DJDD+'] + ('TJDD+' in r ? r['TJDD+'] : 0);
     r['JDD$'] = d3.sum(d3.map(['JDD'], k => r[k] === undefined ? 0 : r[k]));
@@ -116,6 +135,15 @@ var gameStatDataFromContestantStatData = function(data) {
             'JContention': gameData[0]['JGCon'],
             'DJContention': gameData[0]['DJGCon'],
             'TJContention': gameData[0]['TJGCon'],
+            'Contention': d3.mean([gameData[0]['JGCon'], gameData[0]['DJGCon']].concat(gameData[0]['TJGCon'] ? [gameData[0]['TJGCon']] : [])),
+            'JBuz$': d3.sum(d3.map(gameData, gd => gd['JBuz$'])),
+            'DJBuz$': d3.sum(d3.map(gameData, gd => gd['DJBuz$'])),
+            'TJBuz$': d3.sum(d3.map(gameData, gd => gd['TJBuz$'])),
+            'Buz$': d3.sum(d3.map(gameData, gd => gd['Buz$'])),
+            'JBuzC$': d3.sum(d3.map(gameData, gd => gd['JBuzC$'])),
+            'DJBuzC$': d3.sum(d3.map(gameData, gd => gd['DJBuzC$'])),
+            'TJBuzC$': d3.sum(d3.map(gameData, gd => gd['TJBuzC$'])),
+            'BuzC$': d3.sum(d3.map(gameData, gd => gd['BuzC$'])),
         }));
 }
 
