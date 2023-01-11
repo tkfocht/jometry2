@@ -50,7 +50,6 @@ var csvDataAccessor = function(row) {
             }
         }
     }
-    if (r['Jometry Contestant Id'] == 752) console.log(r);
     if (r['FJCor'] === '') r['FJCor'] = undefined;
 
     r['Buz%'] = r['Att'] === undefined ? undefined : 100.0 * r['Buz'] / r['Att'];
