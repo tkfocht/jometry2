@@ -30,6 +30,10 @@ const traces = computed(() => {
         marker: {
             size: 4,
             color: color,
+            line: {
+              color: 'black',
+              width: 1
+            }
         },
         fillcolor: color,
         line: {

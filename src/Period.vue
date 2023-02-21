@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { rollupData, csvDataAccessor, formatNumber } from '@/util'
+import { rollupData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, movingAverageOfLast } from '@/util'
 import { dataSourceAddress, playClassificationName } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
@@ -8,6 +8,7 @@ import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
+import LineChart from './components/util/LineChart.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
@@ -25,6 +26,7 @@ const graphDisplayLimitString = urlParams.get('graph_display_limit')
 const displayContestantIdsString = urlParams.get('contestants')
 
 const allContestantStatData = ref(null)
+const allGameStatData = ref(null)
 const displayRounds = ref(dataSourceString === 'celebrity' ? 3 : 2)
 
 const seasonSearchParameters = ref(seasonSearchParameterString ? seasonSearchParameterString.split(',') : [])
@@ -39,6 +41,9 @@ async function fetchContestantStatData(dataSourceId) {
   )
   var resResult = await res
   allContestantStatData.value = resResult
+  var gameResResult = gameStatDataFromContestantStatData(resResult)
+  gameResResult.sort((a,b) => d3.ascending(a['date'], b['date'] || d3.ascending(a['gameInSeason'], b['gameInSeason'])))
+  allGameStatData.value = gameResResult
 }
 fetchContestantStatData(dataSourceId)
 
@@ -57,6 +62,24 @@ const filteredAllContestantStatData = computed(() => {
   const satisfiesAllFilters = d => satisfiesSeason(d) && satisfiesTocPeriod(d) && satisfiesPlayClassification(d)
 
   return d3.filter(allContestantStatData.value, satisfiesAllFilters)
+})
+
+const filteredAllGameStatData = computed(() => {
+  if (!allGameStatData.value) return undefined
+
+  const satisfiesSeason = seasonSearchParameters.value.length === 0 ? 
+    d => true :
+    d => seasonSearchParameters.value.includes(d['season'])
+  const satisfiesTocPeriod = tocPeriodSearchParameters.value.length === 0 ? 
+    d => true :
+    d => tocPeriodSearchParameters.value.includes(d['tocPeriod'])
+  const satisfiesPlayClassification = playClassificationSearchParameters.value.length === 0 ? 
+    d => true :
+    d => playClassificationSearchParameters.value.includes(d['playClassification'])
+  const satisfiesAllFilters = d => satisfiesSeason(d) && satisfiesTocPeriod(d) && satisfiesPlayClassification(d)
+
+  const filtered = d3.filter(allGameStatData.value, satisfiesAllFilters)
+  return filtered
 })
 
 const filteredAllContestantStatDataByContestant = computed(() => {
@@ -292,6 +315,8 @@ const yScatterGraphAttributeIdx = ref(1)
 const xScatterGraphAttribute = computed(() => graphAttributesList.value[xScatterGraphAttributeIdx.value])
 const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatterGraphAttributeIdx.value])
 const scatterGraphRoundIdx = ref(0)
+const scatterGraphColorAttributeIdx = ref(null)
+const scatterGraphColorAttribute = computed(() => graphAttributesList.value[scatterGraphColorAttributeIdx.value])
 
 const boxWhiskerGraphSpecification = computed(() => {
   if (!filteredAllContestantStatDataByContestant.value || !displayContestantIds.value) return undefined
@@ -323,20 +348,30 @@ const boxWhiskerGraphSpecification = computed(() => {
   }
 })
 
-const scatterHistogramSpecification = computed(() => ({
-  histogramData: filteredAllContestantStatData.value,
-  scatterData: d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
-  scatterLabelFunction: d => d['Contestant'] + ' ' + d['Season'] + '-' + d['Game In Season'],
-  scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
-  title: xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
-  xLabel: xScatterGraphAttribute.value['label'],
-  xFunction: xScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
-  xBins: xScatterGraphAttribute.value['bins'],
-  yLabel: yScatterGraphAttribute.value['label'],
-  yFunction: yScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
-  yBins: yScatterGraphAttribute.value['bins'],
-  scatterMode: 'markers'
-}))
+const scatterHistogramSpecification = computed(() => {
+  var scatterColorFunction = d => color.value(d['Jometry Contestant Id'])
+  if (scatterGraphColorAttributeIdx.value != null) {
+    const attrValues = d3.map(filteredAllContestantStatData.value, scatterGraphColorAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value])
+    const colorRange = d3.scaleLinear()
+      .domain([d3.min(attrValues), d3.median(attrValues), d3.max(attrValues)])
+      .range(["blue", "white", "red"])
+    scatterColorFunction = d => colorRange(scatterGraphColorAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value](d))
+  }
+  return {
+    histogramData: filteredAllContestantStatData.value,
+    scatterData: d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
+    scatterLabelFunction: d => d['Contestant'] + ' ' + d['Season'] + '-' + d['Game In Season'],
+    scatterColorFunction: scatterColorFunction,
+    title: xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
+    xLabel: xScatterGraphAttribute.value['label'],
+    xFunction: xScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
+    xBins: xScatterGraphAttribute.value['bins'],
+    yLabel: yScatterGraphAttribute.value['label'],
+    yFunction: yScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
+    yBins: yScatterGraphAttribute.value['bins'],
+    scatterMode: 'markers'
+  }
+})
 
 const scatterAverageHistogramSpecification = computed(() => ({
   histogramData: Array.from(filteredAllContestantStatSummariesByContestant.value.values()),
@@ -376,6 +411,23 @@ const attemptValueBarChartSpecification = computed(() => ({
   title: 'Attempt Values'
 }))
 
+const totalAttemptsLineChartSpecification = computed(() => {
+  if (filteredAllGameStatData.value === undefined) return
+  return {
+    data: d3.zip(filteredAllGameStatData.value,
+      movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['Att'])),
+      movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMax'])),
+      movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMed'])),
+      movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMin']))), //filteredAllGameStatData.value,//d3.zip(filteredAllGameStatData.value, movingAverageOfLast(10, d3.map(filteredAllGameStatData.value, d => d['Att']))),
+    xFunction: d => d[0]['date'], //d['date'], //d[0]['date'],
+    yFunctions: [d => d[1]], //d => d[2], d => d[3], d => d[4]],//[d => d['Att'], d => d['Buz'], d => d['BuzC'], d => d['BuzI']], //[d => d[1]], //
+    labels: ['Att Total'],//'Att Max', 'Att Median', 'Att Min'],// 'Buz', 'BuzC', 'BuzI'], //'BuzC'], //
+    xLabel: 'Airdate',
+    yLabel: 'Count',
+    title: '5 Game Rolling Average'
+  }
+})
+
 </script>
 
 <template>
@@ -402,6 +454,10 @@ const attemptValueBarChartSpecification = computed(() => ({
     <div class="section">
       <h2>Attempt Values</h2>
       <StackValueBarChart v-bind="attemptValueBarChartSpecification" />
+    </div>
+    <div class="section">
+      <h2>Total Attempts</h2>
+      <LineChart v-bind="totalAttemptsLineChartSpecification" />
     </div>
     <div v-if="filteredAllContestantStatDataByContestant && displayContestantIds" class="section">
       <h2>Selectable Box and Whisker Plots</h2>
@@ -436,6 +492,12 @@ const attemptValueBarChartSpecification = computed(() => ({
         <option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
         <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
+      </select>
+      <select v-model="scatterGraphColorAttributeIdx">
+        <option :value="null">By Contestant</option>
+        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+          {{ graphAttribute.label }}
+        </option>
       </select>
       <div class="graph-subsection">
         <h3>All Games</h3>

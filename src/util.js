@@ -117,6 +117,19 @@ var formatNumber = function(n, p, dropZeros = true, sign = false) {
     return s;
 };
 
+var movingAverageOfLast = function(n, data) {
+    const means = []
+    for(var i=0 ; i < data.length; ++i) {
+        if (i < n) {
+            means.push(undefined)
+        } else {
+            const sliced = data.slice(i-n, i)
+            means.push(d3.mean(sliced))
+        }
+    }
+    return means
+}
+
 var gameStatDataFromContestantStatData = function(data) {
     return Array.from(d3.group(data, d => d['Jometry Game Id']),
         ([gameId,gameData]) => ({
@@ -144,6 +157,15 @@ var gameStatDataFromContestantStatData = function(data) {
             'DJBuzC$': d3.sum(d3.map(gameData, gd => gd['DJBuzC$'])),
             'TJBuzC$': d3.sum(d3.map(gameData, gd => gd['TJBuzC$'])),
             'BuzC$': d3.sum(d3.map(gameData, gd => gd['BuzC$'])),
+            'Win$': d3.sum(d3.map(gameData, gd => gd['FJFinal$'] * gd['Wins'])),
+            'Att': d3.sum(d3.map(gameData, gd => gd['Att'])),
+            'AttMax': d3.max(d3.map(gameData, gd => gd['Att'])),
+            'AttMed': d3.median(d3.map(gameData, gd => gd['Att'])),
+            'AttMin': d3.min(d3.map(gameData, gd => gd['Att'])),
+            'Buz': d3.sum(d3.map(gameData, gd => gd['Buz'])),
+            'BuzC': d3.sum(d3.map(gameData, gd => gd['BuzC'])),
+            'BuzCMed': d3.median(d3.map(gameData, gd => gd['BuzC'])),
+            'BuzI': d3.sum(d3.map(gameData, gd => gd['BuzI'])),
         }));
 }
 
@@ -193,4 +215,4 @@ var roundAbbreviation = function(roundNumber) {
 
 export { averageData, rollupData, 
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
-    clueBaseValue, roundName, roundAbbreviation };
+    clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast };
