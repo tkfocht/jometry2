@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { rollupData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, movingAverageOfLast } from '@/util'
+import { rollupData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, movingAverageOfLast, dateFormat } from '@/util'
 import { dataSourceAddress, playClassificationName } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
+import { gameGraphAttributes } from '@/gameGraphAttributes'
 import * as d3 from 'd3'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
@@ -305,6 +306,7 @@ const leaderboardTablePanels = computed(() => {
 
 //Charts
 const graphAttributesList = computed(() => graphAttributes(displayRounds.value))
+const gameGraphAttributesList = ref(gameGraphAttributes)
 
 const boxWhiskerGraphAttributeIdx = ref(0)
 const boxWhiskerGraphAttribute = computed(() => graphAttributesList.value[boxWhiskerGraphAttributeIdx.value])
@@ -317,6 +319,10 @@ const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatter
 const scatterGraphRoundIdx = ref(0)
 const scatterGraphColorAttributeIdx = ref(null)
 const scatterGraphColorAttribute = computed(() => graphAttributesList.value[scatterGraphColorAttributeIdx.value])
+
+const rollingAverageGraphAttributeIdx = ref(0)
+const rollingAverageRollCount = ref(5)
+const rollingAverageGraphAttribute = computed(() => gameGraphAttributesList.value[rollingAverageGraphAttributeIdx.value])
 
 const boxWhiskerGraphSpecification = computed(() => {
   if (!filteredAllContestantStatDataByContestant.value || !displayContestantIds.value) return undefined
@@ -419,12 +425,26 @@ const totalAttemptsLineChartSpecification = computed(() => {
       movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMax'])),
       movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMed'])),
       movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMin']))), //filteredAllGameStatData.value,//d3.zip(filteredAllGameStatData.value, movingAverageOfLast(10, d3.map(filteredAllGameStatData.value, d => d['Att']))),
-    xFunction: d => d[0]['date'], //d['date'], //d[0]['date'],
-    yFunctions: [d => d[1]], //d => d[2], d => d[3], d => d[4]],//[d => d['Att'], d => d['Buz'], d => d['BuzC'], d => d['BuzI']], //[d => d[1]], //
-    labels: ['Att Total'],//'Att Max', 'Att Median', 'Att Min'],// 'Buz', 'BuzC', 'BuzI'], //'BuzC'], //
+    xFunction: d => dateFormat(d[0]['date']),
+    yFunctions: [d => d[1], d => d[2], d => d[3], d => d[4]],//[d => d['Att'], d => d['Buz'], d => d['BuzC'], d => d['BuzI']], //[d => d[1]], //
+    labels: ['Att Total', 'Att Max', 'Att Median', 'Att Min'],// 'Buz', 'BuzC', 'BuzI'], //'BuzC'], //
     xLabel: 'Airdate',
     yLabel: 'Count',
     title: '5 Game Rolling Average'
+  }
+})
+
+const rollingLineChartSpecification = computed(() => {
+  if (filteredAllGameStatData.value === undefined) return
+  return {
+    data: d3.zip(filteredAllGameStatData.value,
+      movingAverageOfLast(rollingAverageRollCount.value, d3.map(filteredAllGameStatData.value, rollingAverageGraphAttribute.value.generatingFunction))),
+    xFunction: d => dateFormat(d[0]['date']),
+    yFunctions: [d => d[1]],
+    labels: [rollingAverageGraphAttribute.value.label],
+    xLabel: 'Airdate',
+    yLabel: rollingAverageGraphAttribute.value.label,
+    title: rollingAverageRollCount.value + ' Game Rolling Average'
   }
 })
 
@@ -458,6 +478,20 @@ const totalAttemptsLineChartSpecification = computed(() => {
     <div class="section">
       <h2>Total Attempts</h2>
       <LineChart v-bind="totalAttemptsLineChartSpecification" />
+    </div>
+    <div class="section">
+      <h2>Rolling Averages</h2>
+      <select v-model="rollingAverageRollCount">
+        <option :value="5">5 games</option>
+        <option :value="10">10 games</option>
+        <option :value="20">20 games</option>
+      </select>
+      <select v-model="rollingAverageGraphAttributeIdx">
+        <option v-for="(gameGraphAttribute, idx) in gameGraphAttributesList" :value="idx">
+          {{ gameGraphAttribute.label }}
+        </option>
+      </select>
+      <LineChart v-bind="rollingLineChartSpecification" />
     </div>
     <div v-if="filteredAllContestantStatDataByContestant && displayContestantIds" class="section">
       <h2>Selectable Box and Whisker Plots</h2>

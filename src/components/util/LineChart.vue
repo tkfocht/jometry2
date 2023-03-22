@@ -37,8 +37,8 @@ const layout = computed(() => {
   var l = {
     showlegend: true,
     title: props.title,
-    xaxis: { title: props.xLabel },
-    yaxis: { title: props.yLabel }
+    xaxis: { title: props.xLabel, type: 'category', automargin: true },
+    yaxis: { title: props.yLabel, automargin: true }
   }
   return l
 })
