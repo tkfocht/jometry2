@@ -38,7 +38,6 @@ fetchData('celebrity')
       <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
         <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod">Summary</a>
         <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
-        <a v-if="tocPeriod === '2023'" :href="'/period.html?data_source=standard&toc_period=' + tocPeriod + '&season=39&play_classification=regular&win_threshold=0&win_limit=0&graph_display_limit=30'">SC-Eligible Players</a>
       </div>
       <div v-for="season in gameStatData.get(tocPeriod).keys()">
         <div v-for="playClassification in gameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
