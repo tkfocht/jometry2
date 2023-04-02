@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { rollupData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, movingAverageOfLast, dateFormat } from '@/util'
 import { dataSourceAddress, playClassificationName } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
@@ -14,26 +14,56 @@ import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
-const dataSourceString = urlParams.get('data_source')
-const dataSourceId = dataSourceString ? dataSourceString : 'standard'
+const dataSourceId = ref(urlParams.get('data_source') ? urlParams.get('data_source') : 'standard')
 
-const seasonSearchParameterString = urlParams.get('season')
-const tocPeriodSearchParameterString = urlParams.get('toc_period')
-const playClassificationSearchParameterString = urlParams.get('play_classification')
+const seasonSearchParameters = ref(urlParams.get('season') ? urlParams.get('season').split(',') : [])
+const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
+const playClassificationSearchParameters = ref(urlParams.get('play_classification') ? urlParams.get('play_classification').split(',') : [])
 
-const winThresholdString = urlParams.get('win_threshold')
-const winLimitString = urlParams.get('win_limit')
-const graphDisplayLimitString = urlParams.get('graph_display_limit')
-const displayContestantIdsString = urlParams.get('contestants')
+const winThresholdString = ref(urlParams.get('win_threshold'))
+const winLimitString = ref(urlParams.get('win_limit'))
+const graphDisplayLimitString = ref(urlParams.get('graph_display_limit'))
+const displayContestantIdParameters = ref(urlParams.get('contestants') ? urlParams.get('contestants').split(',') : [])
 
 const allContestantStatData = ref(null)
 const allGameStatData = ref(null)
-const displayRounds = ref(dataSourceString === 'celebrity' ? 3 : 2)
+const displayRounds = ref(dataSourceId.value === 'celebrity' ? 3 : 2)
 
-const seasonSearchParameters = ref(seasonSearchParameterString ? seasonSearchParameterString.split(',') : [])
-const tocPeriodSearchParameters = ref(tocPeriodSearchParameterString ? tocPeriodSearchParameterString.split(',') : [])
-const playClassificationSearchParameters = ref(playClassificationSearchParameterString ? playClassificationSearchParameterString.split(',') : [])
-const displayContestantIdParameters = ref(displayContestantIdsString ? displayContestantIdsString.split(',') : [])
+const queryString = computed(() => {
+  var queryStr = '?data_source=' + dataSourceId.value
+  if (seasonSearchParameters.value.length > 0) {
+    queryStr += '&season=' + seasonSearchParameters.value.join(',')
+  }
+  if (tocPeriodSearchParameters.value.length > 0) {
+    queryStr += '&toc_period=' + tocPeriodSearchParameters.value.join(',')
+  }
+  if (playClassificationSearchParameters.value.length > 0) {
+    queryStr += '&play_classification=' + playClassificationSearchParameters.value.join(',')
+  }
+  if (winThresholdString.value !== null) {
+    queryStr += '&win_threshold=' + winThresholdString.value
+  }
+  if (winLimitString.value !== null) {
+    queryStr += '&win_limit=' + winLimitString.value
+  }
+  if (graphDisplayLimitString.value !== null) {
+    queryStr += '&graph_display_limit=' + graphDisplayLimitString.value
+  }
+  if (displayContestantIdParameters.value.length > 0) {
+    queryStr += '&contestants=' + displayContestantIdParameters.value.join(',')
+  }
+  console.log(queryStr)
+  return queryStr
+})
+
+onMounted(() => {
+  window.history.replaceState(null, null, queryString.value );
+})
+
+watch(() => queryString, (newValue, oldValue) => {
+  window.history.replaceState(null, null, queryString.value );
+}, { deep: true })
+
 
 async function fetchContestantStatData(dataSourceId) {
   const res = await d3.csv(
@@ -46,7 +76,7 @@ async function fetchContestantStatData(dataSourceId) {
   gameResResult.sort((a,b) => d3.ascending(a['date'], b['date'] || d3.ascending(a['gameInSeason'], b['gameInSeason'])))
   allGameStatData.value = gameResResult
 }
-fetchContestantStatData(dataSourceId)
+fetchContestantStatData(dataSourceId.value)
 
 const filteredAllContestantStatData = computed(() => {
   if (!allContestantStatData.value) return undefined
@@ -114,13 +144,13 @@ const displayContestantIds = computed(() => {
   if (contestantIds.length <= 10) {
     return contestantIds
   }
-  var winThreshold = winThresholdString ? +winThresholdString : Math.max(Math.min(winRollup.get(contestantIds[9]), 4), contestantIds.length > 21 ? 1 + winRollup.get(contestantIds[20]) : 0)
+  var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min(winRollup.get(contestantIds[9]), 4), contestantIds.length > 21 ? 1 + winRollup.get(contestantIds[20]) : 0)
   //Okay fine, if anyone ever wins 10001 games this will be a bug,
   //but truthy values are weird when winLimit=0 is a primary case
-  var winLimit = winLimitString ? +winLimitString : 10000
+  var winLimit = winLimitString.value ? +winLimitString.value : 10000
   return d3.filter(contestantIds, i => winRollup.get(i) >= winThreshold && winRollup.get(i) <= winLimit)
 })
-const graphDisplayLimit = ref(graphDisplayLimitString ? +graphDisplayLimitString : undefined)
+const graphDisplayLimit = ref(graphDisplayLimitString.value ? +graphDisplayLimitString.value : undefined)
 
 const colorSet = computed(() => {
   if (!displayContestantIds.value) return undefined
@@ -191,7 +221,7 @@ function contestantLink (contestantStatData) {
   if (!contestantStatData['Jometry Contestant Id']) return contestantStatData['Contestant']
   return '<span style="color: ' + 
     color.value(contestantStatData['Jometry Contestant Id']) + 
-    '">&#9632;</span>&nbsp;<a href="/contestant.html?data_source=' + dataSourceId + '&contestant_id=' + 
+    '">&#9632;</span>&nbsp;<a href="/contestant.html?data_source=' + dataSourceId.value + '&contestant_id=' + 
     contestantStatData['Jometry Contestant Id'] + 
     '">' + contestantStatData['Contestant'] + '</a>'
 }
@@ -458,6 +488,32 @@ const rollingLineChartSpecification = computed(() => {
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
       <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationName(p, undefined)).join(", ") }}&nbsp;</span>Summary
     </h1>
+    <div v-if="displayContestantIdParameters.length > 0">
+      Displaying specified contestants
+    </div>
+    <div v-else>
+      Display contestants between
+      <select v-model="winThresholdString">
+        <option :value="null">Auto</option>
+        <option>0</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+      </select>
+      and 
+      <select v-model="winLimitString">
+        <option>0</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option :value="null">No limit</option>
+      </select>
+      wins
+    </div>
     <div v-if="displayContestantIds && filteredDisplayContestantStatSummaries" class="section">
       <h2>Leaders</h2>
       <CarouselTable 
