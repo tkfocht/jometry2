@@ -5,13 +5,13 @@ import { dataSourceAddress, playClassificationName } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import { gameGraphAttributes } from '@/gameGraphAttributes'
 import * as d3 from 'd3'
-import Footer from './components/Footer.vue'
-import Header from './components/Header.vue'
-import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
-import CarouselTable from './components/util/CarouselTable.vue'
-import LineChart from './components/util/LineChart.vue'
-import ScatterHistogram from './components/util/ScatterHistogram.vue'
-import StackValueBarChart from './components/util/StackValueBarChart.vue'
+import Footer from '../components/Footer.vue'
+import Header from '../components/Header.vue'
+import BoxWhiskerChart from '../components/util/BoxWhiskerChart.vue'
+import CarouselTable from '../components/util/CarouselTable.vue'
+import LineChart from '../components/util/LineChart.vue'
+import ScatterHistogram from '../components/util/ScatterHistogram.vue'
+import StackValueBarChart from '../components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
 const dataSourceString = urlParams.get('data_source')
@@ -191,9 +191,26 @@ function contestantLink (contestantStatData) {
   if (!contestantStatData['Jometry Contestant Id']) return contestantStatData['Contestant']
   return '<span style="color: ' + 
     color.value(contestantStatData['Jometry Contestant Id']) + 
-    '">&#9632;</span>&nbsp;<a href="/contestant.html?data_source=' + dataSourceId + '&contestant_id=' + 
+    '">&#9632;</span>&nbsp;<a href="/contestant?data_source=' + dataSourceId + '&contestant_id=' + 
     contestantStatData['Jometry Contestant Id'] + 
     '">' + contestantStatData['Contestant'] + '</a>'
+}
+
+function contestantLinkPreText (contestantStatData) {
+  if (!contestantStatData['Jometry Contestant Id']) return contestantStatData['Contestant']
+  return '<span style="color: ' + 
+    color.value(contestantStatData['Jometry Contestant Id']) + 
+    '">&#9632;</span>&nbsp;'  
+}
+
+function contestantLinkLink (contestantStatData) {
+  if (!contestantStatData['Jometry Contestant Id']) return undefined
+  return { path: '/contestant', query: { data_source: dataSourceId, contestant_id: contestantStatData['Jometry Contestant Id'] } }
+}
+
+function contestantLinkLinkText (contestantStatData) {
+  if (!contestantStatData['Jometry Contestant Id']) return ''
+  return contestantStatData['Contestant']
 }
 
 const leaderboardTablePanels = computed(() => {
@@ -201,7 +218,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Totals',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
         { label: 'W', sortValueFunction: d => d['sum']['Wins'], attributeFunction: d => formatNumber(d['sum']['Wins'], 0, false), description: 'Wins'},
         { label: 'Lk', sortValueFunction: d => d['sum']['Locks'], attributeFunction: d => formatNumber(d['sum']['Locks'], 0, false), description: 'Locks (Games finished at > 2x opponents)'},
         { label: 'Cr', sortValueFunction: d => d['sum']['Crushes'], attributeFunction: d => formatNumber(d['sum']['Crushes'], 0, false), description: 'Crushes (Games finished at > 1.5x opponents)'},
@@ -223,7 +240,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Standard (Game Avg)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
         { label: 'Buz', sortValueFunction: d => d['mean']['Buz'], attributeFunction: d => formatNumber(d['mean']['Buz'], 1, false)},
         { label: 'BuzC', sortValueFunction: d => d['mean']['BuzC'], attributeFunction: d => formatNumber(d['mean']['BuzC'], 1, false)},
         { label: 'Buz$', sortValueFunction: d => d['mean']['Buz$'], attributeFunction: d => formatNumber(d['mean']['Buz$'], 0, false)},
@@ -239,7 +256,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Conversion (Game Avg)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
         { label: 'Att', sortValueFunction: d => d['mean']['Att'] === undefined ? -Infinity : d['mean']['Att'], attributeFunction: d => formatNumber(d['mean']['Att'], 1, false)},
         { label: 'Buz', sortValueFunction: d => d['mean']['Buz'], attributeFunction: d => formatNumber(d['mean']['Buz'], 1, false)},
         { label: 'Buz%', sortValueFunction: d => d['mean']['Buz%'] === undefined ? -Infinity : d['mean']['Buz%'], attributeFunction: d => formatNumber(d['mean']['Buz%'], 1, false)},
@@ -261,7 +278,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Standard (Game Max)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
         { label: 'Buz', sortValueFunction: d => d['max']['Buz'], attributeFunction: d => formatNumber(d['max']['Buz'], 1, false)},
         { label: 'BuzC', sortValueFunction: d => d['max']['BuzC'], attributeFunction: d => formatNumber(d['max']['BuzC'], 1, false)},
         { label: 'Buz$', sortValueFunction: d => d['max']['Buz$'], attributeFunction: d => formatNumber(d['max']['Buz$'], 0, false)},
@@ -277,7 +294,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Conversion (Game Max)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
         { label: 'Att', sortValueFunction: d => d['max']['Att'] === undefined ? -Infinity : d['max']['Att'], attributeFunction: d => formatNumber(d['mean']['Att'], 1, false)},
         { label: 'Buz', sortValueFunction: d => d['max']['Buz'], attributeFunction: d => formatNumber(d['max']['Buz'], 1, false)},
         { label: 'Buz%', sortValueFunction: d => d['max']['Buz%'] === undefined ? -Infinity : d['max']['Buz%'], attributeFunction: d => formatNumber(d['mean']['Buz%'], 1, false)},

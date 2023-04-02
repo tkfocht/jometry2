@@ -3,8 +3,8 @@ import { ref, computed } from 'vue'
 import { csvDataAccessor } from '@/util'
 import { dataSourceAddress } from '@/configuration'
 import * as d3 from 'd3'
-import Footer from './components/Footer.vue'
-import Header from './components/Header.vue'
+import Footer from '../components/Footer.vue'
+import Header from '../components/Header.vue'
 
 const allContestantStatData = ref(null)
 const allCelebrityContestantStatData = ref(null)
@@ -73,14 +73,14 @@ const celebrityContestantSummariesSorted = computed(() => {
     <div class="section">
       <h1>Contestant Index</h1>
       <div v-for="summary in contestantSummariesSorted">
-        <a :href="'/contestant.html?data_source=standard&contestant_id=' + summary['Jometry Contestant Id']">{{ summary['Contestant'] }}</a>
+        <router-link :to="'/contestant?data_source=standard&contestant_id=' + summary['Jometry Contestant Id']">{{ summary['Contestant'] }}</router-link>
         {{ summary['Games'] }} game{{ summary['Games'] === 1 ? '' : 's' }}
       </div>
     </div>
     <div class="section">
       <h1>Contestant Index - Celebrity Three Round Games</h1>
       <div v-for="summary in celebrityContestantSummariesSorted">
-        <a :href="'/contestant.html?data_source=celebrity&contestant_id=' + summary['Jometry Contestant Id']">{{ summary['Contestant'] }}</a>
+        <router-link :to="'/contestant?data_source=celebrity&contestant_id=' + summary['Jometry Contestant Id']">{{ summary['Contestant'] }}</router-link>
         {{ summary['Games'] }} game{{ summary['Games'] === 1 ? '' : 's' }}
       </div>
     </div>

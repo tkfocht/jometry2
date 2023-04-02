@@ -4,12 +4,12 @@ import { averageData, csvDataAccessor, formatNumber, dateFormat } from '@/util'
 import { dataSourceAddress } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
-import Footer from './components/Footer.vue'
-import Header from './components/Header.vue'
-import CarouselTable from './components/util/CarouselTable.vue'
-import HighlightHistogram from './components/util/HighlightHistogram.vue'
-import ScatterHistogram from './components/util/ScatterHistogram.vue'
-import StackValueBarChart from './components/util/StackValueBarChart.vue'
+import Footer from '../components/Footer.vue'
+import Header from '../components/Header.vue'
+import CarouselTable from '../components/util/CarouselTable.vue'
+import HighlightHistogram from '../components/util/HighlightHistogram.vue'
+import ScatterHistogram from '../components/util/ScatterHistogram.vue'
+import StackValueBarChart from '../components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
 const dataSourceString = urlParams.get('data_source')
@@ -81,13 +81,25 @@ const averageAwareGameLabelFunction = function(d) {
   return ''
 }
 
-function gameLink (contestantGameStatData) {
+function gameLinkLink (contestantGameStatData) {
+  if (contestantGameStatData['Contestant'] === 'Contestant Avg' || 
+    contestantGameStatData['Contestant'] === 'Winners Avg' ||
+    contestantGameStatData['Contestant'] === 'All Avg') return undefined
+  return { path: '/game', query: { data_source: dataSourceId, game_id: contestantGameStatData['Jometry Game Id'] } }
+}
+
+function gameLinkLinkText (contestantGameStatData) {
+  if (contestantGameStatData['Contestant'] === 'Contestant Avg' || 
+    contestantGameStatData['Contestant'] === 'Winners Avg' ||
+    contestantGameStatData['Contestant'] === 'All Avg') return ''
+  return contestantGameStatData['Season'] + '-' + contestantGameStatData['Game In Season']
+}
+
+function gameLinkPostLink (contestantGameStatData) {
   if (contestantGameStatData['Contestant'] === 'Contestant Avg' || 
     contestantGameStatData['Contestant'] === 'Winners Avg' ||
     contestantGameStatData['Contestant'] === 'All Avg') return contestantGameStatData['Contestant']
-  return '<a href="/game.html?data_source=' + dataSourceId + '&game_id=' + 
-    contestantGameStatData['Jometry Game Id'] + 
-    '">' + contestantGameStatData['Season'] + '-' + contestantGameStatData['Game In Season'] + '</a>&nbsp;' + dateFormat(contestantGameStatData['Date'])
+  return ' ' + dateFormat(contestantGameStatData['Date'])
 }
 
 
@@ -96,7 +108,7 @@ const scoringTablePanels = computed(() => {
     {
       label: 'Standard',
       columns: [
-        { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
+        { label: 'Game', sortValueFunction: d => -d['Date'], linkFunction: gameLinkLink, linkTextFunction: gameLinkLinkText, postlinkTextFunction: gameLinkPostLink },
         { label: 'Buz', sortValueFunction: d => d['Buz'], attributeFunction: d => formatNumber(d['Buz'], 0), description: 'Buzzes'},
         { label: 'BuzC', sortValueFunction: d => d['BuzC'], attributeFunction: d => formatNumber(d['BuzC'], 0), description: 'Correct buzzes'},
         { label: 'Buz$', sortValueFunction: d => d['Buz$'], attributeFunction: d => formatNumber(d['Buz$'], 0), description: 'Score on buzzing'},
@@ -111,7 +123,7 @@ const scoringTablePanels = computed(() => {
     {
       label: 'Standard (J)',
       columns: [
-        { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
+        { label: 'Game', sortValueFunction: d => -d['Date'], linkFunction: gameLinkLink, linkTextFunction: gameLinkLinkText, postlinkTextFunction: gameLinkPostLink },
         { label: 'JBuz', sortValueFunction: d => d['JBuz'], attributeFunction: d => formatNumber(d['JBuz'], 0), description: 'Buzzes'},
         { label: 'JBuzC', sortValueFunction: d => d['JBuzC'], attributeFunction: d => formatNumber(d['JBuzC'], 0), description: 'Correct buzzes'},
         { label: 'JBuz$', sortValueFunction: d => d['JBuz$'], attributeFunction: d => formatNumber(d['JBuz$'], 0), description: 'Score on buzzing'},
@@ -124,7 +136,7 @@ const scoringTablePanels = computed(() => {
     {
       label: 'Standard (DJ)',
       columns: [
-        { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
+        { label: 'Game', sortValueFunction: d => -d['Date'], linkFunction: gameLinkLink, linkTextFunction: gameLinkLinkText, postlinkTextFunction: gameLinkPostLink },
         { label: 'DJBuz', sortValueFunction: d => d['DJBuz'], attributeFunction: d => formatNumber(d['DJBuz'], 0), description: 'Buzzes'},
         { label: 'DJBuzC', sortValueFunction: d => d['DJBuzC'], attributeFunction: d => formatNumber(d['DJBuzC'], 0), description: 'Correct buzzes'},
         { label: 'DJBuz$', sortValueFunction: d => d['DJBuz$'], attributeFunction: d => formatNumber(d['DJBuz$'], 0), description: 'Score on buzzing'},
@@ -139,7 +151,7 @@ const scoringTablePanels = computed(() => {
     panels.push({
       label: 'Standard (TJ)',
       columns: [
-        { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
+        { label: 'Game', sortValueFunction: d => -d['Date'], linkFunction: gameLinkLink, linkTextFunction: gameLinkLinkText, postlinkTextFunction: gameLinkPostLink },
         { label: 'TJBuz', sortValueFunction: d => d['TJBuz'], attributeFunction: d => formatNumber(d['TJBuz'], 0), description: 'Buzzes'},
         { label: 'TJBuzC', sortValueFunction: d => d['TJBuzC'], attributeFunction: d => formatNumber(d['TJBuzC'], 0), description: 'Correct buzzes'},
         { label: 'TJBuz$', sortValueFunction: d => d['TJBuz$'], attributeFunction: d => formatNumber(d['TJBuz$'], 0), description: 'Score on buzzing'},
@@ -158,7 +170,7 @@ const conversionMetricTablePanels = computed(() => {
     {
       label: 'Conversion',
       columns: [
-        { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
+        { label: 'Game', sortValueFunction: d => -d['Date'], linkFunction: gameLinkLink, linkTextFunction: gameLinkLinkText, postlinkTextFunction: gameLinkPostLink },
         { label: 'Att', sortValueFunction: d => d['Att'], attributeFunction: d => formatNumber(d['Att'], 1), description: 'Attempts'},
         { label: 'Buz', sortValueFunction: d => d['Buz'], attributeFunction: d => formatNumber(d['Buz'], 1), description: 'Buzzes'},
         { label: 'Buz%', sortValueFunction: d => d['Buz%'], attributeFunction: d => formatNumber(d['Buz%'], 1, false, false), description: 'Buz as percentage of Att'},
@@ -180,7 +192,7 @@ const conversionMetricTablePanels = computed(() => {
     {
       label: 'Conversion (J)',
       columns: [
-        { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
+        { label: 'Game', sortValueFunction: d => -d['Date'], linkFunction: gameLinkLink, linkTextFunction: gameLinkLinkText, postlinkTextFunction: gameLinkPostLink },
         { label: 'Att', sortValueFunction: d => d['JAtt'], attributeFunction: d => formatNumber(d['JAtt'], 1), description: 'Attempts'},
         { label: 'Buz', sortValueFunction: d => d['JBuz'], attributeFunction: d => formatNumber(d['JBuz'], 1), description: 'Buzzes'},
         { label: 'Buz%', sortValueFunction: d => d['JBuz%'], attributeFunction: d => formatNumber(d['Buz%'], 1, false, false), description: 'Buz as percentage of Att'},
@@ -202,7 +214,7 @@ const conversionMetricTablePanels = computed(() => {
     {
       label: 'Conversion (DJ)',
       columns: [
-        { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
+        { label: 'Game', sortValueFunction: d => -d['Date'], linkFunction: gameLinkLink, linkTextFunction: gameLinkLinkText, postlinkTextFunction: gameLinkPostLink },
         { label: 'Att', sortValueFunction: d => d['DJAtt'], attributeFunction: d => formatNumber(d['DJAtt'], 1), description: 'Attempts'},
         { label: 'Buz', sortValueFunction: d => d['DJBuz'], attributeFunction: d => formatNumber(d['DJBuz'], 1), description: 'Buzzes'},
         { label: 'Buz%', sortValueFunction: d => d['DJBuz%'], attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
@@ -226,7 +238,7 @@ const conversionMetricTablePanels = computed(() => {
     panels.push({
       label: 'Conversion (TJ)',
       columns: [
-        { label: 'Game', sortValueFunction: d => -d['Date'], attributeFunction: gameLink},
+        { label: 'Game', sortValueFunction: d => -d['Date'], linkFunction: gameLinkLink, linkTextFunction: gameLinkLinkText, postlinkTextFunction: gameLinkPostLink },
         { label: 'Att', sortValueFunction: d => d['TJAtt'], attributeFunction: d => formatNumber(d['TJAtt'], 1), description: 'Attempts'},
         { label: 'Buz', sortValueFunction: d => d['TJBuz'], attributeFunction: d => formatNumber(d['TJBuz'], 1), description: 'Buzzes'},
         { label: 'Buz%', sortValueFunction: d => d['TJBuz%'], attributeFunction: d => formatNumber(d['TJBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
