@@ -1,11 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import About from '../views/About.vue'
-import Contestant from '../views/Contestant.vue'
-import ContestantIndex from '../views/ContestantIndex.vue'
-import Game from '../views/Game.vue'
-import Glossary from '../views/Glossary.vue'
 import Index from '../views/Index.vue'
-import Period from '../views/Period.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,32 +12,32 @@ const router = createRouter({
     {
       path: '/about',
       name: 'About',
-      component: About
+      component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
     },
     {
       path: '/contestant',
       name: 'Contestant',
-      component: Contestant
+      component: () => import(/* webpackChunkName: "contestant" */ '../views/Contestant.vue')
     },
     {
       path: '/contestant_index',
       name: 'ContestantIndex',
-      component: ContestantIndex
+      component: () => import(/* webpackChunkName: "contestant_index" */ '../views/ContestantIndex.vue')
     },
     {
       path: '/game',
       name: 'Game',
-      component: Game
+      component: () => import(/* webpackChunkName: "game" */ '../views/Game.vue')
     },
     {
       path: '/glossary',
       name: 'Glossary',
-      component: Glossary
+      component: () => import(/* webpackChunkName: "glossary" */ '../views/Glossary.vue')
     },
     {
       path: '/period',
       name: 'Period',
-      component: Period
+      component: () => import(/* webpackChunkName: "period" */ '../views/Period.vue')
     }
   ]
 })

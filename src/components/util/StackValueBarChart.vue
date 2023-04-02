@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { computed } from 'vue'
 import * as d3 from 'd3'
 import ReactiveChart from './ReactiveChart.vue'
 
