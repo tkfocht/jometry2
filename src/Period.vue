@@ -1,31 +1,28 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import router from '../router'
+import { ref, computed } from 'vue'
 import { rollupData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, movingAverageOfLast, dateFormat } from '@/util'
 import { dataSourceAddress, playClassificationName } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import { gameGraphAttributes } from '@/gameGraphAttributes'
 import * as d3 from 'd3'
-import Footer from '../components/Footer.vue'
-import Header from '../components/Header.vue'
-import BoxWhiskerChart from '../components/util/BoxWhiskerChart.vue'
-import CarouselTable from '../components/util/CarouselTable.vue'
-import LineChart from '../components/util/LineChart.vue'
-import ScatterHistogram from '../components/util/ScatterHistogram.vue'
-import StackValueBarChart from '../components/util/StackValueBarChart.vue'
+import Footer from './components/Footer.vue'
+import Header from './components/Header.vue'
+import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
+import CarouselTable from './components/util/CarouselTable.vue'
+import LineChart from './components/util/LineChart.vue'
+import ScatterHistogram from './components/util/ScatterHistogram.vue'
+import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
-const dataSourceString = ref(urlParams.get('data_source'))
-const dataSourceId = computed(() => dataSourceString.value ? dataSourceString.value : 'standard')
+const dataSourceString = urlParams.get('data_source')
+const dataSourceId = dataSourceString ? dataSourceString : 'standard'
 
-const seasonSearchParameterString = ref(urlParams.get('season'))
-const seasonSearchParameters = computed(() => seasonSearchParameterString.value ? seasonSearchParameterString.value.split(',') : [])
-const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
-const playClassificationSearchParameterString = ref(urlParams.get('play_classification'))
-const playClassificationSearchParameters = computed(() => playClassificationSearchParameterString.value ? playClassificationSearchParameterString.value.split(',') : [])
+const seasonSearchParameterString = urlParams.get('season')
+const tocPeriodSearchParameterString = urlParams.get('toc_period')
+const playClassificationSearchParameterString = urlParams.get('play_classification')
 
-const winThresholdString = ref(urlParams.get('win_threshold'))
-const winLimitString = ref(urlParams.get('win_limit'))
+const winThresholdString = urlParams.get('win_threshold')
+const winLimitString = urlParams.get('win_limit')
 const graphDisplayLimitString = urlParams.get('graph_display_limit')
 const displayContestantIdsString = urlParams.get('contestants')
 
@@ -33,43 +30,10 @@ const allContestantStatData = ref(null)
 const allGameStatData = ref(null)
 const displayRounds = ref(dataSourceString === 'celebrity' ? 3 : 2)
 
+const seasonSearchParameters = ref(seasonSearchParameterString ? seasonSearchParameterString.split(',') : [])
+const tocPeriodSearchParameters = ref(tocPeriodSearchParameterString ? tocPeriodSearchParameterString.split(',') : [])
+const playClassificationSearchParameters = ref(playClassificationSearchParameterString ? playClassificationSearchParameterString.split(',') : [])
 const displayContestantIdParameters = ref(displayContestantIdsString ? displayContestantIdsString.split(',') : [])
-
-const filterStateQuery = computed(() => {
-  var query = {}
-  query['data_source'] = dataSourceId.value
-  if (seasonSearchParameters.value.length > 0) {
-    query['season'] = seasonSearchParameters.value.join(',')
-  }
-  if (tocPeriodSearchParameters.value.length > 0) {
-    query['toc_period'] = tocPeriodSearchParameters.value.join(',')
-  }
-  if (playClassificationSearchParameters.value.length > 0) {
-    query['play_classification'] = playClassificationSearchParameters.value.join(',')
-  }
-  if (displayContestantIdParameters.length > 0) {
-    query['contestants'] = displayContestantIdParameters.join(',')
-  }
-  if (winThresholdString.value) {
-    query['win_threshold'] = winThresholdString.value
-  }
-  if (winLimitString.value !== null) {
-    query['win_limit'] = winLimitString.value
-  }
-  if (graphDisplayLimitString !== null) {
-    query['graph_display_limit'] = graphDisplayLimitString
-  }
-  return query
-})
-
-onMounted(() => {
-  console.log(filterStateQuery.value)
-})
-
-watch(() => filterStateQuery, (newValue, oldValue) => {
-  router.replace({ query: newValue.value })
-}, { deep: true })
-
 
 async function fetchContestantStatData(dataSourceId) {
   const res = await d3.csv(
@@ -82,7 +46,7 @@ async function fetchContestantStatData(dataSourceId) {
   gameResResult.sort((a,b) => d3.ascending(a['date'], b['date'] || d3.ascending(a['gameInSeason'], b['gameInSeason'])))
   allGameStatData.value = gameResResult
 }
-fetchContestantStatData(dataSourceId.value)
+fetchContestantStatData(dataSourceId)
 
 const filteredAllContestantStatData = computed(() => {
   if (!allContestantStatData.value) return undefined
@@ -150,9 +114,10 @@ const displayContestantIds = computed(() => {
   if (contestantIds.length <= 10) {
     return contestantIds
   }
-  var winThreshold = winThresholdString.value ? +(winThresholdString.value) : Math.max(Math.min(winRollup.get(contestantIds[9]), 4), contestantIds.length > 21 ? 1 + winRollup.get(contestantIds[20]) : 0)
-  //Okay fine, if anyone ever wins 10001 games this will be a bug
-  var winLimit = (winLimitString.value || winLimitString.value == '0') ? +(winLimitString.value) : 10000
+  var winThreshold = winThresholdString ? +winThresholdString : Math.max(Math.min(winRollup.get(contestantIds[9]), 4), contestantIds.length > 21 ? 1 + winRollup.get(contestantIds[20]) : 0)
+  //Okay fine, if anyone ever wins 10001 games this will be a bug,
+  //but truthy values are weird when winLimit=0 is a primary case
+  var winLimit = winLimitString ? +winLimitString : 10000
   return d3.filter(contestantIds, i => winRollup.get(i) >= winThreshold && winRollup.get(i) <= winLimit)
 })
 const graphDisplayLimit = ref(graphDisplayLimitString ? +graphDisplayLimitString : undefined)
@@ -226,26 +191,9 @@ function contestantLink (contestantStatData) {
   if (!contestantStatData['Jometry Contestant Id']) return contestantStatData['Contestant']
   return '<span style="color: ' + 
     color.value(contestantStatData['Jometry Contestant Id']) + 
-    '">&#9632;</span>&nbsp;<a href="/contestant?data_source=' + dataSourceId.value + '&contestant_id=' + 
+    '">&#9632;</span>&nbsp;<a href="/contestant.html?data_source=' + dataSourceId + '&contestant_id=' + 
     contestantStatData['Jometry Contestant Id'] + 
     '">' + contestantStatData['Contestant'] + '</a>'
-}
-
-function contestantLinkPreText (contestantStatData) {
-  if (!contestantStatData['Jometry Contestant Id']) return contestantStatData['Contestant']
-  return '<span style="color: ' + 
-    color.value(contestantStatData['Jometry Contestant Id']) + 
-    '">&#9632;</span>&nbsp;'  
-}
-
-function contestantLinkLink (contestantStatData) {
-  if (!contestantStatData['Jometry Contestant Id']) return undefined
-  return { path: '/contestant', query: { data_source: dataSourceId.value, contestant_id: contestantStatData['Jometry Contestant Id'] } }
-}
-
-function contestantLinkLinkText (contestantStatData) {
-  if (!contestantStatData['Jometry Contestant Id']) return ''
-  return contestantStatData['Contestant']
 }
 
 const leaderboardTablePanels = computed(() => {
@@ -253,7 +201,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Totals',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
         { label: 'W', sortValueFunction: d => d['sum']['Wins'], attributeFunction: d => formatNumber(d['sum']['Wins'], 0, false), description: 'Wins'},
         { label: 'Lk', sortValueFunction: d => d['sum']['Locks'], attributeFunction: d => formatNumber(d['sum']['Locks'], 0, false), description: 'Locks (Games finished at > 2x opponents)'},
         { label: 'Cr', sortValueFunction: d => d['sum']['Crushes'], attributeFunction: d => formatNumber(d['sum']['Crushes'], 0, false), description: 'Crushes (Games finished at > 1.5x opponents)'},
@@ -275,7 +223,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Standard (Game Avg)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
         { label: 'Buz', sortValueFunction: d => d['mean']['Buz'], attributeFunction: d => formatNumber(d['mean']['Buz'], 1, false)},
         { label: 'BuzC', sortValueFunction: d => d['mean']['BuzC'], attributeFunction: d => formatNumber(d['mean']['BuzC'], 1, false)},
         { label: 'Buz$', sortValueFunction: d => d['mean']['Buz$'], attributeFunction: d => formatNumber(d['mean']['Buz$'], 0, false)},
@@ -291,7 +239,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Conversion (Game Avg)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
         { label: 'Att', sortValueFunction: d => d['mean']['Att'] === undefined ? -Infinity : d['mean']['Att'], attributeFunction: d => formatNumber(d['mean']['Att'], 1, false)},
         { label: 'Buz', sortValueFunction: d => d['mean']['Buz'], attributeFunction: d => formatNumber(d['mean']['Buz'], 1, false)},
         { label: 'Buz%', sortValueFunction: d => d['mean']['Buz%'] === undefined ? -Infinity : d['mean']['Buz%'], attributeFunction: d => formatNumber(d['mean']['Buz%'], 1, false)},
@@ -313,7 +261,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Standard (Game Max)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
         { label: 'Buz', sortValueFunction: d => d['max']['Buz'], attributeFunction: d => formatNumber(d['max']['Buz'], 1, false)},
         { label: 'BuzC', sortValueFunction: d => d['max']['BuzC'], attributeFunction: d => formatNumber(d['max']['BuzC'], 1, false)},
         { label: 'Buz$', sortValueFunction: d => d['max']['Buz$'], attributeFunction: d => formatNumber(d['max']['Buz$'], 0, false)},
@@ -329,7 +277,7 @@ const leaderboardTablePanels = computed(() => {
     {
       label: 'Conversion (Game Max)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), prelinkTextFunction: contestantLinkPreText, linkTextFunction: contestantLinkLinkText, linkFunction: contestantLinkLink },
+        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
         { label: 'Att', sortValueFunction: d => d['max']['Att'] === undefined ? -Infinity : d['max']['Att'], attributeFunction: d => formatNumber(d['mean']['Att'], 1, false)},
         { label: 'Buz', sortValueFunction: d => d['max']['Buz'], attributeFunction: d => formatNumber(d['max']['Buz'], 1, false)},
         { label: 'Buz%', sortValueFunction: d => d['max']['Buz%'] === undefined ? -Infinity : d['max']['Buz%'], attributeFunction: d => formatNumber(d['mean']['Buz%'], 1, false)},
@@ -510,32 +458,6 @@ const rollingLineChartSpecification = computed(() => {
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
       <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationName(p, undefined)).join(", ") }}&nbsp;</span>Summary
     </h1>
-    <div v-if="displayContestantIdParameters.length > 0">
-      Displaying specified contestants
-    </div>
-    <div v-else>
-      Displaying contestants between
-      <select v-model="winThresholdString">
-        <option :value="null">Auto</option>
-        <option>0</option>
-        <option>1</option>
-        <option>2</option>
-        <option>3</option>
-        <option>4</option>
-        <option>5</option>
-      </select>
-      and
-      <select v-model="winLimitString">
-        <option>0</option>
-        <option>1</option>
-        <option>2</option>
-        <option>3</option>
-        <option>4</option>
-        <option>5</option>
-        <option :value="null">No limit</option>
-      </select>
-      wins
-    </div>
     <div v-if="displayContestantIds && filteredDisplayContestantStatSummaries" class="section">
       <h2>Leaders</h2>
       <CarouselTable 
@@ -588,27 +510,23 @@ const rollingLineChartSpecification = computed(() => {
     </div>
     <div v-if="filteredAllContestantStatData && displayContestantIds" class="section">
       <h2>Selectable Scatter Plots</h2>
-      X:
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
         </option>
       </select>
-      Y:
       <select v-model="yScatterGraphAttributeIdx">
         <option :value="null">None</option>
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
           {{ graphAttribute.label }}
         </option>
       </select>
-      Round:
       <select v-model="scatterGraphRoundIdx">
         <option :value="0">Full Game</option>
         <option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
         <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
       </select>
-      Color markers by:
       <select v-model="scatterGraphColorAttributeIdx">
         <option :value="null">By Contestant</option>
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">

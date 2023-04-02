@@ -1,6 +1,6 @@
 <script setup>
-import Footer from '../components/Footer.vue'
-import Header from '../components/Header.vue'
+import Footer from './components/Footer.vue'
+import Header from './components/Header.vue'
 </script>
 
 <template>
@@ -11,7 +11,7 @@ import Header from '../components/Header.vue'
       <div class="graph-description">
         <p>
           J!ometry is built and maintained by 2021 4-day champion and 2022 TOC semifinalist
-          <router-link to="/contestant?data_source=standard&contestant_id=287">John Focht</router-link>. The origin
+          <a href="https://j-ometry.com/contestant.html?toc_period_id=TOC2022R&contestant=287">John Focht</a>. The origin
           story is that I realized that the published box score PNGs would be difficult to work with in the long run,
           and so I wanted to make sure there was a spreadsheet or CSV or something that research could be done with, once
           there was enough data. Then it turned out that I wanted to do some of that research and talk about it. It became

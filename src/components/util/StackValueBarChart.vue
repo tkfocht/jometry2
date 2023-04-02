@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import * as d3 from 'd3'
 import ReactiveChart from './ReactiveChart.vue'
 
@@ -71,8 +71,7 @@ const layout = computed(() => {
         text: props.xGroupLabels[idx],
         standoff: 10
       },
-      type: 'category',
-      automargin: true
+      type: 'category'
     }
   }
   return l

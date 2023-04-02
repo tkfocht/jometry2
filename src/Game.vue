@@ -5,13 +5,13 @@ import { csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromCo
 import { dataSourceAddress } from '@/configuration'
 import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
-import Footer from '../components/Footer.vue'
-import Header from '../components/Header.vue'
-import CarouselTable from '../components/util/CarouselTable.vue'
-import ReactiveChart from '../components/util/ReactiveChart.vue'
-import HighlightHistogram from '../components/util/HighlightHistogram.vue'
-import ScatterHistogram from '../components/util/ScatterHistogram.vue'
-import StackValueBarChart from '../components/util/StackValueBarChart.vue'
+import Footer from './components/Footer.vue'
+import Header from './components/Header.vue'
+import CarouselTable from './components/util/CarouselTable.vue'
+import ReactiveChart from './components/util/ReactiveChart.vue'
+import HighlightHistogram from './components/util/HighlightHistogram.vue'
+import ScatterHistogram from './components/util/ScatterHistogram.vue'
+import StackValueBarChart from './components/util/StackValueBarChart.vue'
 import { formatDate } from 'plotly.js-dist'
 
 let urlParams = new URLSearchParams(window.location.search);
@@ -91,18 +91,12 @@ const gameContestantIds = computed(() => {
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
 const color = ref(d3.scaleOrdinal().domain(gameContestantIds.value).range(threeColorSet))
 
-function contestantLinkPretext (contestantStatData) {
+function contestantLink (contestantStatData) {
   return '<span style="color: ' + 
     color.value(contestantStatData['Jometry Contestant Id']) + 
-    '">&#9632;</span>&nbsp;'
-}
-
-function contestantLinkLink (contestantStatData) {
-  return { path: '/contestant', query: { data_source: dataSourceId, contestant_id: contestantStatData['Jometry Contestant Id'] } }
-}
-
-function contestantLinkText (contestantStatData) {
-  return contestantStatData['Contestant']
+    '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
+    contestantStatData['Jometry Contestant Id'] + 
+    '">' + contestantStatData['Contestant'] + '</a>'
 }
 
 const gameScoreChartData = computed(() => {
@@ -176,7 +170,7 @@ const finalJeopardyMatrixCells = computed(() => {
 
 const scoringTablePanels = computed(() => {
   var columns = [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'JDDF', attributeFunction: d => d['JDDF'], description: 'Daily Doubles found in Jeopardy round'},
         { label: 'JDD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Jeopardy round'},
         { label: 'JDD$', attributeFunction: d => d['JDD$'], description: 'Score on Daily Doubles in Jeopardy round'},
@@ -205,7 +199,7 @@ const scoringTablePanels = computed(() => {
     {
       label: 'Standard',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Buz', attributeFunction: d => d['Buz'], description: 'Buzzes'},
         { label: 'BuzC', attributeFunction: d => d['BuzC'], description: 'Correct responses on buzzes'},
         { label: 'Buz$', attributeFunction: d => d['Buz$'], description: 'Score on buzzing'},
@@ -220,7 +214,7 @@ const scoringTablePanels = computed(() => {
     {
       label: 'Standard (J)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Buz', attributeFunction: d => d['JBuz'], description: 'Buzzes'},
         { label: 'BuzC', attributeFunction: d => d['JBuzC'], description: 'Correct responses on buzzes'},
         { label: 'Buz$', attributeFunction: d => d['JBuz$'], description: 'Score on buzzing'},
@@ -233,7 +227,7 @@ const scoringTablePanels = computed(() => {
     {
       label: 'Standard (DJ)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Buz', attributeFunction: d => d['DJBuz'], description: 'Buzzes'},
         { label: 'BuzC', attributeFunction: d => d['DJBuzC'], description: 'Correct responses on buzzes'},
         { label: 'Buz$', attributeFunction: d => d['DJBuz$'], description: 'Score on buzzing'},
@@ -247,7 +241,7 @@ const scoringTablePanels = computed(() => {
     {
       label: 'Standard (TJ)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Buz', attributeFunction: d => d['TJBuz'], description: 'Buzzes'},
         { label: 'BuzC', attributeFunction: d => d['TJBuzC'], description: 'Correct responses on buzzes'},
         { label: 'Buz$', attributeFunction: d => d['TJBuz$'], description: 'Score on buzzing'},
@@ -265,7 +259,7 @@ const conversionMetricTablePanels = computed(() => {
     {
       label: 'Conversion',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['Att'], description: 'Attempts'},
         { label: 'Buz', attributeFunction: d => d['Buz'], description: 'Buzzes'},
         { label: 'Buz%', attributeFunction: d => formatNumber(d['Buz%'], 1, false, false), description: 'Buz as percentage of Att'},
@@ -287,7 +281,7 @@ const conversionMetricTablePanels = computed(() => {
     {
       label: 'Conversion (J)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['JAtt'], description: 'Attempts'},
         { label: 'Buz', attributeFunction: d => d['JBuz'], description: 'Buzzes'},
         { label: 'Buz%', attributeFunction: d => formatNumber(d['JBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
@@ -309,7 +303,7 @@ const conversionMetricTablePanels = computed(() => {
     {
       label: 'Conversion (DJ)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['DJAtt'], description: 'Attempts'},
         { label: 'Buz', attributeFunction: d => d['DJBuz'], description: 'Buzzes'},
         { label: 'Buz%', attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
@@ -333,7 +327,7 @@ const conversionMetricTablePanels = computed(() => {
     panels.push({
       label: 'Conversion (TJ)',
       columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], prelinkTextFunction: contestantLinkPretext, linkFunction: contestantLinkLink, linkTextFunction: contestantLinkText},
+        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
         { label: 'Att', attributeFunction: d => d['TJAtt']},
         { label: 'Buz', attributeFunction: d => d['TJBuz']},
         { label: 'Buz%', attributeFunction: d => formatNumber(d['TJBuz%'], 1, false, false)},

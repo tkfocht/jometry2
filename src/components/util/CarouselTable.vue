@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import * as d3 from 'd3'
-import { attr } from 'plotly.js-dist';
 
 const props = defineProps({
   panels: Array,
@@ -71,32 +70,10 @@ function displayPanelRight() {
         </thead>
         <tbody>
             <tr v-for="row in sortedRowData">
-                <td v-for="attr in displayPanel.columns">
-                    <span v-if="attr.prelinkTextFunction" v-html="attr.prelinkTextFunction(row)"></span>
-                    <router-link v-if="attr.linkFunction && attr.linkFunction(row) !== undefined && attr.linkTextFunction && attr.linkTextFunction !== ''" :to="attr.linkFunction(row)">
-                        {{ attr.linkTextFunction(row) }}
-                    </router-link>
-                    <span v-if="attr.postlinkTextFunction" v-html="attr.postlinkTextFunction(row)"></span>
-                    <span v-if="attr.attributeFunction">
-                        {{ attr.attributeFunction(row) }}
-                    </span>
-                </td>
+                <td v-for="attr in displayPanel.columns"><span v-html="attr.attributeFunction(row)"></span></td>
             </tr>
             <tr v-for="row in props.footerRowData">
-                <td v-for="attr in displayPanel.columns">
-                    <span v-if="attr.prelinkTextFunction">
-                        {{ attr.prelinkTextFunction(row) }}
-                    </span>
-                    <router-link v-if="attr.linkFunction && attr.linkFunction(row) !== undefined && attr.linkTextFunction && attr.linkTextFunction !== ''" :to="attr.linkFunction(row)">
-                        {{ attr.linkTextFunction(row) }}
-                    </router-link>
-                    <span v-if="attr.postlinkTextFunction">
-                        {{ attr.postlinkTextFunction(row) }}
-                    </span>
-                    <span v-if="attr.attributeFunction">
-                        {{ attr.attributeFunction(row) }}
-                    </span>
-                </td>
+                <td v-for="attr in displayPanel.columns"><span v-html="attr.attributeFunction(row)"></span></td>
             </tr>
         </tbody>
     </table>

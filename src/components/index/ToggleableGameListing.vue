@@ -24,7 +24,7 @@ function toggleGames() {
         <table class="game-list">
             <tbody>
                 <tr v-for="game in gameStatData">
-                    <td><router-link :to="'game?data_source=' + dataSourceId + '&game_id=' + game.gameId">Season {{ game.season }} Game {{ game.gameInSeason }}</router-link></td>
+                    <td><a :href="'game.html?data_source=' + dataSourceId + '&game_id=' + game.gameId">Season {{ game.season }} Game {{ game.gameInSeason }}</a></td>
                     <td>{{ dateFormat(game.date) }}</td>
                     <td>{{ d3.map(game.contestants, c => c.name).join(' vs ') }}</td>
                 </tr>
