@@ -72,6 +72,7 @@ const traces = computed(() => {
 })
 const layout = computed(() => ({
   title: props.title,
+  xaxis: { automargin: true },
   yaxis: {
       autorange: true,
       showgrid: true,
