@@ -120,10 +120,10 @@ var formatNumber = function(n, p, dropZeros = true, sign = false) {
 var movingAverageOfLast = function(n, data) {
     const means = []
     for(var i=0 ; i < data.length; ++i) {
-        if (i < n) {
+        if (i < n-1) {
             means.push(undefined)
         } else {
-            const sliced = data.slice(i-n, i)
+            const sliced = data.slice(i-n+1, i+1)
             means.push(d3.mean(sliced))
         }
     }
@@ -166,6 +166,8 @@ var gameStatDataFromContestantStatData = function(data) {
             'BuzC': d3.sum(d3.map(gameData, gd => gd['BuzC'])),
             'BuzCMed': d3.median(d3.map(gameData, gd => gd['BuzC'])),
             'BuzI': d3.sum(d3.map(gameData, gd => gd['BuzI'])),
+            'FJCor': d3.sum(d3.map(gameData, gd => gd['FJCor'])),
+            'FJOpp': d3.sum(d3.map(gameData, gd => gd['FJCor'] === undefined ? 0 : 1)),
         }));
 }
 
