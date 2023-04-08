@@ -23,6 +23,22 @@ const contention = {
     generatingFunction: d => d['Contention']
 }
 
+const fjCor = {
+    label: 'FJCor',
+    generatingFunction: d => d['FJCor']
+}
+
+const fjOpp = {
+    label: 'FJOpp',
+    generatingFunction: d => d['FJOpp']
+}
+
+const fjPct = {
+    label: 'FJ%',
+    generatingFunction: d => d['FJCor'],
+    denominatorGeneratingFunction: d => d['FJOpp']
+}
+
 const winScore = {
     label: 'Win$',
     generatingFunction: d => d['Win$']

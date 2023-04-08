@@ -466,9 +466,13 @@ const totalAttemptsLineChartSpecification = computed(() => {
 
 const rollingLineChartSpecification = computed(() => {
   if (filteredAllGameStatData.value === undefined) return
+  const numerators = movingAverageOfLast(rollingAverageRollCount.value, d3.map(filteredAllGameStatData.value, rollingAverageGraphAttribute.value.generatingFunction))
+  const denominators = rollingAverageGraphAttribute.value.denominatorGeneratingFunction ?
+    movingAverageOfLast(rollingAverageRollCount.value, d3.map(filteredAllGameStatData.value, rollingAverageGraphAttribute.value.denominatorGeneratingFunction)) :
+    new Array(numerators.length).fill(1.0)
+  const values = d3.map(d3.zip(numerators, denominators), a => 1.0 * a[0] / a[1])
   return {
-    data: d3.zip(filteredAllGameStatData.value,
-      movingAverageOfLast(rollingAverageRollCount.value, d3.map(filteredAllGameStatData.value, rollingAverageGraphAttribute.value.generatingFunction))),
+    data: d3.zip(filteredAllGameStatData.value, values),
     xFunction: d => dateFormat(d[0]['date']),
     yFunctions: [d => d[1]],
     labels: [rollingAverageGraphAttribute.value.label],
