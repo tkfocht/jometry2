@@ -18,7 +18,7 @@ async function fetchData(dataSourceId) {
   )
   var resResult = await res
   resResult = gameStatDataFromContestantStatData(resResult)
-  resResult.sort((a,b) => d3.descending(a['date'], b['date'] || d3.descending(a['gameInSeason'], b['gameInSeason'])))
+  resResult.sort((a,b) => d3.descending(a['date'], b['date']) || d3.descending(a['gameInSeason'], b['gameInSeason']))
   if (dataSourceId === 'standard') {
     gameStatData.value = d3.group(resResult, d => d['tocPeriod'], d => d['season'], d => d['playClassification'])
   }
