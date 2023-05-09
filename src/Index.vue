@@ -34,6 +34,17 @@ fetchData('celebrity')
 <template>
   <Header />
   <div v-if="gameStatData">
+    <div v-for="tocPeriod in ['M2023']" class="toc-period">
+      <div class="toc-period-header">{{ tocPeriod.substring(1) }} Masters
+      </div>
+      <div v-for="season in gameStatData.get(tocPeriod).keys()">
+        <div v-for="playClassification in gameStatData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
+          <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
+          <ToggleableGameListing :dataSourceId="'standard'" :gameStatData="gameStatData.get(tocPeriod).get(season).get(playClassification)"/>
+        </div>
+      </div>
+    </div>
     <div v-for="tocPeriod in ['2023', '2022', '2021', '2019']" class="toc-period">
       <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
         <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod">Summary</a>
