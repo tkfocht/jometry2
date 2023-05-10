@@ -28,7 +28,7 @@ fetchContestantData()
 
 <template>
   <Header />
-  <div v-if="gameData">
+  <div v-if="gameData && contestantData">
     <div v-for="tocPeriod in ['M2023']" class="toc-period">
       <div class="toc-period-header">{{ tocPeriod.substring(1) }} Masters
       </div>
