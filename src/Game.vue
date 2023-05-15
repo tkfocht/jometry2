@@ -8,6 +8,8 @@ import * as d3 from 'd3'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
+import CumulativeLineChart from './components/util/CumulativeLineChart.vue'
+import LineChart from './components/util/LineChart.vue'
 import ReactiveChart from './components/util/ReactiveChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
@@ -82,9 +84,13 @@ fetchJschemaAllGameRoundContestantStatData()
 const jschemaClueContestantStatData = ref(null)
 async function fetchJschemaClueContestantStatData() {
   const res = await d3.csv('https://j-ometry.com/csvs/jschema_stat_clue_contestant/' + gameId + '.csv', jschemaCsvDataAccessor)
-  jschemaClueContestantStatData.value = d3.index(res, r => r.game_id, r => r.round_of_game, r => r.clue_of_round, r => r.contestant_id)
+  jschemaClueContestantStatData.value = res //d3.index(res, r => r.round_of_game, r => r.clue_of_round, r => r.contestant_id)
 }
 fetchJschemaClueContestantStatData()
+const jschemaClueContestantStatDataByContestant = computed(() => {
+  if (!jschemaClueContestantStatData.value) return null
+  return d3.group(jschemaClueContestantStatData.value, r => r.contestant_id)
+})
 
 
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
@@ -119,10 +125,12 @@ const scoringTablePanels = computed(() => {
         {label: 'Buz$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_score,
           attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_score,
           description: 'Scoring from buzzes'},
-        /*{label: 'DDF', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_found,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_found},*/
-        /*{label: 'DD+', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_found,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_found},*/
+        {label: 'DDF', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_found,
+          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_found},
+        {label: 'DD+C', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_plus_buzc,
+          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).dd_plus_buzc, 2, false, true)},
+        {label: 'DD+S', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_plus_selection,
+          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).dd_plus_selection, 2, false, true)},
         {label: 'DD$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_score,
           attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_score,
           description: 'Scoring from Daily Doubles'},
@@ -142,7 +150,7 @@ const scoringTablePanels = computed(() => {
       columns: [
         {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
         {label: 'Att', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).att,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).att,
+          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).att, 0),
           description: 'Attempts'},
         {label: 'AttCl', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).att_clue,
           attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).att_clue, 1, false),
@@ -219,6 +227,27 @@ const scoringTableRows = computed(() => {
       'podium': idx + 1
     }
   })
+})
+
+const byClueLineChartAttribute = ref({ generatingFunction: c => c.timing })
+const byClueLineChartData = computed(() => {
+  if (!jschemaClueContestantStatData.value) return null
+  if (!gameContestantIds.value) return null
+
+  var groupedData = d3.group(jschemaClueContestantStatData.value, c => c.round_of_game, c => c.clue_of_round, c => c.contestant_id)
+  var traceData = []
+  var rounds = [...groupedData.keys()].sort((a,b) => d3.ascending(a, b))
+  for (var r of rounds) {
+    var clue_numbers = [...groupedData.get(r).keys()].sort((a,b) => d3.ascending(a, b))
+    for (var c of clue_numbers) {
+      traceData.push({
+        'clue_identifier': r + '-' + c,
+        'contestant_data': gameContestantIds.value.map(
+          cid => groupedData.get(r).get(c).get(cid)[0])
+      })
+    }
+  }
+  return traceData
 })
 
 /*const scoringTablePanels2 = computed(() => {
@@ -683,7 +712,7 @@ function specifyHighlightHistogram(xAttr) {
       <h2>Game Statistics</h2>
       <CarouselTable v-if="gameStatData"
         :panels="gameStatisticPanels"
-        :rowData="[gameStatData]"
+        :rowData="[]"
         :defaultSortFunction="d => 1"
         />-->
     </div>
@@ -748,11 +777,22 @@ function specifyHighlightHistogram(xAttr) {
           </td>
         </tr>
       </table>
-    </div>
+    </div>-->
     <div class="section">
       <h2>Score</h2>
-      <ReactiveChart :chart="gameScoreChartData"/>
+      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
+        :data="byClueLineChartData"
+        :xFunction="d => d['clue_identifier']"
+        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx])))"
+        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
+        :colors="gameContestantIds.map(cid => color(cid))"
+        :title="'Cumulative Timing'"
+        :xLabel="'Clues'"
+        :yLabel="'Cumulative Timing'"
+      />
     </div>
+    {{  byClueLineChartData  }}
+    <!--
     <div class="section">
       <h2>Lead Ratio</h2>
       <ReactiveChart :chart="leadRatioChartData"/>
