@@ -32,7 +32,6 @@ const cumulativeData = computed(() => {
       idx += 1
     }
   }
-  console.log(updatedData)
   return updatedData
 })
 </script>

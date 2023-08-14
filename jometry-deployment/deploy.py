@@ -28,11 +28,13 @@ def upload_to_s3(pathlist: List[Path]):
     try:
         s3_client = get_s3_client()
         for path in pathlist:
+            print(path)
             response = s3_client.upload_file(str(path), 'j-ometry', str(path.relative_to('dist')), \
                 ExtraArgs={
                     'CacheControl': 'max-age=300',
                     'ContentType': get_content_type_for_path(path)
                 })
+            print(response)
     except ClientError as e:
         print(e)
 

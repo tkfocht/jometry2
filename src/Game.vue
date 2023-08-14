@@ -107,13 +107,13 @@ function contestantLink (contestant_id, contestant_name) {
     '">' + contestant_name + '</a>'
 }
 
-const scoringTablePanels = computed(() => {
+const standardScoringTablePanels = computed(() => {
   if (!contestantData.value) return []
   if (!jschemaGameContestantStatData.value) return []
   if (!jschemaGameRoundContestantStatData.value) return []
   var panels = [
     {
-      label: 'Standard',
+      label: 'Full Game',
       columns: [
         {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
         {label: 'Buz', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz,
@@ -144,9 +144,46 @@ const scoringTablePanels = computed(() => {
           attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).postscore,
           description: 'Score at end of Final Jeopardy'},
       ]
-    },
+    }
+  ]
+  for (const [rid, roundContestantStatData] of jschemaGameRoundContestantStatData.value) {
+    if (rid > gameRounds.value) continue
+    const round_label = rid == 1 ? 'J' : (rid == 2 ? 'DJ' : (rid == 3 ? 'TJ' : '?'))
+    panels.push({
+      label: round_label + ' Round',
+      columns: [
+        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
+        {label: 'Buz', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz,
+          description: 'Buzzes'},
+        {label: 'BuzC', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buzc,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buzc,
+          description: 'Correct responses on buzzes'},
+        {label: 'Buz$', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_score,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_score,
+          description: 'Scoring from buzzes'},
+        {label: 'DDF', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).dd_found,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).dd_found},
+        {label: 'DD+C', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).dd_plus_buzc,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).dd_plus_buzc, 2, false, true)},
+        {label: 'DD+S', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).dd_plus_selection,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).dd_plus_selection, 2, false, true)},
+        {label: 'DD$', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).dd_score,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).dd_score,
+          description: 'Scoring from Daily Doubles'}
+      ]
+    })
+  }
+
+  return panels
+})
+const conversionScoringTablePanels = computed(() => {
+  if (!contestantData.value) return []
+  if (!jschemaGameContestantStatData.value) return []
+  if (!jschemaGameRoundContestantStatData.value) return []
+  var panels = [
     {
-      label: 'Conversion',
+      label: 'Full Game',
       columns: [
         {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
         {label: 'Att', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).att,
@@ -177,9 +214,56 @@ const scoringTablePanels = computed(() => {
           attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).solo, 1, false),
           description: 'Estimated buzzes as solo attempter'}
       ]
-    },
+    }
+  ]
+
+  for (const [rid, roundContestantStatData] of jschemaGameRoundContestantStatData.value) {
+    if (rid > gameRounds.value) continue
+    const round_label = rid == 1 ? 'J' : (rid == 2 ? 'DJ' : (rid == 3 ? 'TJ' : '?'))
+    panels.push({
+      label: round_label + ' Round',
+      columns: [
+      {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
+        {label: 'Att', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att, 0),
+          description: 'Attempts'},
+        {label: 'AttCl', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att_clue,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att_clue, 1, false),
+          description: 'Attempted clues'},
+        {label: 'Buz', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz,
+          description: 'Buzzes'},
+        {label: 'Buz%', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_percent,
+          attributeFunction: d => formatNumber(100.0 * jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_percent, 1, false),
+          description: 'Buz as percentage of Att'},
+        {label: 'BuzC', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buzc,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buzc,
+          description: 'Correct responses on buzzes'},
+        {label: 'Acc%', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).acc_percent,
+          attributeFunction: d => formatNumber(100.0 * jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).acc_percent, 1, false),
+          description: 'Accuracy: BuzC as percentage of Buz'},
+        {label: 'Conv%', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).conversion_percent,
+          attributeFunction: d => formatNumber(100.0 * jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).conversion_percent, 1, false),
+          description: 'Conversion: BuzC as percentage of Att'},
+        {label: 'Time', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).timing,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).timing, 1, false, true),
+          description: 'Estimated buzzes earned through timing'},
+        {label: 'Solo', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).solo,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).solo, 1, false),
+          description: 'Estimated buzzes as solo attempter'}
+      ]
+    })
+  }
+
+  return panels
+})
+const conversionValueScoringTablePanels = computed(() => {
+  if (!contestantData.value) return []
+  if (!jschemaGameContestantStatData.value) return []
+  if (!jschemaGameRoundContestantStatData.value) return []
+  var panels = [
     {
-      label: 'Conversion Value',
+      label: 'Full Game',
       columns: [
         {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
         {label: 'AttV', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).att_value,
@@ -203,9 +287,9 @@ const scoringTablePanels = computed(() => {
         {label: 'TimeV', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).timing_value,
           attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).timing_value, 0, true),
           description: 'Estimated clue value of buzzes earned through timing'},
-        // {label: 'Time$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).timing_score,
-        //   attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).timing_score, 0, false),
-        //   description: 'Estimated scoring of buzzes earned through timing'},
+        {label: 'Time$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).timing_score,
+          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).timing_score, 0, false),
+          description: 'Estimated scoring of buzzes earned through timing'},
         {label: 'SoloV', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).solo_value,
           attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).solo_value, 0),
           description: 'Estimated clue value of buzzes as solo attempter'},
@@ -215,6 +299,47 @@ const scoringTablePanels = computed(() => {
       ]
     }
   ]
+
+  for (const [rid, roundContestantStatData] of jschemaGameRoundContestantStatData.value) {
+    if (rid > gameRounds.value) continue
+    const round_label = rid == 1 ? 'J' : (rid == 2 ? 'DJ' : (rid == 3 ? 'TJ' : '?'))
+    panels.push({
+      label: round_label + ' Round',
+      columns: [
+      {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
+        {label: 'AttV', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att_value,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att_value, 0, false),
+          description: 'Estimated clue value attempted'},
+        {label: 'BuzV', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_value,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_value,
+          description: 'Clue value buzzed in on'},
+        {label: 'BuzV%', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_value_percent,
+          attributeFunction: d => formatNumber(100.0 * jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_value_percent, 1, false),
+          description: 'BuzV as percentage of AttV'},
+        {label: 'Buz$', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_score,
+          attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz_score,
+          description: 'Scoring from buzzes'},
+        {label: 'AccV%', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).acc_value_percent,
+          attributeFunction: d => formatNumber(100.0 * jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).acc_value_percent, 1, false),
+          description: 'Accuracy Value: Buz$ as percentage of BuzV'},
+        {label: 'ConvV%', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).conversion_value_percent,
+          attributeFunction: d => formatNumber(100.0 * jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).conversion_value_percent, 1, false),
+          description: 'Conversion Value: Buz$ as percentage of AttV'},
+        {label: 'TimeV', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).timing_value,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).timing_value, 0, true),
+          description: 'Estimated clue value of buzzes earned through timing'},
+        {label: 'Time$', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).timing_score,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).timing_score, 0, false),
+          description: 'Estimated scoring of buzzes earned through timing'},
+        {label: 'SoloV', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).solo_value,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).solo_value, 0),
+          description: 'Estimated clue value of buzzes as solo attempter'},
+        {label: 'Solo$', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).solo_score,
+          attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).solo_score, 0),
+          description: 'Estimated scoring of buzzes as solo attempter'},
+      ]
+    })
+  }
 
   return panels
 })
@@ -704,8 +829,21 @@ function specifyHighlightHistogram(xAttr) {
     <div v-if="jschemaGameData" class="section">
       <h1>Season <span id="season">{{ jschemaGameData.season_id }}</span> Game <span id="game-number">{{ jschemaGameData.game_in_season }}</span>, <span id="game-date">{{ dateFormat(jschemaGameData.airdate) }}</span></h1>
       <h2>Player Statistics</h2>
+      <h4>Standard</h4>
       <CarouselTable 
-        :panels="scoringTablePanels"
+        :panels="standardScoringTablePanels"
+        :rowData="scoringTableRows"
+        :defaultSortFunction="d => d['podium']"
+        />
+      <h4>Conversion</h4>
+      <CarouselTable 
+        :panels="conversionScoringTablePanels"
+        :rowData="scoringTableRows"
+        :defaultSortFunction="d => d['podium']"
+        />
+      <h4>Conversion Value</h4>
+      <CarouselTable 
+        :panels="conversionValueScoringTablePanels"
         :rowData="scoringTableRows"
         :defaultSortFunction="d => d['podium']"
         /><!--
