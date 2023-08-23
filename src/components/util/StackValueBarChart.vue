@@ -67,7 +67,7 @@ const layout = computed(() => {
     xaxis: { automargin: true }
   }
   for (var idx in d3.range(1, props.xGroupLabels.length + 1)) {
-    l['xaxis' + (+idx+1)] = {
+    l['xaxis' + (+idx+1 > 1 ? +idx+1 : '')] = {
       title: {
         text: props.xGroupLabels[idx],
         standoff: 10
