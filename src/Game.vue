@@ -59,37 +59,83 @@ async function fetchJschemaAllGameStatData() {
 }
 fetchJschemaAllGameStatData()
 
-const jschemaAllGameContestantStatData = ref(null)
+const jschemaAllGameContestantStatDataFlat = ref(null)
+const jschemaAllGameContestantStatData = computed(() => {
+  if (jschemaAllGameContestantStatDataFlat.value) return d3.index(jschemaAllGameContestantStatDataFlat.value, r => r.game_id, r => r.contestant_id)
+  else return null
+})
 const jschemaGameContestantStatData = computed(() => {
   if (jschemaAllGameContestantStatData.value) return jschemaAllGameContestantStatData.value.get(gameId)
   else return null
 })
+const jschemaGameContestantStatDataFlat = computed(() => {
+  if (jschemaGameContestantStatData.value && gameContestantIds.value) return d3.map(gameContestantIds.value, cid => jschemaGameContestantStatData.value.get(cid))
+  else return null
+})
 async function fetchJschemaAllGameContestantStatData() {
   const res = await d3.csv('https://j-ometry.com/csvs/jschema_stat_game_contestant.csv', jschemaCsvDataAccessor)
-  jschemaAllGameContestantStatData.value = d3.index(res, r => r.game_id, r => r.contestant_id)
+  jschemaAllGameContestantStatDataFlat.value = res
 }
 fetchJschemaAllGameContestantStatData()
 
-const jschemaAllGameRoundContestantStatData = ref(null)
+const jschemaAllGameRoundContestantStatDataFlat = ref(null)
+const jschemaAllGameRoundContestantStatData = computed(() => {
+  if (jschemaAllGameRoundContestantStatDataFlat.value) return d3.index(jschemaAllGameRoundContestantStatDataFlat.value, r => r.game_id, r => r.round_of_game, r => r.contestant_id)
+  else return null
+})
+const jschemaAllGameRoundContestantStatByRound = computed(() => {
+  if (jschemaAllGameRoundContestantStatDataFlat.value) return d3.group(jschemaAllGameRoundContestantStatDataFlat.value, r => r.round_of_game)
+  else return null
+})
 const jschemaGameRoundContestantStatData = computed(() => {
   if (jschemaAllGameRoundContestantStatData.value) return jschemaAllGameRoundContestantStatData.value.get(gameId)
   else return null
 })
+const jschemaGameRoundContestantStatDataByRound = computed(() => {
+  if (!jschemaGameRoundContestantStatData.value || !gameContestantIds.value || !gameRounds.value) return null
+  const data = []
+  for (const rid of d3.range(1, gameRounds.value+1)) {
+    data[rid] = d3.map(gameContestantIds.value, cid => jschemaGameRoundContestantStatData.value.get(rid).get(cid))
+  }
+  return data
+})
 async function fetchJschemaAllGameRoundContestantStatData() {
   const res = await d3.csv('https://j-ometry.com/csvs/jschema_stat_round_contestant.csv', jschemaCsvDataAccessor)
-  jschemaAllGameRoundContestantStatData.value = d3.index(res, r => r.game_id, r => r.round_of_game, r => r.contestant_id)
+  jschemaAllGameRoundContestantStatDataFlat.value = res
 }
 fetchJschemaAllGameRoundContestantStatData()
 
 const jschemaClueContestantStatData = ref(null)
 async function fetchJschemaClueContestantStatData() {
   const res = await d3.csv('https://j-ometry.com/csvs/jschema_stat_clue_contestant/' + gameId + '.csv', jschemaCsvDataAccessor)
-  jschemaClueContestantStatData.value = res //d3.index(res, r => r.round_of_game, r => r.clue_of_round, r => r.contestant_id)
+  jschemaClueContestantStatData.value = res
 }
 fetchJschemaClueContestantStatData()
 const jschemaClueContestantStatDataByContestant = computed(() => {
   if (!jschemaClueContestantStatData.value) return null
   return d3.group(jschemaClueContestantStatData.value, r => r.contestant_id)
+})
+
+const jschemaClueData = ref(null)
+async function fetchJschemaClueData() {
+  const res = await d3.csv('https://j-ometry.com/csvs/jschema_clue/' + gameId + '.csv', jschemaCsvDataAccessor)
+  jschemaClueData.value = res
+}
+fetchJschemaClueData()
+const jschemaClueByRoundRowColumn = computed(() => {
+  if (!jschemaClueData.value) return null
+  return d3.index(jschemaClueData.value, c => c.round_of_game, c => c.row, c => c.column)
+})
+
+const jschemaResponseData = ref(null)
+async function fetchJschemaResponseData() {
+  const res = await d3.csv('https://j-ometry.com/csvs/jschema_response/' + gameId + '.csv', jschemaCsvDataAccessor)
+  jschemaResponseData.value = res
+}
+fetchJschemaResponseData()
+const jschemaResponseByRoundClue = computed(() => {
+  if (!jschemaResponseData.value) return null
+  return d3.group(jschemaResponseData.value, c => c.round_of_game, c => c.clue_of_round)
 })
 
 
@@ -354,7 +400,63 @@ const scoringTableRows = computed(() => {
   })
 })
 
-const byClueLineChartAttribute = ref({ generatingFunction: c => c.timing })
+const cumulativeDataAttributesList = [
+  {
+    label: 'Score',
+    generatingFunction: c => c.score
+  },
+  {
+    label: 'Buzz Score',
+    generatingFunction: c => c.buz_score
+  },
+  {
+    label: 'Attempts',
+    generatingFunction: c => c.att
+  },
+  {
+    label: 'Attempted Clues',
+    generatingFunction: c => c.att_clue
+  },
+  {
+    label: 'Attempt Value',
+    generatingFunction: c => c.att_value
+  },
+  {
+    label: 'Buzzes',
+    generatingFunction: c => c.buz_value === 0 ? 0 : 1
+  },
+  {
+    label: 'Buzz Value',
+    generatingFunction: c => c.buz_value
+  },
+  {
+    label: 'Timing',
+    generatingFunction: c => c.timing
+  },
+  {
+    label: 'Timing Value',
+    generatingFunction: c => c.timing_value
+  },
+  {
+    label: 'Timing Score',
+    generatingFunction: c => c.timing_score
+  },
+  {
+    label: 'Solo',
+    generatingFunction: c => c.solo
+  },
+  {
+    label: 'Solo Value',
+    generatingFunction: c => c.solo_value
+  },
+  {
+    label: 'Solo Score',
+    generatingFunction: c => c.solo_score
+  }
+]
+const byClueLineChartAttributeIdx = ref(0)
+const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList[byClueLineChartAttributeIdx.value])
+
 const byClueLineChartData = computed(() => {
   if (!jschemaClueContestantStatData.value) return null
   if (!gameContestantIds.value) return null
@@ -375,119 +477,7 @@ const byClueLineChartData = computed(() => {
   return traceData
 })
 
-/*const scoringTablePanels2 = computed(() => {
-  var columns = [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'JDDF', attributeFunction: d => d['JDDF'], description: 'Daily Doubles found in Jeopardy round'},
-        { label: 'JDD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Jeopardy round'},
-        { label: 'JDD$', attributeFunction: d => d['JDD$'], description: 'Score on Daily Doubles in Jeopardy round'},
-        { label: 'JBuz$', attributeFunction: d => d['JBuz$'], description: 'Score on buzzing in Jeopardy round'},
-        { label: 'JFinal$', attributeFunction: d => d['JFinal$'], description: 'Score at end of Jeopardy round'},
-        { label: 'DJDDF', attributeFunction: d => d['DJDDF'], description: 'Daily Doubles found in Double Jeopardy round'},
-        { label: 'DJDD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Double Jeopardy round'},
-        { label: 'DJDD$', attributeFunction: d => d['DJDD$'], description: 'Score on Daily Doubles in Double Jeopardy round'},
-        { label: 'DJBuz$', attributeFunction: d => d['DJBuz$'], description: 'Score on buzzing in Double Jeopardy round'},
-        { label: 'DJFinal$', attributeFunction: d => d['DJFinal$'], description: 'Score at end of Double Jeopardy round'}
-      ]
-  if (gameRounds.value >= 3) {
-    columns = columns.concat([
-        { label: 'TJDDF', attributeFunction: d => d['TJDDF'], description: 'Daily Doubles found in Triple Jeopardy round'},
-        { label: 'TJDD+', sortValueFunction: d => d['TJDD+'], attributeFunction: d => formatNumber(d['TJDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Triple Jeopardy round'},
-        { label: 'TJDD$', attributeFunction: d => d['TJDD$'], description: 'Score on Daily Doubles in Triple Jeopardy round'},
-        { label: 'TJBuz$', attributeFunction: d => d['TJBuz$'], description: 'Score on buzzing in Triple Jeopardy round'},
-        { label: 'TJFinal$', attributeFunction: d => d['TJFinal$'], description: 'Score at end of Triple Jeopardy round'}
-      ])
-  } 
-  columns = columns.concat([
-        { label: 'FJ$', attributeFunction: d => d['FJ$'], description: 'Score change in Final Jeopardy'},
-        { label: 'FJFinal$', attributeFunction: d => d['FJFinal$'], description: 'Score at end of Final Jeopardy'},
-      ])
-  return [
-    {
-      label: 'Standard',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Buz', attributeFunction: d => d['Buz'], description: 'Buzzes'},
-        { label: 'BuzC', attributeFunction: d => d['BuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Buz$', attributeFunction: d => d['Buz$'], description: 'Score on buzzing'},
-        { label: 'DDF', attributeFunction: d => d['DDF'], description: 'Daily Doubles found'},
-        { label: 'DD+', sortValueFunction: d => d['DD+'], attributeFunction: d => formatNumber(d['DD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
-        { label: 'DD$', attributeFunction: d => d['DD$'], description: 'Score on Daily Doubles'},
-        { label: 'FJStart$', attributeFunction: d => gameRounds.value >= 3 ? d['TJFinal$'] : d['DJFinal$'], description: 'Score at end of regular play'},
-        { label: 'FJ$', attributeFunction: d => d['FJ$'], description: 'Score change in Final Jeopardy'},
-        { label: 'FJFinal$', attributeFunction: d => d['FJFinal$'], description: 'Score at end of Final Jeopardy'},
-      ]
-    },
-    {
-      label: 'Standard (J)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Buz', attributeFunction: d => d['JBuz'], description: 'Buzzes'},
-        { label: 'BuzC', attributeFunction: d => d['JBuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Buz$', attributeFunction: d => d['JBuz$'], description: 'Score on buzzing'},
-        { label: 'DDF', attributeFunction: d => d['JDDF'], description: 'Daily Doubles found'},
-        { label: 'DD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
-        { label: 'DD$', attributeFunction: d => d['JDD$'], description: 'Score on Daily Doubles'},
-        { label: 'JFinal$', attributeFunction: d => d['JFinal$'], description: 'Score at end of round'},
-      ]
-    },
-    {
-      label: 'Standard (DJ)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Buz', attributeFunction: d => d['DJBuz'], description: 'Buzzes'},
-        { label: 'BuzC', attributeFunction: d => d['DJBuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Buz$', attributeFunction: d => d['DJBuz$'], description: 'Score on buzzing'},
-        { label: 'DDF', attributeFunction: d => d['DJDDF'], description: 'Daily Doubles found'},
-        { label: 'DD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
-        { label: 'DD$', attributeFunction: d => d['DJDD$'], description: 'Score on Daily Doubles'},
-        { label: 'DJFinal$', attributeFunction: d => d['DJFinal$'], description: 'Score at end ofround'},
-      ]
-    }
-  ].concat(gameRounds.value >= 3 ? [
-    {
-      label: 'Standard (TJ)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Buz', attributeFunction: d => d['TJBuz'], description: 'Buzzes'},
-        { label: 'BuzC', attributeFunction: d => d['TJBuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Buz$', attributeFunction: d => d['TJBuz$'], description: 'Score on buzzing'},
-        { label: 'DDF', attributeFunction: d => d['TJDDF'], description: 'Daily Doubles found'},
-        { label: 'DD+', sortValueFunction: d => d['TJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
-        { label: 'DD$', attributeFunction: d => d['TJDD$'], description: 'Score on Daily Doubles'},
-        { label: 'TJFinal$', attributeFunction: d => d['TJFinal$'], description: 'Score at end ofround'},
-      ]
-    }
-  ] : [])
-})*/
-
 /*
-function contestantLink (contestantStatData) {
-  return '<span style="color: ' + 
-    color.value(contestantStatData['Jometry Contestant Id']) + 
-    '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
-    contestantStatData['Jometry Contestant Id'] + 
-    '">' + contestantStatData['Contestant'] + '</a>'
-}
-
-const gameScoreChartData = computed(() => {
-  if (!gameClueData.value || !gameContestantStatData.value) return undefined
-  var x = ['0'].concat(d3.map(gameClueData.value, d => d['Round of Game'] + "-" + d['Clue of Round']));
-  return {
-    'traces': d3.map([1,2,3], idx => ({
-      x: x,
-      y: [0].concat(d3.map(gameClueData.value, d => d['PostScore' + idx])),
-      type: 'scatter',
-      mode: 'lines',
-      name: gameContestantStatData.value[idx-1]['Contestant'],
-      line: {
-          color: threeColorSet[idx-1]
-      }
-    })),
-    'layout': {}
-  }
-})
-
 const leadRatioChartData = computed(() => {
   if (!gameScoreChartData.value) return undefined
   var x = ['0'].concat(d3.map(gameClueData.value, d => d['Round of Game'] + "-" + d['Clue of Round']));
@@ -511,9 +501,12 @@ const leadRatioChartData = computed(() => {
     'layout': {}
   }
 })
+*/
 
 const finalJeopardyMatrixCells = computed(() => {
-  if (!gameClueData.value || !gameRounds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
+  if (!jschemaClueContestantStatData.value || !gameRounds.value || !gameContestantIds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
+  const fjRecords = jschemaClueContestantStatData.value.filter(r => r.round_of_game == gameRounds.value + 1 && r.clue_of_round == 1)
+  const fjRecordsByContestant = d3.index(fjRecords, r => r.contestant_id)
   var combinations = [[true, true, true],
                         [true, true, false],
                         [true, false, true],
@@ -522,10 +515,9 @@ const finalJeopardyMatrixCells = computed(() => {
                         [false, true, false],
                         [false, false, true],
                         [false, false, false]]
-  var fjRecord = d3.filter(gameClueData.value, d => d['Round of Game'] === gameRounds.value + 1 && d['Clue of Round'] === 1)[0];
-  var fjInitialScores = d3.map([1,2,3], p => fjRecord['PreScore' + p]);  
-  var fjWagers = d3.map([1,2,3], p => fjRecord['Wager' + p]);
-  var mapped = d3.map(combinations, combo => {
+  const fjInitialScores = d3.map(gameContestantIds.value, cid => fjRecordsByContestant.get(cid).prescore);  
+  const fjWagers = d3.map(gameContestantIds.value, cid => Math.abs(fjRecordsByContestant.get(cid).postscore - fjRecordsByContestant.get(cid).prescore));
+  const mapped = d3.map(combinations, combo => {
     var fjFinalScores = d3.map([0,1,2], p => fjInitialScores[p] + (fjWagers[p] * (combo[p] ? 1 : -1)));
     var winningScore = d3.max(fjFinalScores);
     var winners = d3.filter([0,1,2], idx => fjFinalScores[idx] === winningScore);
@@ -539,188 +531,7 @@ const finalJeopardyMatrixCells = computed(() => {
   return mapped
 })
 
-const scoringTablePanels = computed(() => {
-  var columns = [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'JDDF', attributeFunction: d => d['JDDF'], description: 'Daily Doubles found in Jeopardy round'},
-        { label: 'JDD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Jeopardy round'},
-        { label: 'JDD$', attributeFunction: d => d['JDD$'], description: 'Score on Daily Doubles in Jeopardy round'},
-        { label: 'JBuz$', attributeFunction: d => d['JBuz$'], description: 'Score on buzzing in Jeopardy round'},
-        { label: 'JFinal$', attributeFunction: d => d['JFinal$'], description: 'Score at end of Jeopardy round'},
-        { label: 'DJDDF', attributeFunction: d => d['DJDDF'], description: 'Daily Doubles found in Double Jeopardy round'},
-        { label: 'DJDD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Double Jeopardy round'},
-        { label: 'DJDD$', attributeFunction: d => d['DJDD$'], description: 'Score on Daily Doubles in Double Jeopardy round'},
-        { label: 'DJBuz$', attributeFunction: d => d['DJBuz$'], description: 'Score on buzzing in Double Jeopardy round'},
-        { label: 'DJFinal$', attributeFunction: d => d['DJFinal$'], description: 'Score at end of Double Jeopardy round'}
-      ]
-  if (gameRounds.value >= 3) {
-    columns = columns.concat([
-        { label: 'TJDDF', attributeFunction: d => d['TJDDF'], description: 'Daily Doubles found in Triple Jeopardy round'},
-        { label: 'TJDD+', sortValueFunction: d => d['TJDD+'], attributeFunction: d => formatNumber(d['TJDD+'], 2, false, true), description: 'Daily Doubles found above expectation in Triple Jeopardy round'},
-        { label: 'TJDD$', attributeFunction: d => d['TJDD$'], description: 'Score on Daily Doubles in Triple Jeopardy round'},
-        { label: 'TJBuz$', attributeFunction: d => d['TJBuz$'], description: 'Score on buzzing in Triple Jeopardy round'},
-        { label: 'TJFinal$', attributeFunction: d => d['TJFinal$'], description: 'Score at end of Triple Jeopardy round'}
-      ])
-  } 
-  columns = columns.concat([
-        { label: 'FJ$', attributeFunction: d => d['FJ$'], description: 'Score change in Final Jeopardy'},
-        { label: 'FJFinal$', attributeFunction: d => d['FJFinal$'], description: 'Score at end of Final Jeopardy'},
-      ])
-  return [
-    {
-      label: 'Standard',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Buz', attributeFunction: d => d['Buz'], description: 'Buzzes'},
-        { label: 'BuzC', attributeFunction: d => d['BuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Buz$', attributeFunction: d => d['Buz$'], description: 'Score on buzzing'},
-        { label: 'DDF', attributeFunction: d => d['DDF'], description: 'Daily Doubles found'},
-        { label: 'DD+', sortValueFunction: d => d['DD+'], attributeFunction: d => formatNumber(d['DD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
-        { label: 'DD$', attributeFunction: d => d['DD$'], description: 'Score on Daily Doubles'},
-        { label: 'FJStart$', attributeFunction: d => gameRounds.value >= 3 ? d['TJFinal$'] : d['DJFinal$'], description: 'Score at end of regular play'},
-        { label: 'FJ$', attributeFunction: d => d['FJ$'], description: 'Score change in Final Jeopardy'},
-        { label: 'FJFinal$', attributeFunction: d => d['FJFinal$'], description: 'Score at end of Final Jeopardy'},
-      ]
-    },
-    {
-      label: 'Standard (J)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Buz', attributeFunction: d => d['JBuz'], description: 'Buzzes'},
-        { label: 'BuzC', attributeFunction: d => d['JBuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Buz$', attributeFunction: d => d['JBuz$'], description: 'Score on buzzing'},
-        { label: 'DDF', attributeFunction: d => d['JDDF'], description: 'Daily Doubles found'},
-        { label: 'DD+', sortValueFunction: d => d['JDD+'], attributeFunction: d => formatNumber(d['JDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
-        { label: 'DD$', attributeFunction: d => d['JDD$'], description: 'Score on Daily Doubles'},
-        { label: 'JFinal$', attributeFunction: d => d['JFinal$'], description: 'Score at end of round'},
-      ]
-    },
-    {
-      label: 'Standard (DJ)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Buz', attributeFunction: d => d['DJBuz'], description: 'Buzzes'},
-        { label: 'BuzC', attributeFunction: d => d['DJBuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Buz$', attributeFunction: d => d['DJBuz$'], description: 'Score on buzzing'},
-        { label: 'DDF', attributeFunction: d => d['DJDDF'], description: 'Daily Doubles found'},
-        { label: 'DD+', sortValueFunction: d => d['DJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
-        { label: 'DD$', attributeFunction: d => d['DJDD$'], description: 'Score on Daily Doubles'},
-        { label: 'DJFinal$', attributeFunction: d => d['DJFinal$'], description: 'Score at end ofround'},
-      ]
-    }
-  ].concat(gameRounds.value >= 3 ? [
-    {
-      label: 'Standard (TJ)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Buz', attributeFunction: d => d['TJBuz'], description: 'Buzzes'},
-        { label: 'BuzC', attributeFunction: d => d['TJBuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Buz$', attributeFunction: d => d['TJBuz$'], description: 'Score on buzzing'},
-        { label: 'DDF', attributeFunction: d => d['TJDDF'], description: 'Daily Doubles found'},
-        { label: 'DD+', sortValueFunction: d => d['TJDD+'], attributeFunction: d => formatNumber(d['DJDD+'], 2, false, true), description: 'Daily Doubles found above expectation'},
-        { label: 'DD$', attributeFunction: d => d['TJDD$'], description: 'Score on Daily Doubles'},
-        { label: 'TJFinal$', attributeFunction: d => d['TJFinal$'], description: 'Score at end ofround'},
-      ]
-    }
-  ] : [])
-})
-
-const conversionMetricTablePanels = computed(() => {
-  var panels = [
-    {
-      label: 'Conversion',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Att', attributeFunction: d => d['Att'], description: 'Attempts'},
-        { label: 'Buz', attributeFunction: d => d['Buz'], description: 'Buzzes'},
-        { label: 'Buz%', attributeFunction: d => formatNumber(d['Buz%'], 1, false, false), description: 'Buz as percentage of Att'},
-        { label: 'BuzC', attributeFunction: d => d['BuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Acc%', attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Buz'], 1, false, false), description: 'Accuracy: BuzC as percentage of Buz'},
-        { label: 'Conv%', attributeFunction: d => formatNumber(100.0 * d['BuzC'] / d['Att'], 1, false, false), description: 'Conversion: BuzC as percentage of Att'},
-        { label: 'Time', sortValueFunction: d => d['Timing'], attributeFunction: d => formatNumber(d['Timing'], 1, false, true), description: 'Estimated buzzes earned through timing'},
-        { label: 'Solo', attributeFunction: d => formatNumber(d['Solo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
-        { label: 'AttV', attributeFunction: d => formatNumber(d['AttValue'], 0, false, false), description: 'Estimated clue value attempted'},
-        { label: 'BuzV', attributeFunction: d => d['BuzValue'], description: 'Clue value buzzed in on'},
-        { label: 'BuzV%', attributeFunction: d => formatNumber(100.0 * d['BuzValue'] / d['AttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
-        { label: 'Buz$', attributeFunction: d => d['Buz$'], description: 'Score on buzzes'},
-        { label: 'AccV%', attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['BuzValue'], 1, false, false), description: 'Accuracy Value: Buz$ as percentage of BuzV'},
-        { label: 'ConvV%', attributeFunction: d => formatNumber(100.0 * d['Buz$'] / d['AttValue'], 1, false, false), description: 'Conversion Value: Buz$ as percentage of AttV'},
-        { label: 'TimeV', sortValueFunction: d => d['TimingValue'], attributeFunction: d => formatNumber(d['TimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
-        { label: 'SoloV', attributeFunction: d => formatNumber(d['SoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
-      ]
-    },
-    {
-      label: 'Conversion (J)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Att', attributeFunction: d => d['JAtt'], description: 'Attempts'},
-        { label: 'Buz', attributeFunction: d => d['JBuz'], description: 'Buzzes'},
-        { label: 'Buz%', attributeFunction: d => formatNumber(d['JBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
-        { label: 'BuzC', attributeFunction: d => d['JBuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Acc%', attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JBuz'], 1, false, false), description: 'Accuracy: BuzC as percentage of Buz'},
-        { label: 'Conv%', attributeFunction: d => formatNumber(100.0 * d['JBuzC'] / d['JAtt'], 1, false, false), description: 'Conversion: BuzC as percentage of Att'},
-        { label: 'Time', sortValueFunction: d => d['JTiming'], attributeFunction: d => formatNumber(d['JTiming'], 1, false, true), description: 'Estimated buzzes earned through timing'},
-        { label: 'Solo', attributeFunction: d => formatNumber(d['JSolo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
-        { label: 'AttV', attributeFunction: d => formatNumber(d['JAttValue'], 0, false, false), description: 'Estimated clue value attempted'},
-        { label: 'BuzV', attributeFunction: d => d['JBuzValue'], description: 'Clue value buzzed in on'},
-        { label: 'BuzV%', attributeFunction: d => formatNumber(100.0 * d['JBuzValue'] / d['JAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
-        { label: 'Buz$', attributeFunction: d => d['JBuz$'], description: 'Score on buzzes'},
-        { label: 'AccV%', attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JBuzValue'], 1, false, false), description: 'Accuracy Value: Buz$ as percentage of BuzV'},
-        { label: 'ConvV%', attributeFunction: d => formatNumber(100.0 * d['JBuz$'] / d['JAttValue'], 1, false, false), description: 'Conversion Value: Buz$ as percentage of AttV'},
-        { label: 'TimeV', sortValueFunction: d => d['JTimingValue'], attributeFunction: d => formatNumber(d['JTimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
-        { label: 'SoloV', attributeFunction: d => formatNumber(d['JSoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
-      ]
-    },
-    {
-      label: 'Conversion (DJ)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Att', attributeFunction: d => d['DJAtt'], description: 'Attempts'},
-        { label: 'Buz', attributeFunction: d => d['DJBuz'], description: 'Buzzes'},
-        { label: 'Buz%', attributeFunction: d => formatNumber(d['DJBuz%'], 1, false, false), description: 'Buz as percentage of Att'},
-        { label: 'BuzC', attributeFunction: d => d['DJBuzC'], description: 'Correct responses on buzzes'},
-        { label: 'Acc%', attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false), description: 'Accuracy: BuzC as percentage of Buz'},
-        { label: 'Conv%', attributeFunction: d => formatNumber(100.0 * d['DJBuzC'] / d['DJBuz'], 1, false, false), description: 'Conversion: BuzC as percentage of Buz'},
-        { label: 'Time', sortValueFunction: d => d['DJTiming'], attributeFunction: d => formatNumber(d['DJTiming'], 1, false, true), description: 'Estimated buzzes earned through timing'},
-        { label: 'Solo', attributeFunction: d => formatNumber(d['DJSolo'], 1, false, false), description: 'Estimated buzzes as solo attempter'},
-        { label: 'AttV', attributeFunction: d => formatNumber(d['DJAttValue'], 0, false, false), description: 'Estimated clue value attempted'},
-        { label: 'BuzV', attributeFunction: d => d['DJBuzValue'], description: 'Clue value buzzed in on'},
-        { label: 'BuzV%', attributeFunction: d => formatNumber(100.0 * d['DJBuzValue'] / d['DJAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
-        { label: 'Buz$', attributeFunction: d => d['DJBuz$'], description: 'Score on buzzes'},
-        { label: 'AccV%', attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJBuzValue'], 1, false, false), description: 'Accuracy Value: Buz$ as percentage of BuzV'},
-        { label: 'ConvV%', attributeFunction: d => formatNumber(100.0 * d['DJBuz$'] / d['DJAttValue'], 1, false, false), description: 'Conversion Value: Buz$ as percentage of AttV'},
-        { label: 'TimeV', sortValueFunction: d => d['DJTimingValue'], attributeFunction: d => formatNumber(d['DJTimingValue'], 0, false, true), description: 'Estimated clue value of buzzes earned through timing'},
-        { label: 'SoloV', attributeFunction: d => formatNumber(d['DJSoloValue'], 0, false, false), description: 'Estimated clue value of buzzes as solo attempter'}
-      ]
-    }
-  ]
-  if (gameRounds.value >= 3) {
-    panels.push({
-      label: 'Conversion (TJ)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => -d['Podium'], attributeFunction: contestantLink},
-        { label: 'Att', attributeFunction: d => d['TJAtt']},
-        { label: 'Buz', attributeFunction: d => d['TJBuz']},
-        { label: 'Buz%', attributeFunction: d => formatNumber(d['TJBuz%'], 1, false, false)},
-        { label: 'BuzC', attributeFunction: d => d['TJBuzC']},
-        { label: 'Acc%', attributeFunction: d => formatNumber(100.0 * d['TJBuzC'] / d['TJBuz'], 1, false, false), description: 'Accuracy: BuzC as percentage of Buz'},
-        { label: 'Conv%', attributeFunction: d => formatNumber(100.0 * d['TJBuzC'] / d['TJBuz'], 1, false, false), description: 'Conversion: BuzC as percentage of Att'},
-        { label: 'Time', sortValueFunction: d => d['TJTiming'], attributeFunction: d => formatNumber(d['TJTiming'], 1, false, true)},
-        { label: 'Solo', attributeFunction: d => formatNumber(d['TJSolo'], 1, false, false)},
-        { label: 'AttV', attributeFunction: d => formatNumber(d['TJAttValue'], 0, false, false)},
-        { label: 'BuzV', attributeFunction: d => d['TJBuzValue']},
-        { label: 'BuzV%', attributeFunction: d => formatNumber(100.0 * d['TJBuzValue'] / d['TJAttValue'], 1, false, false), description: 'BuzV as percentage of AttV'},
-        { label: 'Buz$', attributeFunction: d => d['TJBuz$']},
-        { label: 'AccV%', attributeFunction: d => formatNumber(100.0 * d['TJBuz$'] / d['TJBuzValue'], 1, false, false), description: 'Accuracy Value: Buz$ as percentage of BuzV'},
-        { label: 'ConvV%', attributeFunction: d => formatNumber(100.0 * d['TJBuz$'] / d['TJAttValue'], 1, false, false), description: 'Conversion Value: Buz$ as percentage of AttV'},
-        { label: 'TimeV', sortValueFunction: d => d['TJTimingValue'], attributeFunction: d => formatNumber(d['TJTimingValue'], 0, false, true)},
-        { label: 'SoloV', attributeFunction: d => formatNumber(d['TJSoloValue'], 0, false, false)}
-      ]
-    })
-  }
-  return panels
-})
-
+/*
 const gameStatisticPanels = computed(() => {
   return [
     {
@@ -761,26 +572,10 @@ const gameStatisticPanels = computed(() => {
       ]
     }
   ] : [])
-})
-
-const allContestantStatDataWithBox = computed(() => {
-  if (allContestantStatData.value) {
-    return d3.filter(allContestantStatData.value, d => d['Att'] !== undefined)
-  } else {
-    return []
-  }
-})
-
-const gameContestantStatDataWithBox = computed(() => {
-  if (gameContestantStatData.value) {
-    return d3.filter(gameContestantStatData.value, d => d['Att'] !== undefined)
-  } else {
-    return []
-  }
-})
+})*/
 
 //Charts
-const graphAttributesList = computed(() => graphAttributes(gameRounds.value))
+const graphAttributesList = computed(() => graphAttributes)
 
 const histogramGraphAttributeIdx = ref(0)
 const histogramGraphAttribute = computed(() => graphAttributesList.value[histogramGraphAttributeIdx.value])
@@ -788,38 +583,63 @@ const histogramGraphRoundIdx = ref(0)
 
 const xScatterGraphAttributeIdx = ref(0)
 const xScatterGraphAttribute = computed(() => graphAttributesList.value[xScatterGraphAttributeIdx.value])
-const yScatterGraphAttributeIdx = ref(1)
+const yScatterGraphAttributeIdx = ref(2)
 const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatterGraphAttributeIdx.value])
 const scatterGraphRoundIdx = ref(0)
 
-function specifyScatterHistogram(xAttr, yAttr) {
+const scatterSpecification = computed(() => {
+  if (!contestantData.value || !jschemaAllGameRoundContestantStatDataFlat.value || !jschemaAllGameContestantStatDataFlat.value) return null
+  const xAttr = xScatterGraphAttribute.value
+  const yAttr = yScatterGraphAttribute.value
+  var histogramData = jschemaAllGameContestantStatDataFlat.value
+  var scatterData = jschemaGameContestantStatDataFlat.value
+  if (scatterGraphRoundIdx.value > 0) {
+    histogramData = jschemaAllGameRoundContestantStatByRound.value.get(scatterGraphRoundIdx.value)
+    scatterData = jschemaGameRoundContestantStatDataByRound.value[scatterGraphRoundIdx.value]
+  }
+  if (xAttr['requiresBox'] || yAttr['requiresBox']) {
+    histogramData = d3.filter(histogramData, r => r.att !== undefined)
+    scatterData = d3.filter(scatterData, r => r.att !== undefined)
+  }
   return {
-    histogramData: xAttr['requiresBox'] || yAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
-    scatterData: xAttr['requiresBox'] || yAttr['requiresBox'] ? gameContestantStatDataWithBox.value : gameContestantStatData.value,
-    scatterLabelFunction: d => d['Contestant'],
-    scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
+    histogramData: histogramData,
+    scatterData: scatterData,
+    scatterLabelFunction: d => contestantData.value.get(d.contestant_id).name,
+    scatterColorFunction: d => color.value(d.contestant_id),
     title: xAttr['label'] + ' vs ' + yAttr['label'],
     xLabel: xAttr['label'],
-    xFunction: xAttr['generatingFunctions'][scatterGraphRoundIdx.value],
+    xFunction: xAttr['generatingFunctionFromSplit'],
     xBins: xAttr['bins'],
     yLabel: yAttr['label'],
-    yFunction: yAttr['generatingFunctions'][scatterGraphRoundIdx.value],
+    yFunction: yAttr['generatingFunctionFromSplit'],
     yBins: yAttr['bins'],
   }
-}
+})
 
-function specifyHighlightHistogram(xAttr) {
+const histogramSpecification = computed(() => {
+  if (!contestantData.value || !jschemaAllGameRoundContestantStatDataFlat.value || !jschemaAllGameContestantStatDataFlat.value) return null
+  const xAttr = histogramGraphAttribute.value
+  var histogramData = jschemaAllGameContestantStatDataFlat.value
+  var scatterData = jschemaGameContestantStatDataFlat.value
+  if (histogramGraphRoundIdx.value > 0) {
+    histogramData = jschemaAllGameRoundContestantStatByRound.value.get(histogramGraphRoundIdx.value)
+    scatterData = jschemaGameRoundContestantStatDataByRound.value[histogramGraphRoundIdx.value]
+  }
+  if (xAttr['requiresBox']) {
+    histogramData = d3.filter(histogramData, r => r.att !== undefined)
+    scatterData = d3.filter(scatterData, r => r.att !== undefined)
+  }
   return {
-    histogramData: xAttr['requiresBox'] ? allContestantStatDataWithBox.value : allContestantStatData.value,
-    scatterData: xAttr['requiresBox'] ? gameContestantStatDataWithBox.value : gameContestantStatData.value,
-    scatterLabelFunction: d => d['Contestant'],
-    scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
+    histogramData: histogramData,
+    scatterData: scatterData,
+    scatterLabelFunction: d => contestantData.value.get(d.contestant_id).name,
+    scatterColorFunction: d => color.value(d.contestant_id),
     title: xAttr['label'],
     xLabel: xAttr['label'],
-    xFunction: xAttr['generatingFunctions'][histogramGraphRoundIdx.value],
+    xFunction: xAttr['generatingFunctionFromSplit'],
     xBins: xAttr['bins']
   }
-} */
+})
 
 </script>
 
@@ -846,27 +666,28 @@ function specifyHighlightHistogram(xAttr) {
         :panels="conversionValueScoringTablePanels"
         :rowData="scoringTableRows"
         :defaultSortFunction="d => d['podium']"
-        /><!--
-      <h2>Game Statistics</h2>
-      <CarouselTable v-if="gameStatData"
-        :panels="gameStatisticPanels"
-        :rowData="[]"
-        :defaultSortFunction="d => 1"
-        />-->
+        />
     </div>
-    <!--    <h2>Correct Responses</h2>
+    <h2>Correct Responses</h2>
     <div id="view-boards" class="section">
       <div v-for="round in d3.range(1, gameRounds + 1)">
         <h3>{{ roundName(round) }} Round</h3>
-        <table class="view-board" v-if="gameClueCorrectResponses && gameClueCorrectResponses.get(round)" >
+        <table class="view-board" v-if="jschemaClueByRoundRowColumn && jschemaClueByRoundRowColumn.get(round) && jschemaResponseByRoundClue && jschemaResponseByRoundClue.get(round)" >
           <tr v-for="row in d3.range(1,6)">
             <td v-for="column in d3.range(1,7)">
-              <div v-if="gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)"
-                  :class="gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)['dd'] === 1 ? 'daily-double' : ''">
-                <div v-for="correctResponseItem in gameClueCorrectResponses.get(round).get(row * round * gameBaseValueMultiple).get(column)['corrects']"
-                  :style="'background-color: ' + (correctResponseItem === -1 ? 'black' : (correctResponseItem === 0 ? 'gray' : threeColorSet[correctResponseItem-1]))"
-                  >
-                </div>
+              <div v-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)"
+                  :class="jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_daily_double'] === 1 ? 'daily-double' : ''">
+                <template v-if="jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
+                      jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length > 0">
+                  <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
+                    :style="'background-color: ' + color(correctResponseItem.contestant_id)"
+                    >
+                  </div>                  
+                </template>
+                <template v-else>
+                  <div style="background-color: gray">
+                  </div>
+                </template>
               </div>
               <div v-else>
                 <div style="background-color: black">
@@ -915,149 +736,63 @@ function specifyHighlightHistogram(xAttr) {
           </td>
         </tr>
       </table>
-    </div>-->
+    </div>
     <div class="section">
-      <h2>Score</h2>
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
+      <h2>Game Progress</h2>
+      <select v-model="byClueLineChartAttributeIdx">
+        <option v-for="(graphAttribute, idx) in cumulativeDataAttributesList" :value="idx">
+          {{ graphAttribute.label }}
+        </option>
+      </select>
+      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantData"
         :data="byClueLineChartData"
         :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].att))"
+        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx])))"
         :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
         :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Attempts'"
+        :title="'Cumulative ' + byClueLineChartAttribute.label"
         :xLabel="'Clues'"
-        :yLabel="'Cumulative Attempts'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].att_clue))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Attempted Clues'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Attempted Clues'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].att_value))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Attempt Value'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Attempt Value'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].buz_value === 0 ? 0 : 1))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Buzz'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Buzz'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].buz_value))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Buzz Value'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Buzz Value'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].buz_score))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Buzz Score'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Buzz Score'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].score))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Score'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Score'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].timing_value))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Timing Value'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Timing Value'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].timing_score))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Timing Score'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Timing Score'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].solo_value))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Solo Value'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Solo Value'"
-      />
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => d.contestant_data[idx].solo_score))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative Solo Score'"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative Solo Score'"
+        :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
       />
     </div>
-    {{  byClueLineChartData  }}
     <!--
     <div class="section">
       <h2>Lead Ratio</h2>
       <ReactiveChart :chart="leadRatioChartData"/>
-    </div>
-    <div class="section">
+    </div>-->
+    <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantData">
       <h2>Attempts</h2>
-      <StackValueBarChart
-        :data="gameContestantStatData"
-        :xCoreLabelFunction="d => d['Contestant']"
+      <StackValueBarChart 
+        :data="gameContestantIds"
+        :xCoreLabelFunction="cid => contestantData.get(cid).name"
         :xGroupLabels="['J','DJ'].concat(gameRounds >= 3 ? ['TJ'] : [])"
-        :yFunctionGroups="[[d => d['JBuzC'], d => d['JBuz'], d => d['JAtt']],[d => d['DJBuzC'], d => d['DJBuz'], d => d['DJAtt']]].concat(gameRounds >= 3 ? [[d => d['TJBuzC'], d => d['TJBuz'], d => d['TJAtt']]] : [])"
-        :colorFunction="d => color(d['Jometry Contestant Id'])"
+        :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
+          [
+            cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buzc,
+            cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz,
+            cid => formatNumber(jschemaGameRoundContestantStatData.get(rid).get(cid).att, 0)
+          ])"
+        :colorFunction="cid => color(cid)"
         :yLabel="'BuzC -> Buz -> Att'"
         :title="'Attempts'"/>
     </div>
-    <div class="section">
-      <h2>Attempt Value</h2>
-      <StackValueBarChart
-        :data="gameContestantStatData"
-        :xCoreLabelFunction="d => d['Contestant']"
+    <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantData">
+      <h2>Attempt Values</h2>
+      <StackValueBarChart 
+        :data="gameContestantIds"
+        :xCoreLabelFunction="cid => contestantData.get(cid).name"
         :xGroupLabels="['J','DJ'].concat(gameRounds >= 3 ? ['TJ'] : [])"
-        :yFunctionGroups="[[d => d['JBuz$'], d => d['JBuzValue'], d => formatNumber(d['JAttValue'], 0)],[d => d['DJBuz$'], d => d['DJBuzValue'], d => formatNumber(d['DJAttValue'],0)]].concat(gameRounds >= 3 ? [[d => d['TJBuz$'], d => d['TJBuzValue'], d => formatNumber(d['TJAttValue'], 0)]] : [])"
-        :colorFunction="d => color(d['Jometry Contestant Id'])"
+        :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
+          [
+            cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz_score,
+            cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz_value,
+            cid => formatNumber(jschemaGameRoundContestantStatData.get(rid).get(cid).att_value, 0)
+          ])"
+        :colorFunction="cid => color(cid)"
         :yLabel="'Buz$ -> BuzValue -> AttValue'"
-        :title="'Attempt Value'"/>
+        :title="'Attempt Values'"/>
     </div>
-    <div class="section">
+    <div class="section" v-if="histogramSpecification">
       <h2>Selectable Histograms</h2>
       <select v-model="histogramGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
@@ -1070,9 +805,9 @@ function specifyHighlightHistogram(xAttr) {
         <option :value="2">DJ! Round</option>
         <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
       </select><br/>
-      <HighlightHistogram v-bind="specifyHighlightHistogram(histogramGraphAttribute)" />
+      <HighlightHistogram v-bind="histogramSpecification" />
     </div>
-    <div class="section">
+    <div class="section" v-if="scatterSpecification">
       <h2>Selectable Scatter Plots</h2>
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
@@ -1090,8 +825,8 @@ function specifyHighlightHistogram(xAttr) {
         <option :value="2">DJ! Round</option>
         <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
       </select><br/>
-      <ScatterHistogram v-bind="specifyScatterHistogram(xScatterGraphAttribute, yScatterGraphAttribute)" />
-    </div>-->
+      <ScatterHistogram v-bind="scatterSpecification" />
+    </div>
   </div>
   <Footer/>
 </template>

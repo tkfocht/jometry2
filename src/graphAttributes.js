@@ -1,190 +1,166 @@
-const attGraphAttribute = (rounds) => ({
+const attGraphAttribute = {
     label: 'Att',
     requiresBox: true,
-    generatingFunctions: [d => d['Att'], d => d['JAtt'], d => d['DJAtt']].concat(rounds >= 3 ? [d => d['TJAtt']] : []),
+    generatingFunctionFromSplit: d => d.att,
     bins: { size: 1 }
-})
-
-const buzGraphAttribute = (rounds) => ({
-    label: 'Buz',
-    requiresBox: false,
-    generatingFunctions: [d => d['Buz'], d => d['JBuz'], d => d['DJBuz']].concat(rounds >= 3 ? [d => d['TJBuz']] : []),
-    bins: { size: 1 }
-})
-
-const attBuzConversionGraphAttribute = (rounds) => ({
-    label: 'Buz%',
-    requiresBox: false,
-    generatingFunctions: [d => d['Att'] === undefined ? undefined : 100.0 * d['Buz'] / d['Att'], 
-        d => d['JAtt'] === undefined ? undefined : 100.0 * d['JBuz'] / d['JAtt'], 
-        d => d['DJAtt'] === undefined ? undefined : 100.0 * d['DJBuz'] / d['DJAtt']].concat(rounds >= 3 ? [d => d['TJAtt'] === undefined ? undefined : 100.0 * d['TJBuz'] / d['TJAtt']] : []),
-    bins: { size: 5 }
-})
-
-const buzCGraphAttribute = (rounds) => ({
-    label: 'BuzC',
-    requiresBox: false,
-    generatingFunctions: [d => d['BuzC'], d => d['JBuzC'], d => d['DJBuzC']].concat(rounds >= 3 ? [d => d['TJBuzC']] : []),
-    bins: { size: 1 }
-})
-
-const buzBuzCConversionGraphAttribute = (rounds) => ({
-    label: 'Acc%',
-    requiresBox: false,
-    generatingFunctions: [d => 100.0 * d['BuzC'] / d['Buz'], 
-        d => 100.0 * d['JBuzC'] / d['JBuz'], 
-        d => 100.0 * d['DJBuzC'] / d['DJBuz']].concat(rounds >= 3 ? [d => 100.0 * d['TJBuzC'] / d['TJBuz']] : []),
-    bins: { size: 5 }
-})
-
-const attBuzCConversionGraphAttribute = (rounds) => ({
-    label: 'Conv%',
-    requiresBox: false,
-    generatingFunctions: [d => d['Att'] === undefined ? undefined : 100.0 * d['BuzC'] / d['Att'], 
-        d => d['JAtt'] === undefined ? undefined : 100.0 * d['JBuzC'] / d['JAtt'], 
-        d => d['DJAtt'] === undefined ? undefined : 100.0 * d['DJBuzC'] / d['DJAtt']].concat(rounds >= 3 ? [d => d['TJAtt'] === undefined ? undefined : 100.0 * d['TJBuzC'] / d['TJAtt']] : []),
-    bins: { size: 5 }
-})
-
-const attValueGraphAttribute = (rounds) => ({
-    label: 'AttValue',
-    requiresBox: true,
-    generatingFunctions: [d => d['AttValue'], d => d['JAttValue'], d => d['DJAttValue']].concat(rounds >= 3 ? [d => d['TJAttValue']] : []),
-    bins: { size: 1000 }
-})
-
-const buzValueGraphAttribute = (rounds) => ({
-    label: 'BuzValue',
-    requiresBox: false,
-    generatingFunctions: [d => d['BuzValue'], d => d['JBuzValue'], d => d['DJBuzValue']].concat(rounds >= 3 ? [d => d['TJBuzValue']] : []),
-    bins: { size: 1000 }
-})
-
-const attValueBuzValueConversionGraphAttribute = (rounds) => ({
-    label: 'BuzValue%',
-    requiresBox: false,
-    generatingFunctions: [d => d['AttValue'] === undefined ? undefined : 100.0 * d['BuzValue'] / d['AttValue'], 
-        d => d['JAttValue'] === undefined ? undefined : 100.0 * d['JBuzValue'] / d['JAttValue'], 
-        d => d['DJAttValue'] === undefined ? undefined : 100.0 * d['DJBuzValue'] / d['DJAttValue']].concat(rounds >= 3 ? [d => d['TJAttValue'] === undefined ? undefined : 100.0 * d['TJBuzValue'] / d['TJAttValue']] : []),
-    bins: { size: 5 }
-})
-
-const buzScoreGraphAttribute = (rounds) => ({
-    label: 'Buz$',
-    requiresBox: false,
-    generatingFunctions: [d => d['Buz$'], d => d['JBuz$'], d => d['DJBuz$']].concat(rounds >= 3 ? [d => d['TJBuz$']] : []),
-    bins: { size: 1000 }
-})
-
-const buzValueScoreConversionGraphAttribute = (rounds) => ({
-    label: 'AccValue%',
-    requiresBox: false,
-    generatingFunctions: [d => 100.0 * d['Buz$'] / d['BuzValue'], 
-        d => 100.0 * d['JBuz$'] / d['JBuzValue'], 
-        d => 100.0 * d['DJBuz$'] / d['DJBuzValue']].concat(rounds >= 3 ? [d => 100.0 * d['TJBuz$'] / d['TJBuzValue']] : []),
-    bins: { size: 5 }
-})
-
-const attValueBuzScoreConversionGraphAttribute = (rounds) => ({
-    label: 'ConvValue%',
-    requiresBox: false,
-    generatingFunctions: [d => d['AttValue'] === undefined ? undefined : 100.0 * d['Buz$'] / d['AttValue'], 
-        d => d['JAttValue'] === undefined ? undefined : 100.0 * d['JBuz$'] / d['JAttValue'], 
-        d => d['DJAttValue'] === undefined ? undefined : 100.0 * d['DJBuz$'] / d['DJAttValue']].concat(rounds >= 3 ? [d => d['TJAttValue'] === undefined ? undefined : 100.0 * d['TJBuz$'] / d['TJAttValue']] : []),
-    bins: { size: 5 }
-})
-
-const timingGraphAttribute = (rounds) => ({
-    label: 'Timing',
-    requiresBox: true,
-    generatingFunctions: [d => d['Timing'], d => d['JTiming'], d => d['DJTiming']].concat(rounds >= 3 ? [d => d['TJTiming']] : []),
-    bins: { size: 0.5 }
-})
-
-const soloGraphAttribute = (rounds) => ({
-    label: 'Solo',
-    requiresBox: true,
-    generatingFunctions: [d => d['Solo'], d => d['JSolo'], d => d['DJSolo']].concat(rounds >= 3 ? [d => d['TJSolo']] : []),
-    bins: { start:0, size: 0.5 }
-})
-
-const timingValueGraphAttribute = (rounds) => ({
-    label: 'TimingValue',
-    requiresBox: true,
-    generatingFunctions: [d => d['TimingValue'], d => d['JTimingValue'], d => d['DJTimingValue']].concat(rounds >= 3 ? [d => d['TJTimingValue']] : []),
-    bins: { size: 500 }
-})
-
-const soloValueGraphAttribute = (rounds) => ({
-    label: 'SoloValue',
-    requiresBox: true,
-    generatingFunctions: [d => d['SoloValue'], d => d['JSoloValue'], d => d['DJSoloValue']].concat(rounds >= 3 ? [d => d['TJSoloValue']] : []),
-    bins: { start:0, size: 500 }
-})
-
-const ddPlusGraphAttribute = (rounds) => ({
-    label: 'DD+',
-    requiresBox: false,
-    generatingFunctions: [d => d['DD+'], d => d['JDD+'], d => d['DJDD+']].concat(rounds >= 3 ? [d => d['TJDD+']] : []),
-    bins: { size: 0.2 }
-})
-
-const ddScoreGraphAttribute = (rounds) => ({
-    label: 'DD$',
-    requiresBox: false,
-    generatingFunctions: [d => d['DD$'], d => d['JDD$'], d => d['DJDD$']].concat(rounds >= 3 ? [d => d['TJDD$']] : []),
-    bins: { size: 1000 }
-})
-
-const djFinalScoreGraphAttribute = (rounds) => {
-    const generatingFunction = d => rounds >= 3 ? d['TJFinal$'] : d['DJFinal$']
-    return {
-        label: 'FJStart$',
-        requiresBox: false,
-        generatingFunctions: [generatingFunction, generatingFunction, generatingFunction].concat(rounds >= 3 ? [generatingFunction] : []),
-        bins: { size: 1000 }
-    }
 }
 
-const endOfRegulationBuzScoreRatio = (rounds) => ({
-    label: 'FJStart Buz$ Lead Ratio',
-    requiresBox: false,
-    generatingFunctions: [d => d['Buz$LeadRatio'], d => d['Buz$LeadRatio'], d => d['Buz$LeadRatio']].concat(rounds >= 3 ? [d => d['Buz$LeadRatio']] : []),
-    bins: { size: 0.2 }
-})
+const attClueGraphAttribute = {
+    label: 'AttClue',
+    requiresBox: true,
+    generatingFunctionFromSplit: d => d.att_clue,
+    bins: { size: 1 }
+}
 
-const endOfRegulationRatio = (rounds) => ({
-    label: 'FJStart Lead Ratio',
+const buzGraphAttribute = {
+    label: 'Buz',
     requiresBox: false,
-    generatingFunctions: [d => d['LeadRatio'], d => d['LeadRatio'], d => d['LeadRatio']].concat(rounds >= 3 ? [d => d['LeadRatio']] : []),
-    bins: { size: 0.2 }
-})
+    generatingFunctionFromSplit: d => d.buz,
+    bins: { size: 1 }
+}
 
-const fjScoreGraphAttribute = (rounds) => ({
-    label: 'FJ$',
+const attBuzConversionGraphAttribute = {
+    label: 'Buz%',
     requiresBox: false,
-    generatingFunctions: [d => d['FJ$'], d => d['FJ$'], d => d['FJ$']].concat(rounds >= 3 ? [d => d['FJ$']] : []),
+    generatingFunctionFromSplit: d => 100.0 * d.buz_percent,
+    bins: { size: 5 }
+}
+
+const buzCGraphAttribute = {
+    label: 'BuzC',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => d.buzc,
+    bins: { size: 1 }
+}
+
+const buzBuzCConversionGraphAttribute = {
+    label: 'Acc%',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => 100.0 * d.acc_percent,
+    bins: { size: 5 }
+}
+
+const attBuzCConversionGraphAttribute = {
+    label: 'Conv%',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => 100.0 * d.conversion_percent,
+    bins: { size: 5 }
+}
+
+const attValueGraphAttribute = {
+    label: 'AttValue',
+    requiresBox: true,
+    generatingFunctionFromSplit: d => d.att_value,
     bins: { size: 1000 }
-})
+}
 
-const finalScoreGraphAttribute = (rounds) => ({
-    label: 'Final $',
+const buzValueGraphAttribute = {
+    label: 'BuzValue',
     requiresBox: false,
-    generatingFunctions: [d => d['FJFinal$'], d => d['FJFinal$'], d => d['FJFinal$']].concat(rounds >= 3 ? [d => d['FJFinal$']] : []),
+    generatingFunctionFromSplit: d => d.buz_value,
     bins: { size: 1000 }
-})
+}
 
-const graphAttributes = (rounds) => [
-    attGraphAttribute(rounds), buzGraphAttribute(rounds), attBuzConversionGraphAttribute(rounds),
-    buzCGraphAttribute(rounds), buzBuzCConversionGraphAttribute(rounds), attBuzCConversionGraphAttribute(rounds),
-    timingGraphAttribute(rounds), soloGraphAttribute(rounds),
-    attValueGraphAttribute(rounds), buzValueGraphAttribute(rounds),
-    attValueBuzValueConversionGraphAttribute(rounds),
-    buzScoreGraphAttribute(rounds), buzValueScoreConversionGraphAttribute(rounds), attValueBuzScoreConversionGraphAttribute(rounds),
-    timingValueGraphAttribute(rounds), soloValueGraphAttribute(rounds),
-    ddPlusGraphAttribute(rounds), ddScoreGraphAttribute(rounds),
-    djFinalScoreGraphAttribute(rounds),
-    fjScoreGraphAttribute(rounds), finalScoreGraphAttribute(rounds)
+const attValueBuzValueConversionGraphAttribute = {
+    label: 'BuzValue%',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => 100.0 * d.buz_value_percent,
+    bins: { size: 5 }
+}
+
+const buzScoreGraphAttribute = {
+    label: 'Buz$',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => d.buz_score,
+    bins: { size: 1000 }
+}
+
+const buzValueScoreConversionGraphAttribute = {
+    label: 'AccValue%',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => 100.0 * d.acc_value_percent,
+    bins: { size: 5 }
+}
+
+const attValueBuzScoreConversionGraphAttribute = {
+    label: 'ConvValue%',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => 100.0 * d.conversion_value_percent,
+    bins: { size: 5 }
+}
+
+const timingGraphAttribute = {
+    label: 'Timing',
+    requiresBox: true,
+    generatingFunctionFromSplit: d => d.timing,
+    bins: { size: 0.5 }
+}
+
+const soloGraphAttribute = {
+    label: 'Solo',
+    requiresBox: true,
+    generatingFunctionFromSplit: d => d.solo,
+    bins: { start:0, size: 0.5 }
+}
+
+const timingValueGraphAttribute = {
+    label: 'TimingValue',
+    requiresBox: true,
+    generatingFunctionFromSplit: d => d.timing_value,
+    bins: { size: 500 }
+}
+
+const timingScoreGraphAttribute = {
+    label: 'TimingScore',
+    requiresBox: true,
+    generatingFunctionFromSplit: d => d.timing_score,
+    bins: { start: 0, size: 500 }
+}
+
+const soloValueGraphAttribute = {
+    label: 'SoloValue',
+    requiresBox: true,
+    generatingFunctionFromSplit: d => d.solo_value,
+    bins: { start:0, size: 500 }
+}
+
+const soloScoreGraphAttribute = {
+    label: 'SoloScore',
+    requiresBox: true,
+    generatingFunctionFromSplit: d => d.solo_score,
+    bins: { size: 500 }
+}
+
+const ddPlusBuzCGraphAttribute = {
+    label: 'DD+C',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => d.dd_plus_buzc,
+    bins: { size: 0.2 }
+}
+
+const ddPlusSelectionGraphAttribute = {
+    label: 'DD+S',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => d.dd_plus_selection,
+    bins: { size: 0.2 }
+}
+
+const ddScoreGraphAttribute = {
+    label: 'DD$',
+    requiresBox: false,
+    generatingFunctionFromSplit: d => d.dd_score,
+    bins: { size: 1000 }
+}
+
+const graphAttributes = [
+    attGraphAttribute, attClueGraphAttribute, buzGraphAttribute, attBuzConversionGraphAttribute,
+    buzCGraphAttribute, buzBuzCConversionGraphAttribute, attBuzCConversionGraphAttribute,
+    timingGraphAttribute, soloGraphAttribute,
+    attValueGraphAttribute, buzValueGraphAttribute,
+    attValueBuzValueConversionGraphAttribute,
+    buzScoreGraphAttribute, buzValueScoreConversionGraphAttribute, attValueBuzScoreConversionGraphAttribute,
+    timingValueGraphAttribute, timingScoreGraphAttribute, soloValueGraphAttribute, soloScoreGraphAttribute,
+    ddPlusBuzCGraphAttribute, ddPlusSelectionGraphAttribute, ddScoreGraphAttribute
 ]
 
 export { graphAttributes };
