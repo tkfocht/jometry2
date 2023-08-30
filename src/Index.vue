@@ -1,28 +1,21 @@
 <script setup>
-import { ref } from 'vue'
-import { dataSourceAddress, playClassificationName } from '@/configuration'
-import { csvDataAccessor, gameStatDataFromContestantStatData, jschemaCsvDataAccessor } from '@/util'
+import * as data from '@/data'
+import { playClassificationName } from '@/configuration'
 
 import * as d3 from 'd3'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import ToggleableGameListing from './components/index/ToggleableGameListing.vue'
 
-const gameData = ref(null)
-const contestantData = ref(null)
+data.loadContestantData()
+data.loadGameData()
 
-async function fetchGameData() {
-  const gamesResult = await d3.csv('https://j-ometry.com/csvs/jschema_game.csv', jschemaCsvDataAccessor)
-  gamesResult.sort((a,b) => d3.descending(a['airdate'], b['airdate']) || d3.descending(a['game_in_season'], b['game_in_season']))
-  gameData.value = d3.group(gamesResult, d => d['toc_period'], d => d['season_id'], d => d['play_classification'])
-}
-fetchGameData()
-
-async function fetchContestantData() {
-  const contestantResult = await d3.csv('https://j-ometry.com/csvs/jschema_contestant.csv', jschemaCsvDataAccessor)
-  contestantData.value = d3.index(contestantResult, c => c.contestant_id)
-}
-fetchContestantData()
+const gameDataRaw = data.gameData
+const gameData = data.computedIfRefHasValue(gameDataRaw, gData => {
+  gData.sort((a,b) => d3.descending(a['airdate'], b['airdate']) || d3.descending(a['game_in_season'], b['game_in_season']))
+  return d3.group(gData, d => d['toc_period'], d => d['season_id'], d => d['play_classification'])
+})
+const contestantData = data.contestantDataById
 
 </script>
 

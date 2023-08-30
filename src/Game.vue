@@ -1,84 +1,42 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData,
-  dateFormat, roundName, jschemaCsvDataAccessor } from '@/util'
-import { dataSourceAddress } from '@/configuration'
-import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
+import { ref, computed } from 'vue'
+import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor } from '@/util'
+import * as data from '@/data'
+import { graphAttributes } from '@/graphAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
 import CumulativeLineChart from './components/util/CumulativeLineChart.vue'
-import LineChart from './components/util/LineChart.vue'
-import ReactiveChart from './components/util/ReactiveChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
-import { formatDate } from 'plotly.js-dist'
 
 let urlParams = new URLSearchParams(window.location.search);
-const dataSourceString = urlParams.get('data_source')
-const dataSourceId = dataSourceString ? dataSourceString : 'standard'
 
 const gameId = +urlParams.get('game_id')
 
-const contestantData = ref(null)
-async function fetchContestantData() {
-  const contestantResult = await d3.csv('https://j-ometry.com/csvs/jschema_contestant.csv', jschemaCsvDataAccessor)
-  contestantData.value = d3.index(contestantResult, c => c.contestant_id)
-}
-fetchContestantData()
+data.loadContestantData()
+data.loadGameData()
+data.loadGameContestantStatData()
+data.loadGameRoundContestantStatData()
 
-const jschemaAllGameData = ref(null)
-const jschemaGameData = computed(() => {
-  if (jschemaAllGameData.value) return jschemaAllGameData.value.get(gameId)
-  else return null
-})
-const gameRounds = computed(() => {
-  if (jschemaGameData.value) return jschemaGameData.value.play_classification == 'celebrity' ? 3 : 2
-  else return null
-})
-const gameContestantIds = computed(() => {
-  if (jschemaGameData.value) return [jschemaGameData.value.podium_1_contestant_id, jschemaGameData.value.podium_2_contestant_id, jschemaGameData.value.podium_3_contestant_id]
-  else return null
-})
-async function fetchJschemaAllGameData() {
-  const res = await d3.csv('https://j-ometry.com/csvs/jschema_game.csv', jschemaCsvDataAccessor)
-  jschemaAllGameData.value = d3.index(res, r => r.game_id)
-}
-fetchJschemaAllGameData()
+const contestantDataById = data.contestantDataById
+const gameData = data.computedIfRefHasValue(data.gameDataById, gData => gData.get(gameId))
+const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_classification == 'celebrity' ? 3 : 2)
+const gameContestantIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 
-const jschemaAllGameStatData = ref(null)
-const jschemaGameStatData = computed(() => {
-  if (jschemaAllGameStatData.value) return jschemaAllGameStatData.value.get(gameId)
-  else return null
+const allGameContestantStatData = data.gameContestantStatData
+const gameContestantStatDataByContestantId = data.computedIfRefHasValue(data.gameContestantStatDataByGameIdContestantId, gcsData => gcsData.get(gameId))
+const gameContestantStatData = computed(() => {
+  if (data.gameContestantStatDataByGameIdContestantId.value && gameContestantIds.value) {
+    return d3.map(gameContestantIds.value, cid => data.gameContestantStatDataByGameIdContestantId.value.get(gameId).get(cid))
+  } else {
+    return null
+  }
 })
-async function fetchJschemaAllGameStatData() {
-  const res = await d3.csv('https://j-ometry.com/csvs/jschema_stat_game.csv', jschemaCsvDataAccessor)
-  jschemaAllGameStatData.value = d3.index(res, r => r.game_id)
-}
-fetchJschemaAllGameStatData()
 
-const jschemaAllGameContestantStatDataFlat = ref(null)
-const jschemaAllGameContestantStatData = computed(() => {
-  if (jschemaAllGameContestantStatDataFlat.value) return d3.index(jschemaAllGameContestantStatDataFlat.value, r => r.game_id, r => r.contestant_id)
-  else return null
-})
-const jschemaGameContestantStatData = computed(() => {
-  if (jschemaAllGameContestantStatData.value) return jschemaAllGameContestantStatData.value.get(gameId)
-  else return null
-})
-const jschemaGameContestantStatDataFlat = computed(() => {
-  if (jschemaGameContestantStatData.value && gameContestantIds.value) return d3.map(gameContestantIds.value, cid => jschemaGameContestantStatData.value.get(cid))
-  else return null
-})
-async function fetchJschemaAllGameContestantStatData() {
-  const res = await d3.csv('https://j-ometry.com/csvs/jschema_stat_game_contestant.csv', jschemaCsvDataAccessor)
-  jschemaAllGameContestantStatDataFlat.value = res
-}
-fetchJschemaAllGameContestantStatData()
-
-const jschemaAllGameRoundContestantStatDataFlat = ref(null)
+const jschemaAllGameRoundContestantStatDataFlat = data.gameRoundContestantStatData
 const jschemaAllGameRoundContestantStatData = computed(() => {
   if (jschemaAllGameRoundContestantStatDataFlat.value) return d3.index(jschemaAllGameRoundContestantStatDataFlat.value, r => r.game_id, r => r.round_of_game, r => r.contestant_id)
   else return null
@@ -99,11 +57,6 @@ const jschemaGameRoundContestantStatDataByRound = computed(() => {
   }
   return data
 })
-async function fetchJschemaAllGameRoundContestantStatData() {
-  const res = await d3.csv('https://j-ometry.com/csvs/jschema_stat_round_contestant.csv', jschemaCsvDataAccessor)
-  jschemaAllGameRoundContestantStatDataFlat.value = res
-}
-fetchJschemaAllGameRoundContestantStatData()
 
 const jschemaClueContestantStatData = ref(null)
 async function fetchJschemaClueContestantStatData() {
@@ -111,10 +64,6 @@ async function fetchJschemaClueContestantStatData() {
   jschemaClueContestantStatData.value = res
 }
 fetchJschemaClueContestantStatData()
-const jschemaClueContestantStatDataByContestant = computed(() => {
-  if (!jschemaClueContestantStatData.value) return null
-  return d3.group(jschemaClueContestantStatData.value, r => r.contestant_id)
-})
 
 const jschemaClueData = ref(null)
 async function fetchJschemaClueData() {
@@ -154,40 +103,40 @@ function contestantLink (contestant_id, contestant_name) {
 }
 
 const standardScoringTablePanels = computed(() => {
-  if (!contestantData.value) return []
-  if (!jschemaGameContestantStatData.value) return []
+  if (!contestantDataById.value) return []
+  if (!gameContestantStatDataByContestantId.value) return []
   if (!jschemaGameRoundContestantStatData.value) return []
   var panels = [
     {
       label: 'Full Game',
       columns: [
-        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
-        {label: 'Buz', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz,
+        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantDataById.value.get(d['contestant_id']).name)},
+        {label: 'Buz', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz,
           description: 'Buzzes'},
-        {label: 'BuzC', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buzc,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buzc,
+        {label: 'BuzC', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buzc,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buzc,
           description: 'Correct responses on buzzes'},
-        {label: 'Buz$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_score,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_score,
+        {label: 'Buz$', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_score,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_score,
           description: 'Scoring from buzzes'},
-        {label: 'DDF', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_found,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_found},
-        {label: 'DD+C', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_plus_buzc,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).dd_plus_buzc, 2, false, true)},
-        {label: 'DD+S', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_plus_selection,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).dd_plus_selection, 2, false, true)},
-        {label: 'DD$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_score,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).dd_score,
+        {label: 'DDF', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).dd_found,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).dd_found},
+        {label: 'DD+C', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).dd_plus_buzc,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).dd_plus_buzc, 2, false, true)},
+        {label: 'DD+S', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).dd_plus_selection,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).dd_plus_selection, 2, false, true)},
+        {label: 'DD$', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).dd_score,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).dd_score,
           description: 'Scoring from Daily Doubles'},
         {label: 'FJStart$', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(gameRounds.value).get(d['contestant_id']).postscore,
           attributeFunction: d => jschemaGameRoundContestantStatData.value.get(gameRounds.value).get(d['contestant_id']).postscore,
           description: 'Score at start of Final Jeopardy'},
-        {label: 'FJ$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).fj_score,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).fj_score,
+        {label: 'FJ$', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).fj_score,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).fj_score,
           description: 'Scoring from Final Jeopardy'},
-        {label: 'FJFinal$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).postscore,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).postscore,
+        {label: 'FJFinal$', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).postscore,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).postscore,
           description: 'Score at end of Final Jeopardy'},
       ]
     }
@@ -198,7 +147,7 @@ const standardScoringTablePanels = computed(() => {
     panels.push({
       label: round_label + ' Round',
       columns: [
-        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
+        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantDataById.value.get(d['contestant_id']).name)},
         {label: 'Buz', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz,
           attributeFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).buz,
           description: 'Buzzes'},
@@ -224,40 +173,40 @@ const standardScoringTablePanels = computed(() => {
   return panels
 })
 const conversionScoringTablePanels = computed(() => {
-  if (!contestantData.value) return []
-  if (!jschemaGameContestantStatData.value) return []
+  if (!contestantDataById.value) return []
+  if (!gameContestantStatDataByContestantId.value) return []
   if (!jschemaGameRoundContestantStatData.value) return []
   var panels = [
     {
       label: 'Full Game',
       columns: [
-        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
-        {label: 'Att', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).att,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).att, 0),
+        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantDataById.value.get(d['contestant_id']).name)},
+        {label: 'Att', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).att,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).att, 0),
           description: 'Attempts'},
-        {label: 'AttCl', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).att_clue,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).att_clue, 1, false),
+        {label: 'AttCl', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).att_clue,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).att_clue, 1, false),
           description: 'Attempted clues'},
-        {label: 'Buz', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz,
+        {label: 'Buz', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz,
           description: 'Buzzes'},
-        {label: 'Buz%', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_percent,
-          attributeFunction: d => formatNumber(100.0 * jschemaGameContestantStatData.value.get(d['contestant_id']).buz_percent, 1, false),
+        {label: 'Buz%', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_percent,
+          attributeFunction: d => formatNumber(100.0 * gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_percent, 1, false),
           description: 'Buz as percentage of Att'},
-        {label: 'BuzC', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buzc,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buzc,
+        {label: 'BuzC', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buzc,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buzc,
           description: 'Correct responses on buzzes'},
-        {label: 'Acc%', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).acc_percent,
-          attributeFunction: d => formatNumber(100.0 * jschemaGameContestantStatData.value.get(d['contestant_id']).acc_percent, 1, false),
+        {label: 'Acc%', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).acc_percent,
+          attributeFunction: d => formatNumber(100.0 * gameContestantStatDataByContestantId.value.get(d['contestant_id']).acc_percent, 1, false),
           description: 'Accuracy: BuzC as percentage of Buz'},
-        {label: 'Conv%', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).conversion_percent,
-          attributeFunction: d => formatNumber(100.0 * jschemaGameContestantStatData.value.get(d['contestant_id']).conversion_percent, 1, false),
+        {label: 'Conv%', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).conversion_percent,
+          attributeFunction: d => formatNumber(100.0 * gameContestantStatDataByContestantId.value.get(d['contestant_id']).conversion_percent, 1, false),
           description: 'Conversion: BuzC as percentage of Att'},
-        {label: 'Time', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).timing,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).timing, 1, false, true),
+        {label: 'Time', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).timing,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).timing, 1, false, true),
           description: 'Estimated buzzes earned through timing'},
-        {label: 'Solo', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).solo,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).solo, 1, false),
+        {label: 'Solo', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).solo,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).solo, 1, false),
           description: 'Estimated buzzes as solo attempter'}
       ]
     }
@@ -269,7 +218,7 @@ const conversionScoringTablePanels = computed(() => {
     panels.push({
       label: round_label + ' Round',
       columns: [
-      {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
+      {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantDataById.value.get(d['contestant_id']).name)},
         {label: 'Att', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att,
           attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att, 0),
           description: 'Attempts'},
@@ -304,43 +253,43 @@ const conversionScoringTablePanels = computed(() => {
   return panels
 })
 const conversionValueScoringTablePanels = computed(() => {
-  if (!contestantData.value) return []
-  if (!jschemaGameContestantStatData.value) return []
+  if (!contestantDataById.value) return []
+  if (!gameContestantStatDataByContestantId.value) return []
   if (!jschemaGameRoundContestantStatData.value) return []
   var panels = [
     {
       label: 'Full Game',
       columns: [
-        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
-        {label: 'AttV', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).att_value,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).att_value, 0, false),
+        {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantDataById.value.get(d['contestant_id']).name)},
+        {label: 'AttV', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).att_value,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).att_value, 0, false),
           description: 'Estimated clue value attempted'},
-        {label: 'BuzV', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_value,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_value,
+        {label: 'BuzV', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_value,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_value,
           description: 'Clue value buzzed in on'},
-        {label: 'BuzV%', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_value_percent,
-          attributeFunction: d => formatNumber(100.0 * jschemaGameContestantStatData.value.get(d['contestant_id']).buz_value_percent, 1, false),
+        {label: 'BuzV%', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_value_percent,
+          attributeFunction: d => formatNumber(100.0 * gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_value_percent, 1, false),
           description: 'BuzV as percentage of AttV'},
-        {label: 'Buz$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_score,
-          attributeFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).buz_score,
+        {label: 'Buz$', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_score,
+          attributeFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).buz_score,
           description: 'Scoring from buzzes'},
-        {label: 'AccV%', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).acc_value_percent,
-          attributeFunction: d => formatNumber(100.0 * jschemaGameContestantStatData.value.get(d['contestant_id']).acc_value_percent, 1, false),
+        {label: 'AccV%', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).acc_value_percent,
+          attributeFunction: d => formatNumber(100.0 * gameContestantStatDataByContestantId.value.get(d['contestant_id']).acc_value_percent, 1, false),
           description: 'Accuracy Value: Buz$ as percentage of BuzV'},
-        {label: 'ConvV%', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).conversion_value_percent,
-          attributeFunction: d => formatNumber(100.0 * jschemaGameContestantStatData.value.get(d['contestant_id']).conversion_value_percent, 1, false),
+        {label: 'ConvV%', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).conversion_value_percent,
+          attributeFunction: d => formatNumber(100.0 * gameContestantStatDataByContestantId.value.get(d['contestant_id']).conversion_value_percent, 1, false),
           description: 'Conversion Value: Buz$ as percentage of AttV'},
-        {label: 'TimeV', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).timing_value,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).timing_value, 0, true),
+        {label: 'TimeV', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).timing_value,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).timing_value, 0, true),
           description: 'Estimated clue value of buzzes earned through timing'},
-        {label: 'Time$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).timing_score,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).timing_score, 0, false),
+        {label: 'Time$', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).timing_score,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).timing_score, 0, false),
           description: 'Estimated scoring of buzzes earned through timing'},
-        {label: 'SoloV', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).solo_value,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).solo_value, 0),
+        {label: 'SoloV', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).solo_value,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).solo_value, 0),
           description: 'Estimated clue value of buzzes as solo attempter'},
-        {label: 'Solo$', sortValueFunction: d => jschemaGameContestantStatData.value.get(d['contestant_id']).solo_score,
-          attributeFunction: d => formatNumber(jschemaGameContestantStatData.value.get(d['contestant_id']).solo_score, 0),
+        {label: 'Solo$', sortValueFunction: d => gameContestantStatDataByContestantId.value.get(d['contestant_id']).solo_score,
+          attributeFunction: d => formatNumber(gameContestantStatDataByContestantId.value.get(d['contestant_id']).solo_score, 0),
           description: 'Estimated scoring of buzzes as solo attempter'},
       ]
     }
@@ -352,7 +301,7 @@ const conversionValueScoringTablePanels = computed(() => {
     panels.push({
       label: round_label + ' Round',
       columns: [
-      {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantData.value.get(d['contestant_id']).name)},
+      {label: 'Contestant', sortValueFunction: d => -d['podium'], attributeFunction: d => contestantLink(d['contestant_id'], contestantDataById.value.get(d['contestant_id']).name)},
         {label: 'AttV', sortValueFunction: d => jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att_value,
           attributeFunction: d => formatNumber(jschemaGameRoundContestantStatData.value.get(rid).get(d['contestant_id']).att_value, 0, false),
           description: 'Estimated clue value attempted'},
@@ -391,7 +340,7 @@ const conversionValueScoringTablePanels = computed(() => {
 })
 const scoringTableRows = computed(() => {
   if (!gameContestantIds.value) return null
-  if (!jschemaGameContestantStatData.value) return null
+  if (!gameContestantStatDataByContestantId.value) return null
   return gameContestantIds.value.map((contestant_id, idx) => {
     return {
       'contestant_id': contestant_id,
@@ -588,11 +537,11 @@ const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatter
 const scatterGraphRoundIdx = ref(0)
 
 const scatterSpecification = computed(() => {
-  if (!contestantData.value || !jschemaAllGameRoundContestantStatDataFlat.value || !jschemaAllGameContestantStatDataFlat.value) return null
+  if (!contestantDataById.value || !jschemaAllGameRoundContestantStatDataFlat.value || !allGameContestantStatData.value) return null
   const xAttr = xScatterGraphAttribute.value
   const yAttr = yScatterGraphAttribute.value
-  var histogramData = jschemaAllGameContestantStatDataFlat.value
-  var scatterData = jschemaGameContestantStatDataFlat.value
+  var histogramData = allGameContestantStatData.value
+  var scatterData = gameContestantStatData.value
   if (scatterGraphRoundIdx.value > 0) {
     histogramData = jschemaAllGameRoundContestantStatByRound.value.get(scatterGraphRoundIdx.value)
     scatterData = jschemaGameRoundContestantStatDataByRound.value[scatterGraphRoundIdx.value]
@@ -604,7 +553,7 @@ const scatterSpecification = computed(() => {
   return {
     histogramData: histogramData,
     scatterData: scatterData,
-    scatterLabelFunction: d => contestantData.value.get(d.contestant_id).name,
+    scatterLabelFunction: d => contestantDataById.value.get(d.contestant_id).name,
     scatterColorFunction: d => color.value(d.contestant_id),
     title: xAttr['label'] + ' vs ' + yAttr['label'],
     xLabel: xAttr['label'],
@@ -617,10 +566,10 @@ const scatterSpecification = computed(() => {
 })
 
 const histogramSpecification = computed(() => {
-  if (!contestantData.value || !jschemaAllGameRoundContestantStatDataFlat.value || !jschemaAllGameContestantStatDataFlat.value) return null
+  if (!contestantDataById.value || !jschemaAllGameRoundContestantStatDataFlat.value || !allGameContestantStatData.value) return null
   const xAttr = histogramGraphAttribute.value
-  var histogramData = jschemaAllGameContestantStatDataFlat.value
-  var scatterData = jschemaGameContestantStatDataFlat.value
+  var histogramData = allGameContestantStatData.value
+  var scatterData = gameContestantStatData.value
   if (histogramGraphRoundIdx.value > 0) {
     histogramData = jschemaAllGameRoundContestantStatByRound.value.get(histogramGraphRoundIdx.value)
     scatterData = jschemaGameRoundContestantStatDataByRound.value[histogramGraphRoundIdx.value]
@@ -632,7 +581,7 @@ const histogramSpecification = computed(() => {
   return {
     histogramData: histogramData,
     scatterData: scatterData,
-    scatterLabelFunction: d => contestantData.value.get(d.contestant_id).name,
+    scatterLabelFunction: d => contestantDataById.value.get(d.contestant_id).name,
     scatterColorFunction: d => color.value(d.contestant_id),
     title: xAttr['label'],
     xLabel: xAttr['label'],
@@ -646,8 +595,8 @@ const histogramSpecification = computed(() => {
 <template>
   <Header />
   <div class="component-body">
-    <div v-if="jschemaGameData" class="section">
-      <h1>Season <span id="season">{{ jschemaGameData.season_id }}</span> Game <span id="game-number">{{ jschemaGameData.game_in_season }}</span>, <span id="game-date">{{ dateFormat(jschemaGameData.airdate) }}</span></h1>
+    <div v-if="gameData" class="section">
+      <h1>Season <span id="season">{{ gameData.season_id }}</span> Game <span id="game-number">{{ gameData.game_in_season }}</span>, <span id="game-date">{{ dateFormat(gameData.airdate) }}</span></h1>
       <h2>Player Statistics</h2>
       <h4>Standard</h4>
       <CarouselTable 
@@ -744,11 +693,11 @@ const histogramSpecification = computed(() => {
           {{ graphAttribute.label }}
         </option>
       </select>
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantData"
+      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById"
         :data="byClueLineChartData"
         :xFunction="d => d['clue_identifier']"
         :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx])))"
-        :labels="gameContestantIds.map(cid => contestantData.get(cid).name)"
+        :labels="gameContestantIds.map(cid => contestantDataById.get(cid).name)"
         :colors="gameContestantIds.map(cid => color(cid))"
         :title="'Cumulative ' + byClueLineChartAttribute.label"
         :xLabel="'Clues'"
@@ -760,11 +709,11 @@ const histogramSpecification = computed(() => {
       <h2>Lead Ratio</h2>
       <ReactiveChart :chart="leadRatioChartData"/>
     </div>-->
-    <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantData">
+    <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
       <h2>Attempts</h2>
       <StackValueBarChart 
         :data="gameContestantIds"
-        :xCoreLabelFunction="cid => contestantData.get(cid).name"
+        :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
         :xGroupLabels="['J','DJ'].concat(gameRounds >= 3 ? ['TJ'] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
@@ -776,11 +725,11 @@ const histogramSpecification = computed(() => {
         :yLabel="'BuzC -> Buz -> Att'"
         :title="'Attempts'"/>
     </div>
-    <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantData">
+    <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
       <h2>Attempt Values</h2>
       <StackValueBarChart 
         :data="gameContestantIds"
-        :xCoreLabelFunction="cid => contestantData.get(cid).name"
+        :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
         :xGroupLabels="['J','DJ'].concat(gameRounds >= 3 ? ['TJ'] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [

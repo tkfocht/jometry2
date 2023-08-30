@@ -235,6 +235,10 @@ var roundAbbreviation = function(roundNumber) {
     return ''
 }
 
+var transformValues = function(map, lambda) {
+    return new Map([...map].map(([k, v]) => [k, lambda(v)]))
+}
+
 export { averageData, rollupData, 
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
-    clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor };
+    clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues };
