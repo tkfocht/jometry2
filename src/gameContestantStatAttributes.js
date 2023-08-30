@@ -190,6 +190,76 @@ const solo_score = {
     bins: { size: 500 }
 }
 
+const dd_found = {
+    short_label: 'DDF',
+    label: 'Daily Doubles Found',
+    description: 'Daily Doubles found',
+    generatingFunction: gcs => gcs.dd_found,
+    valueDisplayFormat: v => formatNumber(v, 0, false),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 0.25 }
+}
+
+const dd_plus_buzc = {
+    short_label: 'DD+C',
+    label: 'DD+ on Correct Buzzes',
+    description: 'Daily Doubles found above expectation based on correct buzz responses',
+    generatingFunction: gcs => gcs.dd_plus_buzc,
+    valueDisplayFormat: v => formatNumber(v, 2, false, true),
+    averageDisplayFormat: v => formatNumber(v, 2, false, true),
+    bins: { size: 0.25 }
+}
+
+const dd_plus_selection = {
+    short_label: 'DD+S',
+    label: 'DD+ on Selections',
+    description: 'Daily Doubles found above expectation based on number of selections',
+    generatingFunction: gcs => gcs.dd_plus_selection,
+    valueDisplayFormat: v => formatNumber(v, 2, false, true),
+    averageDisplayFormat: v => formatNumber(v, 2, false, true),
+    bins: { size: 0.25 }
+}
+
+const dd_score = {
+    short_label: 'DD$',
+    label: 'Daily Double Score',
+    description: 'Scoring on Daily Doubles',
+    generatingFunction: gcs => gcs.dd_score,
+    valueDisplayFormat: v => formatNumber(v, 0, false),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 500 }
+}
+
+const fj_start_score = {
+    short_label: 'FJStart$',
+    label: 'FJ Start Score',
+    description: 'Score at start of Final Jeopardy',
+    generatingFunction: gcs => gcs.score - gcs.fj_score,
+    valueDisplayFormat: v => formatNumber(v, 0, false),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 500 }
+}
+
+const fj_score = {
+    short_label: 'FJ$',
+    label: 'FJ Score',
+    description: 'Scoring from Final Jeopardy',
+    generatingFunction: gcs => gcs.fj_score,
+    valueDisplayFormat: v => formatNumber(v, 0, false),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 500 }
+}
+
+const fj_final_score = {
+    short_label: 'FJFinal$',
+    label: 'FJ Final Score',
+    description: 'Score at end of Final Jeopardy',
+    generatingFunction: gcs => gcs.score,
+    valueDisplayFormat: v => formatNumber(v, 0, false),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 500 }
+}
+
 const all_attributes = [att, att_clue, buz, buz_percent, buz_value_percent, buzc, acc_percent, conversion_percent, time, solo,
     att_value, buz_score, acc_value_percent, conversion_value_percent,
     time_value, time_score, solo_value, solo_score]
@@ -197,4 +267,6 @@ const all_attributes = [att, att_clue, buz, buz_percent, buz_value_percent, buzc
 export { att, att_value, att_clue, buz, buz_value, buz_percent, buz_value_percent,
     buzc, buz_score, acc_percent, acc_value_percent, conversion_percent, conversion_value_percent,
     time, time_value, time_score, solo, solo_value, solo_score,
+    dd_found, dd_plus_buzc, dd_plus_selection, dd_score,
+    fj_start_score, fj_score, fj_final_score,
     all_attributes };

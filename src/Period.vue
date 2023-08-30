@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { movingAverageOfLast, dateFormat, transformValues } from '@/util'
 import { playClassificationName } from '@/configuration'
-import { graphAttributes } from '@/graphAttributes'
 import * as d3 from 'd3'
 import * as data from '@/data'
 import * as gsAttributes from '@/gameStatAttributes'
@@ -313,8 +312,6 @@ const rollingChartSpecification = data.computedIfRefHasValues(
       title: attr.label + ' ' + rollCount + ' Game Rolling Average'
     }
   })
-
-const graphAttributesList = computed(() => graphAttributes)
 
 const boxWhiskerGraphAttributeIdx = ref(0)
 const boxWhiskerGraphAttributes = gcsAttributes.all_attributes

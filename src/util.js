@@ -239,6 +239,8 @@ var transformValues = function(map, lambda) {
     return new Map([...map].map(([k, v]) => [k, lambda(v)]))
 }
 
+const threeColorSet = ['#0072B2','#E69F00','#009E73']
+
 export { averageData, rollupData, 
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
-    clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues };
+    clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues, threeColorSet };
