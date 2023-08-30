@@ -57,6 +57,9 @@ const gameRoundContestantStatData = ref(null)
 function loadGameRoundContestantStatData() {
     loadDataReference(gameRoundContestantStatData, 'https://j-ometry.com/csvs/jschema_stat_round_contestant.csv')
 }
+const gameRoundContestantStatDataByGameIdRoundIdContestantId = computedIfRefHasValue(
+    gameRoundContestantStatData,
+    gcsData => d3.index(gcsData, r => r.game_id, r => r.round_of_game, r => r.contestant_id))
 
 
 export { computedIfRefHasValue, computedIfRefHasValues,
@@ -64,5 +67,5 @@ export { computedIfRefHasValue, computedIfRefHasValues,
     loadGameData, gameData, gameDataById,
     loadGameStatData, gameStatData, gameStatDataById,
     loadGameContestantStatData, gameContestantStatData, gameContestantStatDataByGameId, gameContestantStatDataByContestantId, gameContestantStatDataByGameIdContestantId,
-    loadGameRoundContestantStatData, gameRoundContestantStatData
+    loadGameRoundContestantStatData, gameRoundContestantStatData, gameRoundContestantStatDataByGameIdRoundIdContestantId
 };

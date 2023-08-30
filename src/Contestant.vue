@@ -139,7 +139,7 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title) {
     }))
     return {
       data: dataSet,
-      xCoreLabelFunction: d => gData.get(d.game_id).game_in_season,
+      xCoreLabelFunction: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
       xGroupLabels: ['Game'],
       yFunctionGroups: [d3.range(0, yAttrs.length).map(i => (d => d.displayValues[i]))],
       colorFunction: d => threeColorSet[0],
