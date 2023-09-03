@@ -43,7 +43,7 @@ const gameIds = data.computedIfRefHasValues([allGameData, playClassificationPeri
 const gameContestantStatData = data.computedIfRefHasValues(
   [gameIds, data.gameContestantStatData],
   (gids, gcsData) => gcsData.filter(gcs => gids.includes(gcs.game_id)))
-const winnerContestantStatData = data.computedIfRefHasValues(
+const winnerGameContestantStatData = data.computedIfRefHasValues(
   [data.gameDataById, gameContestantStatData],
   (gData, gcsData) => gcsData.filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id))
 const gameContestantStatDataByContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.contestant_id))
@@ -69,7 +69,7 @@ const scoringTableRows = data.computedIfRefHasValues([data.gameDataById, singleC
 })
 
 const scoringTableFooterRows = data.computedIfRefHasValues(
-  [singleContestantGameContestantStatData, gameContestantStatData, winnerContestantStatData],
+  [singleContestantGameContestantStatData, gameContestantStatData, winnerGameContestantStatData],
   (singleGcsData, allGcsData, winGcsData) => [
     {
       label: 'Contestant avg',
@@ -169,15 +169,36 @@ const conversionValueScoringTablePanels = generateScoringPanels(
 
 //Stacked bars
 const buildStackedBarSpecificationLambda = function(yAttrs, title) {
-  return (gcsData, gData) => {
+  return (gcsData, gData, winGcsData, allGcsData) => {
     const dataSet = gcsData.map(gcs => ({
       game_id: gcs.game_id,
       airdate: gData.get(gcs.game_id).airdate,
       values: yAttrs.map(attr => attr.generatingFunction(gcs)),
       displayValues: yAttrs.map(attr => attr.valueDisplayFormat(attr.generatingFunction(gcs))),
     }))
+    const aggregateDataSet = [
+      {
+        label: 'Contestant avg',
+        values: yAttrs.map(attr => d3.mean(gcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(gcsData.map(attr.generatingFunction)))),
+        color: threeColorSet[2]
+      },
+      {
+        label: 'Winner avg',
+        values: yAttrs.map(attr => d3.mean(winGcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(winGcsData.map(attr.generatingFunction)))),
+        color: threeColorSet[1]
+      },
+      {
+        label: 'All contestant avg',
+        values: yAttrs.map(attr => d3.mean(allGcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(allGcsData.map(attr.generatingFunction)))),
+        color: 'black'
+      }
+    ]
     return {
       data: dataSet,
+      aggregateData: aggregateDataSet,
       xCoreLabelFunction: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
       xGroupLabels: ['Game'],
       yFunctionGroups: [d3.range(0, yAttrs.length).map(i => (d => d.displayValues[i]))],
@@ -190,11 +211,11 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title) {
 }
 
 const attemptBarChartSpecification = data.computedIfRefHasValues(
-  [singleContestantGameContestantStatData, data.gameDataById],
+  [singleContestantGameContestantStatData, data.gameDataById, winnerGameContestantStatData, gameContestantStatData],
   buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], 'Attempts'))
 
 const attemptValueBarChartSpecification = data.computedIfRefHasValues(
-  [singleContestantGameContestantStatData, data.gameDataById],
+  [singleContestantGameContestantStatData, data.gameDataById, winnerGameContestantStatData, gameContestantStatData],
   buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], 'Attempt Values'))
 
 

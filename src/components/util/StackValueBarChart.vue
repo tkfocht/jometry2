@@ -5,6 +5,7 @@ import ReactiveChart from './ReactiveChart.vue'
 
 const props = defineProps({
   data: Array,
+  aggregateData: Array,
   xCoreLabelFunction: Function,
   xGroupLabels: Array,
   yFunctionGroups: Array,
@@ -26,18 +27,20 @@ const sortedData = computed(() => {
 
 const traces = computed(() => {
   if (!sortedData.value) return undefined
+  var aggregateData = props.aggregateData
+  if (!aggregateData) aggregateData = []
   var traces = []
 
   for (const yFunctionGroupIdx in props.yFunctionGroups) {
     const yFunctionGroup = props.yFunctionGroups[yFunctionGroupIdx]
     for (const yFunctionIdx in yFunctionGroup) {
       var t = {
-        x: d3.map(sortedData.value, props.xCoreLabelFunction),
-        y: d3.map(sortedData.value, d => yFunctionGroup[yFunctionIdx](d) - (yFunctionIdx > 0 ? yFunctionGroup[yFunctionIdx-1](d) : 0)),
-        text: d3.map(sortedData.value, yFunctionGroup[yFunctionIdx]),
+        x: sortedData.value.map(props.xCoreLabelFunction).concat(aggregateData.map(ad => ad.label)),
+        y: sortedData.value.concat(aggregateData).map(d => yFunctionGroup[yFunctionIdx](d) - (yFunctionIdx > 0 ? yFunctionGroup[yFunctionIdx-1](d) : 0)),
+        text: sortedData.value.concat(aggregateData).map(yFunctionGroup[yFunctionIdx]),
         type: 'bar',
         marker: {
-            color: d3.map(sortedData.value, props.colorFunction),
+            color: sortedData.value.map(props.colorFunction).concat(aggregateData.map(ad => ad.color)),
             line: {
                 color: 'black',
                 width: 1
