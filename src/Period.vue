@@ -110,14 +110,20 @@ const displayContestantIds = data.computedIfRefHasValues(
       return dcIdParameters.map(v => +v)
     }
     cids.sort(cSort)
+    console.log(cids)
     if (cids.length <= 10) {
       return cids
     }
-    var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min(wins.get(cids[9]), 4), cids.length > 21 ? 1 + wins.get(cids[20]) : 0)
+    var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min(wins.get(cids[9]), 4), cids.length > 21 ? 1 + (wins.get(cids[20]) ? wins.get(cids[20]) : 0) : 0)
     //Okay fine, if anyone ever wins 10001 games this will be a bug,
     //but truthy values are weird when winLimit=0 is a primary case
     var winLimit = winLimitString.value ? +winLimitString.value : 10000
-    return cids.filter(i => wins.get(i) >= winThreshold && wins.get(i) <= winLimit)
+    console.log(wins)
+    return cids.filter(i => {
+      var cwin = wins.get(i)
+      if (cwin === undefined) cwin = 0
+      return cwin >= winThreshold && cwin <= winLimit
+    })
   })
 const graphDisplayLimit = ref(graphDisplayLimitString.value ? +graphDisplayLimitString.value : undefined)
 

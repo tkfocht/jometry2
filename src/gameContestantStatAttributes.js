@@ -90,6 +90,16 @@ const buz_score = {
     bins: { size: 1000 }
 }
 
+const coryat_score = {
+    short_label: 'Coryat$',
+    label: 'Coryat Score',
+    description: 'Coryat score',
+    generatingFunction: gcs => gcs.coryat_score,
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 1000 }
+}
+
 const acc_percent = {
     short_label: 'Acc%',
     label: 'Accuracy',
@@ -261,11 +271,11 @@ const fj_final_score = {
 }
 
 const all_attributes = [att, att_clue, buz, buz_percent, buz_value_percent, buzc, acc_percent, conversion_percent, time, solo,
-    att_value, buz_score, acc_value_percent, conversion_value_percent,
+    att_value, buz_score, coryat_score, acc_value_percent, conversion_value_percent,
     time_value, time_score, solo_value, solo_score]
 
 export { att, att_value, att_clue, buz, buz_value, buz_percent, buz_value_percent,
-    buzc, buz_score, acc_percent, acc_value_percent, conversion_percent, conversion_value_percent,
+    buzc, buz_score, coryat_score, acc_percent, acc_value_percent, conversion_percent, conversion_value_percent,
     time, time_value, time_score, solo, solo_value, solo_score,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score,
     fj_start_score, fj_score, fj_final_score,

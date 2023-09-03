@@ -2,6 +2,7 @@
 import * as d3 from 'd3'
 import { ref, computed } from 'vue'
 import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor } from '@/util'
+import { playClassificationName } from '@/configuration'
 import * as data from '@/data'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import { graphAttributes } from '@/graphAttributes'
@@ -24,10 +25,13 @@ data.loadGameRoundContestantStatData()
 
 const contestantDataById = data.contestantDataById
 const gameData = data.computedIfRefHasValue(data.gameDataById, gData => gData.get(gameId))
+const gamePlayClassification = data.computedIfRefHasValue(gameData, gData => gData.play_classification)
 const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_classification == 'celebrity' ? 3 : 2)
 const gameContestantIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 
-const allGameContestantStatData = data.gameContestantStatData
+const allGameContestantStatData = data.computedIfRefHasValues(
+  [data.gameContestantStatData, gamePlayClassification, data.gameDataById],
+  (gcsData, playClass, gData) => gcsData.filter(gcs => gData.get(gcs.game_id).play_classification === playClass))
 const gameContestantStatDataByContestantId = data.computedIfRefHasValue(data.gameContestantStatDataByGameIdContestantId, gcsData => gcsData.get(gameId))
 const gameContestantStatData = computed(() => {
   if (data.gameContestantStatDataByGameIdContestantId.value && gameContestantIds.value) {
@@ -442,6 +446,7 @@ const histogramSpecification = computed(() => {
   <div class="component-body">
     <div v-if="gameData" class="section">
       <h1>Season <span id="season">{{ gameData.season_id }}</span> Game <span id="game-number">{{ gameData.game_in_season }}</span>, <span id="game-date">{{ dateFormat(gameData.airdate) }}</span></h1>
+      <h1>{{ playClassificationName(gameData?.play_classification, gameData?.season_id) }} ({{ gameData?.toc_period }} TOC period)</h1>
       <h2>Player Statistics</h2>
       <h4>Standard</h4>
       <CarouselTable 

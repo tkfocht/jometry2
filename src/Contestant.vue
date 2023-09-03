@@ -10,6 +10,7 @@ import CarouselTable from './components/util/CarouselTable.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
+import { dateFormat } from './util'
 
 let urlParams = new URLSearchParams(window.location.search);
 const contestantId = +urlParams.get('contestant_id')
@@ -22,6 +23,12 @@ const displayRounds = ref(2)
 const singleContestantData = data.computedIfRefHasValue(data.contestantDataById, cData => cData.get(contestantId))
 const singleContestantGameContestantStatData = data.computedIfRefHasValue(data.gameContestantStatDataByContestantId, gcsData => gcsData.get(contestantId))
 const singleContestantGameContestantStatDataByGameId = data.computedIfRefHasValue(singleContestantGameContestantStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id))
+
+function gameLink(game_id, season_id, game_of_season) {
+  return '<a href="/game.html?game_id=' + 
+    game_id + 
+    '">' + season_id + '-' + game_of_season + '</a>'
+}
 
 const scoringTableRows = data.computedIfRefHasValues([data.gameDataById, singleContestantGameContestantStatData], (gData, gcsData) => {
   const gIds = gcsData.map(gcs => gcs.game_id)
@@ -36,11 +43,12 @@ const scoringTableRows = data.computedIfRefHasValues([data.gameDataById, singleC
 })
 
 const scoringTablePanels = data.computedIfRefHasValues([singleContestantGameContestantStatDataByGameId], (gcsData) => {
-  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => d.season_id + '-' + d.game_in_season}]
+  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => gameLink(d.game_id, d.season_id, d.game_in_season) + ' ' + dateFormat(d.airdate)}]
   var attrColumnDefs = [
     gcsAttributes.buz,
     gcsAttributes.buzc,
     gcsAttributes.buz_score,
+    gcsAttributes.coryat_score,
     gcsAttributes.dd_found,
     gcsAttributes.dd_plus_buzc,
     gcsAttributes.dd_plus_selection,
@@ -52,7 +60,7 @@ const scoringTablePanels = data.computedIfRefHasValues([singleContestantGameCont
   var attrColumns = attrColumnDefs.map(attrDef => ({
     label: attrDef.short_label,
     sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.game_id)),
-    attributeFunction: r => attrDef.averageDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
+    attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
     description: attrDef.description
   }))
 
@@ -67,7 +75,7 @@ const scoringTablePanels = data.computedIfRefHasValues([singleContestantGameCont
 })
 
 const conversionScoringTablePanels = data.computedIfRefHasValues([singleContestantGameContestantStatDataByGameId], (gcsData) => {
-  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => d.season_id + '-' + d.game_in_season}]
+  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => gameLink(d.game_id, d.season_id, d.game_in_season) + ' ' + dateFormat(d.airdate)}]
   var attrColumnDefs = [
     gcsAttributes.att,
     gcsAttributes.att_clue,
@@ -82,7 +90,7 @@ const conversionScoringTablePanels = data.computedIfRefHasValues([singleContesta
   var attrColumns = attrColumnDefs.map(attrDef => ({
     label: attrDef.short_label,
     sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.game_id)),
-    attributeFunction: r => attrDef.averageDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
+    attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
     description: attrDef.description
   }))
 
@@ -97,7 +105,7 @@ const conversionScoringTablePanels = data.computedIfRefHasValues([singleContesta
 })
 
 const conversionValueScoringTablePanels = data.computedIfRefHasValues([singleContestantGameContestantStatDataByGameId], (gcsData) => {
-  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => d.season_id + '-' + d.game_in_season}]
+  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => gameLink(d.game_id, d.season_id, d.game_in_season) + ' ' + dateFormat(d.airdate)}]
   var attrColumnDefs = [
     gcsAttributes.att_value,
     gcsAttributes.buz_value,
@@ -113,7 +121,7 @@ const conversionValueScoringTablePanels = data.computedIfRefHasValues([singleCon
   var attrColumns = attrColumnDefs.map(attrDef => ({
     label: attrDef.short_label,
     sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.game_id)),
-    attributeFunction: r => attrDef.averageDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
+    attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
     description: attrDef.description
   }))
 
