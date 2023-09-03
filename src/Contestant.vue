@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import * as d3 from 'd3'
 import * as data from '@/data'
+import { playClassificationNameByTocPeriod } from '@/configuration'
 import { threeColorSet } from '@/util'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
@@ -19,9 +20,31 @@ data.loadContestantData()
 data.loadGameData()
 data.loadGameContestantStatData()
 
-const displayRounds = ref(2)
+const allGameData = data.gameData
+const contestantGames = data.computedIfRefHasValue(
+  allGameData,
+  gData => gData.filter(g => [g.podium_1_contestant_id, g.podium_2_contestant_id, g.podium_3_contestant_id].includes(contestantId)))
+const contestantGamesByStatisticalDatasetKeys = data.computedIfRefHasValue(
+  contestantGames,
+  cgData => d3.group(cgData, cg => cg.toc_period, cg => cg.play_classification))
+const playClassificationPeriods = data.computedIfRefHasValue(
+  contestantGamesByStatisticalDatasetKeys,
+  cgs => {
+    const periodIds = Array.from(cgs.keys())
+    return periodIds.flatMap(pid => Array.from(cgs.get(pid).keys()).map(pctype => [pid, pctype]))
+  })
+const playClassificationPeriodIdx = ref(0)
+const playClassificationPeriod = data.computedIfRefHasValue(playClassificationPeriods, pcp => pcp[playClassificationPeriodIdx.value])
+
 const singleContestantData = data.computedIfRefHasValue(data.contestantDataById, cData => cData.get(contestantId))
-const singleContestantGameContestantStatData = data.computedIfRefHasValue(data.gameContestantStatDataByContestantId, gcsData => gcsData.get(contestantId))
+
+const gameIds = data.computedIfRefHasValues([allGameData, playClassificationPeriod],
+  (gData, pcp) => gData.filter(g => g.toc_period === pcp[0] && g.play_classification === pcp[1]).map(g => g.game_id))
+const gameContestantStatData = data.computedIfRefHasValues(
+  [gameIds, data.gameContestantStatData],
+  (gids, gcsData) => gcsData.filter(gcs => gids.includes(gcs.game_id)))
+const gameContestantStatDataByContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.contestant_id))
+const singleContestantGameContestantStatData = data.computedIfRefHasValue(gameContestantStatDataByContestantId, gcsData => gcsData.get(contestantId))
 const singleContestantGameContestantStatDataByGameId = data.computedIfRefHasValue(singleContestantGameContestantStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id))
 
 function gameLink(game_id, season_id, game_of_season) {
@@ -143,7 +166,7 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title) {
       game_id: gcs.game_id,
       airdate: gData.get(gcs.game_id).airdate,
       values: yAttrs.map(attr => attr.generatingFunction(gcs)),
-      displayValues: yAttrs.map(attr => attr.averageDisplayFormat(attr.generatingFunction(gcs))),
+      displayValues: yAttrs.map(attr => attr.valueDisplayFormat(attr.generatingFunction(gcs))),
     }))
     return {
       data: dataSet,
@@ -172,7 +195,7 @@ const histogramGraphAttributes = gcsAttributes.all_attributes
 const histogramGraphAttributeIdx = ref(0)
 const histogramGraphAttribute = computed(() => histogramGraphAttributes[histogramGraphAttributeIdx.value])
 const histogramSpecification = data.computedIfRefHasValues(
-  [singleContestantGameContestantStatData, data.gameContestantStatData, data.gameDataById, histogramGraphAttribute],
+  [singleContestantGameContestantStatData, gameContestantStatData, data.gameDataById, histogramGraphAttribute],
   (singleGCSData, gcsData, gData, attr) => {
     singleGCSData = singleGCSData.filter(gcs => attr.generatingFunction(gcs) !== undefined)
     gcsData = gcsData.filter(gcs => attr.generatingFunction(gcs) !== undefined)
@@ -197,7 +220,7 @@ const yScatterGraphAttributeIdx = ref(2)
 const xScatterGraphAttribute = computed(() => scatterGraphAttributes[xScatterGraphAttributeIdx.value])
 const yScatterGraphAttribute = computed(() => scatterGraphAttributes[yScatterGraphAttributeIdx.value])
 const scatterHistogramSpecification = data.computedIfRefHasValues(
-  [singleContestantGameContestantStatData, data.gameContestantStatData, data.gameDataById, xScatterGraphAttribute, yScatterGraphAttribute],
+  [singleContestantGameContestantStatData, gameContestantStatData, data.gameDataById, xScatterGraphAttribute, yScatterGraphAttribute],
   (singleGCSData, gcsData, gData, xAttr, yAttr) => {
     singleGCSData = singleGCSData.filter(gcs => xAttr.generatingFunction(gcs) !== undefined)
     singleGCSData = singleGCSData.filter(gcs => yAttr.generatingFunction(gcs) !== undefined)
@@ -227,6 +250,12 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
   <div class="component-body">
     <div v-if="singleContestantData" class="section">
       <h1>{{ singleContestantData.name }}</h1>
+      <h1>{{ playClassificationNameByTocPeriod(playClassificationPeriod[1], playClassificationPeriod[0]) }} ({{ playClassificationPeriod[0] }} TOC period)</h1>
+      <select v-model="playClassificationPeriodIdx">
+        <option v-for="(pcp, idx) in playClassificationPeriods" :value="idx">
+          {{ playClassificationNameByTocPeriod(pcp[1], pcp[0]) }} ({{ pcp[0] }} TOC period)
+        </option>
+      </select>
       <h2>Statistics</h2>
       <h4>Standard</h4>
       <CarouselTable 
