@@ -43,6 +43,9 @@ const gameIds = data.computedIfRefHasValues([allGameData, playClassificationPeri
 const gameContestantStatData = data.computedIfRefHasValues(
   [gameIds, data.gameContestantStatData],
   (gids, gcsData) => gcsData.filter(gcs => gids.includes(gcs.game_id)))
+const winnerContestantStatData = data.computedIfRefHasValues(
+  [data.gameDataById, gameContestantStatData],
+  (gData, gcsData) => gcsData.filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id))
 const gameContestantStatDataByContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.contestant_id))
 const singleContestantGameContestantStatData = data.computedIfRefHasValue(gameContestantStatDataByContestantId, gcsData => gcsData.get(contestantId))
 const singleContestantGameContestantStatDataByGameId = data.computedIfRefHasValue(singleContestantGameContestantStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id))
@@ -65,9 +68,62 @@ const scoringTableRows = data.computedIfRefHasValues([data.gameDataById, singleC
   })
 })
 
-const scoringTablePanels = data.computedIfRefHasValues([singleContestantGameContestantStatDataByGameId], (gcsData) => {
-  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => gameLink(d.game_id, d.season_id, d.game_in_season) + ' ' + dateFormat(d.airdate)}]
-  var attrColumnDefs = [
+const scoringTableFooterRows = data.computedIfRefHasValues(
+  [singleContestantGameContestantStatData, gameContestantStatData, winnerContestantStatData],
+  (singleGcsData, allGcsData, winGcsData) => [
+    {
+      label: 'Contestant avg',
+      dataToAggregate: singleGcsData,
+      aggregation: d3.mean,
+      displayFunction: attrDef => attrDef.averageDisplayFormat
+    },
+    {
+      label: 'All contestants avg',
+      dataToAggregate: allGcsData,
+      aggregation: d3.mean,
+      displayFunction: attrDef => attrDef.averageDisplayFormat
+    },
+    {
+      label: 'Winning contestants avg',
+      dataToAggregate: winGcsData,
+      aggregation: d3.mean,
+      displayFunction: attrDef => attrDef.averageDisplayFormat
+    }
+  ])
+
+const generateScoringPanels = function(singleContestantGCSDataByGameId, attrColumnDefs) {
+  return data.computedIfRefHasValues([singleContestantGCSDataByGameId], (gcsData) => {
+    var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => gameLink(d.game_id, d.season_id, d.game_in_season) + ' ' + dateFormat(d.airdate)}]
+    var attrColumns = attrColumnDefs.map(attrDef => ({
+      label: attrDef.short_label,
+      sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.game_id)),
+      attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
+      description: attrDef.description
+    }))
+
+    var footerLeadColumns = [
+      { attributeFunction: r => r.label }
+    ]
+    var footerAttrColumns = attrColumnDefs.map(attrDef => ({
+      attributeFunction: r => r.displayFunction(attrDef)(r.aggregation(r.dataToAggregate.map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
+
+    var panels = [
+      {
+        label: 'Full Game',
+        columns: leadColumns.concat(attrColumns),
+        footerColumns: footerLeadColumns.concat(footerAttrColumns)
+      }
+    ]
+
+    return panels
+  })
+}
+
+const scoringTablePanels = generateScoringPanels(
+  singleContestantGameContestantStatDataByGameId,
+  [
     gcsAttributes.buz,
     gcsAttributes.buzc,
     gcsAttributes.buz_score,
@@ -79,27 +135,11 @@ const scoringTablePanels = data.computedIfRefHasValues([singleContestantGameCont
     gcsAttributes.fj_start_score,
     gcsAttributes.fj_score,
     gcsAttributes.fj_final_score,
-  ]
-  var attrColumns = attrColumnDefs.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.game_id)),
-    attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
-    description: attrDef.description
-  }))
+  ])
 
-  var panels = [
-    {
-      label: 'Full Game',
-      columns: leadColumns.concat(attrColumns)
-    }
-  ]
-
-  return panels
-})
-
-const conversionScoringTablePanels = data.computedIfRefHasValues([singleContestantGameContestantStatDataByGameId], (gcsData) => {
-  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => gameLink(d.game_id, d.season_id, d.game_in_season) + ' ' + dateFormat(d.airdate)}]
-  var attrColumnDefs = [
+const conversionScoringTablePanels = generateScoringPanels(
+  singleContestantGameContestantStatDataByGameId,
+  [
     gcsAttributes.att,
     gcsAttributes.att_clue,
     gcsAttributes.buz,
@@ -109,27 +149,11 @@ const conversionScoringTablePanels = data.computedIfRefHasValues([singleContesta
     gcsAttributes.conversion_percent,
     gcsAttributes.time,
     gcsAttributes.solo
-  ]
-  var attrColumns = attrColumnDefs.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.game_id)),
-    attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
-    description: attrDef.description
-  }))
+  ])
 
-  var panels = [
-    {
-      label: 'Full Game',
-      columns: leadColumns.concat(attrColumns)
-    }
-  ]
-
-  return panels
-})
-
-const conversionValueScoringTablePanels = data.computedIfRefHasValues([singleContestantGameContestantStatDataByGameId], (gcsData) => {
-  var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => gameLink(d.game_id, d.season_id, d.game_in_season) + ' ' + dateFormat(d.airdate)}]
-  var attrColumnDefs = [
+const conversionValueScoringTablePanels = generateScoringPanels(
+  singleContestantGameContestantStatDataByGameId,
+  [
     gcsAttributes.att_value,
     gcsAttributes.buz_value,
     gcsAttributes.buz_value_percent,
@@ -140,23 +164,7 @@ const conversionValueScoringTablePanels = data.computedIfRefHasValues([singleCon
     gcsAttributes.time_score,
     gcsAttributes.solo_value,
     gcsAttributes.solo_score
-  ]
-  var attrColumns = attrColumnDefs.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.game_id)),
-    attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.game_id))),
-    description: attrDef.description
-  }))
-
-  var panels = [
-    {
-      label: 'Full Game',
-      columns: leadColumns.concat(attrColumns)
-    }
-  ]
-
-  return panels
-})
+  ])
 
 
 //Stacked bars
@@ -250,7 +258,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
   <div class="component-body">
     <div v-if="singleContestantData" class="section">
       <h1>{{ singleContestantData.name }}</h1>
-      <h1>{{ playClassificationNameByTocPeriod(playClassificationPeriod[1], playClassificationPeriod[0]) }} ({{ playClassificationPeriod[0] }} TOC period)</h1>
+      <h1 v-if="playClassificationPeriod">{{ playClassificationNameByTocPeriod(playClassificationPeriod[1], playClassificationPeriod[0]) }} ({{ playClassificationPeriod[0] }} TOC period)</h1>
       <select v-model="playClassificationPeriodIdx">
         <option v-for="(pcp, idx) in playClassificationPeriods" :value="idx">
           {{ playClassificationNameByTocPeriod(pcp[1], pcp[0]) }} ({{ pcp[0] }} TOC period)
@@ -261,18 +269,21 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <CarouselTable 
         :panels="scoringTablePanels"
         :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d.airdate"
         />
       <h4>Conversion</h4>
       <CarouselTable 
         :panels="conversionScoringTablePanels"
         :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d.airdate"
         />
       <h4>Conversion Value</h4>
       <CarouselTable 
         :panels="conversionValueScoringTablePanels"
         :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d.airdate"
         />
     </div>
@@ -309,7 +320,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <select v-model="yScatterGraphAttributeIdx">
         <option :value="null">None</option>
         <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-          {{ graphAttribute.label }}
+          {{ graphAttribute.short_label }}
         </option>
       </select>
       <select v-model="scatterGraphRoundIdx">

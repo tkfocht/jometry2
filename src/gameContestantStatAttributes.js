@@ -132,7 +132,7 @@ const conversion_percent = {
 
 const conversion_value_percent = {
     short_label: 'ConvV%',
-    label: 'Conversion Value',
+    label: 'Conversion Value %',
     description: 'Conversion Value: Buzz score as percentage of attempt value',
     generatingFunction: gcs => 100.0 * gcs.conversion_value_percent,
     valueDisplayFormat: v => formatNumber(v, 1, false),
@@ -145,7 +145,7 @@ const time = {
     label: 'Timing',
     description: 'Estimated buzzes earned through timing',
     generatingFunction: gcs => gcs.timing,
-    valueDisplayFormat: v => formatNumber(v, 1, false),
+    valueDisplayFormat: v => formatNumber(v, 1, false, true),
     averageDisplayFormat: v => formatNumber(v, 1, false, true),
     bins: { size: 0.5 }
 }
@@ -206,7 +206,7 @@ const dd_found = {
     description: 'Daily Doubles found',
     generatingFunction: gcs => gcs.dd_found,
     valueDisplayFormat: v => formatNumber(v, 0, false),
-    averageDisplayFormat: v => formatNumber(v, 0, false),
+    averageDisplayFormat: v => formatNumber(v, 1, false),
     bins: { size: 0.25 }
 }
 
