@@ -172,7 +172,7 @@ const scoringTableFooterRows = data.computedIfRefHasValues(
   [displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
   (displayGcsData, allGcsData, winGcsData) => [
     {
-      label: 'Selected contestant',
+      label: 'Selected contestants',
       dataToAggregate: displayGcsData
     },
     {
@@ -354,11 +354,12 @@ const totalAttemptsChartSpecification = data.computedIfRefHasValues(
 
 const rollingAverageGraphAttributeIdx = ref(0)
 const rollingAverageRollCount = ref(5)
-const rollingGameStatAttributes = [gsAttributes.att_total, gsAttributes.coryat_score_total]
+const rollingGameStatAttributes = gsAttributes.all_attributes
 const rollingAverageGraphAttribute = computed(() => rollingGameStatAttributes[rollingAverageGraphAttributeIdx.value])
 const rollingChartSpecification = data.computedIfRefHasValues(
   [gameIds, gameDataById, gameStatDataById, gameContestantStatDataByGameId, rollingAverageGraphAttribute, rollingAverageRollCount],
   (gIds, gData, gsData, gcsData, attr, rollCount) => {
+    console.log(gcsData)
     const numerators = movingAverageOfLast(rollCount, gIds.map(gid => attr.generatingFunction(gsData.get(gid), gcsData.get(gid))))
     const denominators = new Array(numerators.length).fill(1.0)
     const values = d3.zip(numerators, denominators).map(a => (1.0 * a[0] / a[1]))
@@ -410,7 +411,6 @@ const boxWhiskerGraphSpecification = data.computedIfRefHasValues(
 )
 
 const scatterGraphRoundIdx = ref(0)
-const scatterGraphColorAttributeIdx = ref(null)
 const scatterGraphAttributes = gcsAttributes.all_attributes
 const xScatterGraphAttributeIdx = ref(0)
 const yScatterGraphAttributeIdx = ref(2)
@@ -559,9 +559,9 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
       </select>
       <select v-model="boxWhiskerGraphRoundIdx">
         <option :value="0">Full Game</option>
-        <option :value="1">J! Round</option>
+        <!--<option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
-        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
+        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>-->
       </select><br/>
       <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
@@ -569,26 +569,20 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
       <h2>Selectable Scatter Plots</h2>
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-          {{ graphAttribute.label }}
+          {{ graphAttribute.short_label }}
         </option>
       </select>
       <select v-model="yScatterGraphAttributeIdx">
         <!--<option :value="null">None</option>-->
         <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-          {{ graphAttribute.label }}
+          {{ graphAttribute.short_label }}
         </option>
       </select>
       <select v-model="scatterGraphRoundIdx">
         <option :value="0">Full Game</option>
-        <option :value="1">J! Round</option>
+        <!--<option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
-        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
-      </select>
-      <select v-model="scatterGraphColorAttributeIdx">
-        <option :value="null">By Contestant</option>
-        <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-          {{ graphAttribute.label }}
-        </option>
+        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>-->
       </select>
       <div class="graph-subsection">
         <h3>All Games</h3>

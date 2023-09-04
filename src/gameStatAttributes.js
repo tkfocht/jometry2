@@ -5,7 +5,7 @@ const att_total = {
     short_label: 'Att',
     label: 'Attempts',
     description: 'Total attempts',
-    generatingFunction: (gs, gcs) => gs.att_total,
+    generatingFunction: (gs, gcs) => gs.att_total > 0 ? gs.att_total : undefined,
     valueDisplayFormat: v => formatNumber(v, 0),
     averageDisplayFormat: v => formatNumber(v, 1, false)
 }
@@ -37,6 +37,33 @@ const att_min = {
     averageDisplayFormat: v => formatNumber(v, 1, false)
 }
 
+const buzc_total = {
+    short_label: 'BuzC',
+    label: 'Correct Buzzes',
+    description: 'Total correct buzzes',
+    generatingFunction: (gs, gcs) => d3.sum(gcs.map(s => s.buzc)),
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 1, false)
+}
+
+const buzi_total = {
+    short_label: 'BuzI',
+    label: 'Incorrect Buzzes',
+    description: 'Total incorrect buzzes',
+    generatingFunction: (gs, gcs) => d3.sum(gcs.map(s => s.buzi)),
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 1, false)
+}
+
+const buz_score_total = {
+    short_label: 'Buz$',
+    label: 'Buzz Score',
+    description: 'Total scoring from buzzes',
+    generatingFunction: (gs, gcs) => d3.sum(gcs.map(s => s.buz_score)),
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 0, false)
+}
+
 const coryat_score_total = {
     short_label: 'Coryat',
     label: 'Coryat',
@@ -46,4 +73,8 @@ const coryat_score_total = {
     averageDisplayFormat: v => formatNumber(v, 0, false)
 }
 
-export { att_total, att_max, att_med, att_min, coryat_score_total };
+const all_attributes = [
+    att_total, att_max, att_med, att_min, buzc_total, buzi_total, buz_score_total, coryat_score_total
+]
+
+export { all_attributes, att_total, att_max, att_med, att_min, buzc_total, buzi_total, buz_score_total, coryat_score_total };
