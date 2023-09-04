@@ -112,6 +112,7 @@ function displayPanelRight() {
 
 .table-container {
     overflow-x: auto;
+    overflow-y: hidden;
 }
 
 th.tooltip {
@@ -129,6 +130,7 @@ th.tooltip span.tooltiptext {
   z-index: 1;
   left: 0%;
   top: 100%;
+  width: 20em;
 }
 
 th.tooltip:hover span.tooltiptext {
