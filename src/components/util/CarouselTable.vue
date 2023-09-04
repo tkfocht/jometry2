@@ -132,25 +132,45 @@ th.tooltip:hover span.tooltiptext {
 table {
     border-collapse: collapse;
     font-size: 13px;
-    width: 100%;
 }
 
 table th, table td {
     padding: 2px 5px;
-    border: 1px solid #999999;
+    border-top: 1px solid #999999;
+    border-bottom: 1px solid #999999;
+}
+
+table th:hover {
+    background-color: #999999;
+}
+
+table thead tr {
+    background: #CCCCCC;
+}
+
+table tbody tr:nth-child(even) {
+    background: #EEEEEE;
+}
+
+table tbody tr:nth-child(odd) {
+    background: #FFFFFF;
 }
 
 table tr:hover td {
-    background-color: #EEEEEE;
+    background-color: #CCCCCC;
 }
 
 table td {
-    text-align: right;
+    text-align: center;
 }
 
-table td:first-child {
+table th:first-child, table td:first-child {
     text-align: left;
-    width: 20%;
+    border-left: 1px solid #999999;
+}
+
+table th:last-child, table td:last-child {
+    border-right: 1px solid #999999;
 }
 
 table th span.control-container {

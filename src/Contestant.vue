@@ -84,7 +84,7 @@ const scoringTableFooterRows = data.computedIfRefHasValues(
       displayFunction: attrDef => attrDef.averageDisplayFormat
     },
     {
-      label: 'Winning contestants avg',
+      label: 'Winners avg',
       dataToAggregate: winGcsData,
       aggregation: d3.mean,
       displayFunction: attrDef => attrDef.averageDisplayFormat
