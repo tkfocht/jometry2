@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { movingAverageOfLast, dateFormat, transformValues } from '@/util'
+import { movingAverageOfLast, dateFormat, transformValues, threeColorSet } from '@/util'
 import { playClassificationName } from '@/configuration'
 import * as d3 from 'd3'
 import * as data from '@/data'
@@ -55,7 +55,6 @@ const queryString = computed(() => {
   if (displayContestantIdParameters.value.length > 0) {
     queryStr += '&contestants=' + displayContestantIdParameters.value.join(',')
   }
-  console.log(queryStr)
   return queryStr
 })
 
@@ -110,7 +109,6 @@ const displayContestantIds = data.computedIfRefHasValues(
       return dcIdParameters.map(v => +v)
     }
     cids.sort(cSort)
-    console.log(cids)
     if (cids.length <= 10) {
       return cids
     }
@@ -118,13 +116,20 @@ const displayContestantIds = data.computedIfRefHasValues(
     //Okay fine, if anyone ever wins 10001 games this will be a bug,
     //but truthy values are weird when winLimit=0 is a primary case
     var winLimit = winLimitString.value ? +winLimitString.value : 10000
-    console.log(wins)
     return cids.filter(i => {
       var cwin = wins.get(i)
       if (cwin === undefined) cwin = 0
       return cwin >= winThreshold && cwin <= winLimit
     })
   })
+const displayContestantGameContestantStatData = data.computedIfRefHasValues(
+  [displayContestantIds, gameContestantStatData],
+  (dCids, gcsData) => gcsData.filter(gcs => dCids.includes(gcs.contestant_id))
+)
+const winnerContestantGameContestantStatData = data.computedIfRefHasValues(
+  [gameDataById, gameContestantStatData],
+  (gData, gcsData) => gcsData.filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id)
+)
 const graphDisplayLimit = ref(graphDisplayLimitString.value ? +graphDisplayLimitString.value : undefined)
 
 const colorSet = computed(() => {
@@ -163,9 +168,73 @@ const scoringTableRows = data.computedIfRefHasValues([displayContestantIds, cont
   })
 })
 
-const standardScoringTablePanels = data.computedIfRefHasValues([contestantDataById, gameContestantStatDataByContestantId], (cData, gcsData) => {
-  var leadColumns = [{label: 'Contestant', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}]
-  var attrColumns = [
+const scoringTableFooterRows = data.computedIfRefHasValues(
+  [displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
+  (displayGcsData, allGcsData, winGcsData) => [
+    {
+      label: 'Selected contestant',
+      dataToAggregate: displayGcsData
+    },
+    {
+      label: 'All contestants',
+      dataToAggregate: allGcsData
+    },
+    {
+      label: 'Winning contestants',
+      dataToAggregate: winGcsData
+    }
+  ])
+
+const generateScoringPanels = function(cDataById, gcsDataByCId, attrColumnDefs) {
+  return data.computedIfRefHasValues([cDataById, gcsDataByCId], (cData, gcsData) => {
+    var leadColumns = [{label: 'Contestant', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}]
+    var avgAttrColumns = attrColumnDefs.map(attrDef => ({
+      label: attrDef.short_label,
+      sortValueFunction: r => d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
+      attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
+    var maxAttrColumns = attrColumnDefs.map(attrDef => ({
+      label: attrDef.short_label,
+      sortValueFunction: r => d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
+      attributeFunction: r => attrDef.valueDisplayFormat(d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
+
+    var footerLeadAvgColumns = [
+      { attributeFunction: r => r.label + ' avg'}
+    ]
+    var footerAttrAvgColumns = attrColumnDefs.map(attrDef => ({
+      attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(r.dataToAggregate.map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
+    var footerLeadMaxColumns = [
+      { attributeFunction: r => r.label + ' max' }
+    ]
+    var footerAttrMaxColumns = attrColumnDefs.map(attrDef => ({
+      attributeFunction: r => attrDef.valueDisplayFormat(d3.max(r.dataToAggregate.map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
+
+    var panels = [
+      {
+        label: 'Game Average',
+        columns: leadColumns.concat(avgAttrColumns),
+        footerColumns: footerLeadAvgColumns.concat(footerAttrAvgColumns)
+      },
+      {
+        label: 'Game Max',
+        columns: leadColumns.concat(maxAttrColumns),
+        footerColumns: footerLeadMaxColumns.concat(footerAttrMaxColumns)
+      }
+    ]
+
+    return panels
+  })
+}
+
+const standardScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  [
     gcsAttributes.buz,
     gcsAttributes.buzc,
     gcsAttributes.buz_score,
@@ -177,37 +246,10 @@ const standardScoringTablePanels = data.computedIfRefHasValues([contestantDataBy
     gcsAttributes.fj_start_score,
     gcsAttributes.fj_score,
     gcsAttributes.fj_final_score,  
-  ]
-  var avgAttrColumns = attrColumns.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-    attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-    description: attrDef.description
-  }))
-  var maxAttrColumns = attrColumns.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-    attributeFunction: r => attrDef.valueDisplayFormat(d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-    description: attrDef.description
-  }))
+  ])
 
-  var panels = [
-    {
-      label: 'Game Average',
-      columns: leadColumns.concat(avgAttrColumns)
-    },
-    {
-      label: 'Game Max',
-      columns: leadColumns.concat(maxAttrColumns)
-    }
-  ]
-
-  return panels
-})
-
-const conversionScoringTablePanels = data.computedIfRefHasValues([contestantDataById, gameContestantStatDataByContestantId], (cData, gcsData) => {
-  var leadColumns = [{label: 'Contestant', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}]
-  var attrColumns = [
+const conversionScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  [
     gcsAttributes.att,
     gcsAttributes.att_clue,
     gcsAttributes.buz,
@@ -216,38 +258,11 @@ const conversionScoringTablePanels = data.computedIfRefHasValues([contestantData
     gcsAttributes.acc_percent,
     gcsAttributes.conversion_percent,
     gcsAttributes.time,
-    gcsAttributes.solo
-  ]
-  var avgAttrColumns = attrColumns.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-    attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-    description: attrDef.description
-  }))
-  var maxAttrColumns = attrColumns.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-    attributeFunction: r => attrDef.valueDisplayFormat(d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-    description: attrDef.description
-  }))
+    gcsAttributes.solo 
+  ])
 
-  var panels = [
-    {
-      label: 'Game Average',
-      columns: leadColumns.concat(avgAttrColumns)
-    },
-    {
-      label: 'Game Max',
-      columns: leadColumns.concat(maxAttrColumns)
-    }
-  ]
-
-  return panels
-})
-
-const conversionValueScoringTablePanels = data.computedIfRefHasValues([contestantDataById, gameContestantStatDataByContestantId], (cData, gcsData) => {
-  var leadColumns = [{label: 'Contestant', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}]
-  var attrColumns = [
+const conversionValueScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  [
     gcsAttributes.att_value,
     gcsAttributes.buz_value,
     gcsAttributes.buz_value_percent,
@@ -258,45 +273,41 @@ const conversionValueScoringTablePanels = data.computedIfRefHasValues([contestan
     gcsAttributes.time_score,
     gcsAttributes.solo_value,
     gcsAttributes.solo_score
-  ]
-  var avgAttrColumns = attrColumns.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-    attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-    description: attrDef.description
-  }))
-  var maxAttrColumns = attrColumns.map(attrDef => ({
-    label: attrDef.short_label,
-    sortValueFunction: r => d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-    attributeFunction: r => attrDef.valueDisplayFormat(d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-    description: attrDef.description
-  }))
+  ])
 
-  var panels = [
-    {
-      label: 'Game Average',
-      columns: leadColumns.concat(avgAttrColumns)
-    },
-    {
-      label: 'Game Max',
-      columns: leadColumns.concat(maxAttrColumns)
-    }
-  ]
-
-  return panels
-})
 
 
 //Stacked bars
 const buildStackedBarSpecificationLambda = function(yAttrs, title) {
-  return (cids, cData, gcsData) => {
+  return (cids, cData, gcsData, displayGcsData, allGcsData, winGcsData) => {
     const dataSet = cids.map(cid => ({
       contestant_id: cid,
       values: yAttrs.map(attr => d3.mean(gcsData.get(cid).map(attr.generatingFunction))),
       displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(gcsData.get(cid).map(attr.generatingFunction)))),
     }))
+    const aggregateDataSet = [
+      {
+        label: 'Selected contestant avg',
+        values: yAttrs.map(attr => d3.mean(displayGcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(displayGcsData.map(attr.generatingFunction)))),
+        color: 'black'
+      },
+      {
+        label: 'Winner avg',
+        values: yAttrs.map(attr => d3.mean(winGcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(winGcsData.map(attr.generatingFunction)))),
+        color: 'black'
+      },
+      {
+        label: 'All contestant avg',
+        values: yAttrs.map(attr => d3.mean(allGcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(allGcsData.map(attr.generatingFunction)))),
+        color: 'black'
+      }
+    ]
     return {
       data: dataSet,
+      aggregateData: aggregateDataSet,
       xCoreLabelFunction: d => cData.get(d.contestant_id).name,
       xGroupLabels: ['Contestants'],
       yFunctionGroups: [d3.range(0, yAttrs.length).map(i => (d => d.displayValues[i]))],
@@ -310,11 +321,13 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title) {
 }
 
 const attemptBarChartSpecification = data.computedIfRefHasValues(
-  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId],
+  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId,
+    displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
   buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], 'Attempts'))
 
 const attemptValueBarChartSpecification = data.computedIfRefHasValues(
-  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId],
+  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId,
+    displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
   buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], 'Attempt Values'))
 
 //Charts
@@ -493,18 +506,21 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
       <CarouselTable 
         :panels="standardScoringTablePanels"
         :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d['ranking']"
         />
       <h4>Conversion</h4>
       <CarouselTable 
         :panels="conversionScoringTablePanels"
         :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d['ranking']"
         />
       <h4>Conversion Value</h4>
       <CarouselTable 
         :panels="conversionValueScoringTablePanels"
         :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d['ranking']"
         />
     </div>

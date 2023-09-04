@@ -73,8 +73,9 @@ const layout = computed(() => {
     l['xaxis' + (+idx+1 > 1 ? +idx+1 : '')] = {
       title: {
         text: props.xGroupLabels[idx],
-        standoff: 10
+        standoff: 0
       },
+      automargin: true,
       type: 'category'
     }
   }
