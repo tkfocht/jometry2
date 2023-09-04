@@ -172,7 +172,7 @@ const scoringTableFooterRows = data.computedIfRefHasValues(
   [displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
   (displayGcsData, allGcsData, winGcsData) => [
     {
-      label: 'Selected contestants',
+      label: 'Selected',
       dataToAggregate: displayGcsData
     },
     {
@@ -180,7 +180,7 @@ const scoringTableFooterRows = data.computedIfRefHasValues(
       dataToAggregate: allGcsData
     },
     {
-      label: 'Winning contestants',
+      label: 'Winners',
       dataToAggregate: winGcsData
     }
   ])
@@ -606,7 +606,6 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
 .section {
   padding: 0.5em 0 2em 0;
   border-bottom: 1px solid black;
-  width: 960px;
 }
 
 .graph-subsection {

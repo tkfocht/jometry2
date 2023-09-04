@@ -634,13 +634,14 @@ const histogramSpecification = computed(() => {
 .section {
   padding: 0.5em 0 2em 0;
   border-bottom: 1px solid black;
-  width: 960px;
+  max-width: min(95vw, 960px);
 }
 
 table.view-board td {
     width: 40px;
     height: 30px;
     border: 1px solid black;
+    min-width: 40px;
 }
 
 table.view-board div {
@@ -686,8 +687,13 @@ table#fj-matrix div div {
 
 div#view-boards, div#fj-matrix-container {
     display: flex;
-    flex-flow: row-wrap;
+    flex-flow: row wrap;
     justify-content: space-around;
+}
+
+div#view-boards > div {
+    margin-left: 10px;
+    margin-right: 20px;
 }
 
 </style>

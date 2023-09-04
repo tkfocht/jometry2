@@ -25,6 +25,6 @@ watch(() => props.chart, (newValue, oldValue) => {
 
 <style scoped>
 div.graph {
-    max-width: 900px;
+    max-width: min(95vw, 900px);
 }
 </style>

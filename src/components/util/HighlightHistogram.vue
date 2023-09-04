@@ -57,7 +57,10 @@ const traces = computed(() => {
 })
 const layout = computed(() => ({
   bargap: 0.05,
-  title: props.title, xaxis: { title: props.xLabel }, yaxis: { title: 'Count' } }))
+  title: props.title,
+  xaxis: { title: props.xLabel, fixedrange: true },
+  yaxis: { title: 'Count', fixedrange: true } 
+}))
 
 
 </script>

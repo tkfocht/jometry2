@@ -365,7 +365,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
 .section {
   padding: 0.5em 0 2em 0;
   border-bottom: 1px solid black;
-  width: 960px;
+  max-width: min(95vw, 960px);
 }
 
 

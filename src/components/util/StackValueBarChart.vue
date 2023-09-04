@@ -66,8 +66,8 @@ const layout = computed(() => {
       subplots: d3.map(d3.range(1, props.xGroupLabels.length + 1), idx => 'x' + idx + 'y')
     },
     title: props.title,
-    yaxis: { title: props.yLabel },
-    xaxis: { automargin: true }
+    yaxis: { title: props.yLabel, fixedrange: true },
+    xaxis: { automargin: true, fixedrange: true }
   }
   for (var idx in d3.range(1, props.xGroupLabels.length + 1)) {
     l['xaxis' + (+idx+1 > 1 ? +idx+1 : '')] = {
@@ -76,7 +76,8 @@ const layout = computed(() => {
         standoff: 0
       },
       automargin: true,
-      type: 'category'
+      type: 'category',
+      fixedrange: true
     }
   }
   return l
