@@ -81,7 +81,7 @@ const contestantData = data.contestantDataById
 }
 
 .toc-period .toc-period-header {
-    font-size: 36px;
+    font-size: 24px;
 }
 
 .toc-period-play-class {
@@ -93,10 +93,10 @@ const contestantData = data.contestantDataById
 }
 
 .toc-period-play-class .toc-period-play-class-header a {
-    font-size: 16px;
+    font-size: 13px;
 }
 .toc-period .toc-period-header a {
-    font-size: 16px;
+    font-size: 13px;
     margin-left: 1em;
 }
 
