@@ -127,8 +127,8 @@ th.tooltip span.tooltiptext {
   border-radius: 6px; 
   position: absolute;
   z-index: 1;
-  left: 50%;
-  bottom: 100%;
+  left: 0%;
+  top: 100%;
 }
 
 th.tooltip:hover span.tooltiptext {
