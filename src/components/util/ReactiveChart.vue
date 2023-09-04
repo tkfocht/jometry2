@@ -10,8 +10,10 @@ const props = defineProps({
 })
 
 const screenWidth = ref(0)
+const screenHeight = ref(0)
 const onResize = function() {
     screenWidth.value = window.innerWidth
+    screenHeight.value = window.innerHeight
 }
 const debouncedOnResize = _.debounce(onResize, 100, {leading: false, trailing: true})
 window.addEventListener("resize", debouncedOnResize);
@@ -30,6 +32,9 @@ watch(() => props.chart, (newValue, oldValue) => {
 watch(() => screenWidth, (newValue, oldValue) => {
     Plotly.newPlot(c.value, props.chart.traces, props.chart.layout)
 }, { deep: true })
+watch(() => screenHeight, (newValue, oldValue) => {
+    Plotly.newPlot(c.value, props.chart.traces, props.chart.layout)
+}, { deep: true })
 
 </script>
 
@@ -39,6 +44,7 @@ watch(() => screenWidth, (newValue, oldValue) => {
 
 <style scoped>
 div.graph {
-    max-width: min(95vw, 900px);
+    width: min(95vw, 900px);
+    height: max(min(95vh, 450px), 200px);
 }
 </style>
