@@ -22,7 +22,7 @@ const traces = computed(() => {
       const trace = {
         type: 'box',
         y: d3.map(props.dataByKey.get(key), props.yFunction),
-        name: props.xLabel(props.dataByKey.get(key)),
+        name: props.xLabel(key),
         text: d3.map(props.dataByKey.get(key), props.yLabel),
         boxpoints: 'all',
         jitter: 0.3,

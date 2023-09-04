@@ -8,7 +8,7 @@ const props = defineProps({
   xFunction: Function,
   yFunctions: Array,
   labels: Array,
-  colorFunction: Function,
+  colors: Array,
   title: String,
   xLabel: String,
   yLabel: String
@@ -27,7 +27,10 @@ const traces = computed(() => {
       type: 'scatter',
       mode: 'lines',
       marker: {},
-      name: props.labels[yFunctionIdx]
+      name: props.labels[yFunctionIdx],
+      line: {
+          color: props.colors[yFunctionIdx]
+      }
     }
     traces.push(t)
   }

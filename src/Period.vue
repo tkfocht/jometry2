@@ -1,10 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { rollupData, csvDataAccessor, formatNumber, gameStatDataFromContestantStatData, movingAverageOfLast, dateFormat } from '@/util'
-import { dataSourceAddress, playClassificationName } from '@/configuration'
-import { graphAttributes } from '@/graphAttributes'
-import { gameGraphAttributes } from '@/gameGraphAttributes'
+import { movingAverageOfLast, dateFormat, transformValues, threeColorSet } from '@/util'
+import { playClassificationName } from '@/configuration'
 import * as d3 from 'd3'
+import * as data from '@/data'
+import * as gsAttributes from '@/gameStatAttributes'
+import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
@@ -14,7 +15,11 @@ import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
-const dataSourceId = ref(urlParams.get('data_source') ? urlParams.get('data_source') : 'standard')
+
+data.loadContestantData()
+data.loadGameData()
+data.loadGameStatData()
+data.loadGameContestantStatData()
 
 const seasonSearchParameters = ref(urlParams.get('season') ? urlParams.get('season').split(',') : [])
 const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
@@ -25,12 +30,10 @@ const winLimitString = ref(urlParams.get('win_limit'))
 const graphDisplayLimitString = ref(urlParams.get('graph_display_limit'))
 const displayContestantIdParameters = ref(urlParams.get('contestants') ? urlParams.get('contestants').split(',') : [])
 
-const allContestantStatData = ref(null)
-const allGameStatData = ref(null)
-const displayRounds = ref(dataSourceId.value === 'celebrity' ? 3 : 2)
+const displayRounds = ref(2)
 
 const queryString = computed(() => {
-  var queryStr = '?data_source=' + dataSourceId.value
+  var queryStr = '?foo=bar'
   if (seasonSearchParameters.value.length > 0) {
     queryStr += '&season=' + seasonSearchParameters.value.join(',')
   }
@@ -52,7 +55,6 @@ const queryString = computed(() => {
   if (displayContestantIdParameters.value.length > 0) {
     queryStr += '&contestants=' + displayContestantIdParameters.value.join(',')
   }
-  console.log(queryStr)
   return queryStr
 })
 
@@ -64,92 +66,70 @@ watch(() => queryString, (newValue, oldValue) => {
   window.history.replaceState(null, null, queryString.value );
 }, { deep: true })
 
-
-async function fetchContestantStatData(dataSourceId) {
-  const res = await d3.csv(
-    dataSourceAddress(dataSourceId),
-    csvDataAccessor
-  )
-  var resResult = await res
-  allContestantStatData.value = resResult
-  var gameResResult = gameStatDataFromContestantStatData(resResult)
-  gameResResult.sort((a,b) => d3.ascending(a['date'], b['date'] || d3.ascending(a['gameInSeason'], b['gameInSeason'])))
-  allGameStatData.value = gameResResult
-}
-fetchContestantStatData(dataSourceId.value)
-
-const filteredAllContestantStatData = computed(() => {
-  if (!allContestantStatData.value) return undefined
-
+const gameFilter = computed(() => {
   const satisfiesSeason = seasonSearchParameters.value.length === 0 ? 
     d => true :
-    d => seasonSearchParameters.value.includes(d['Season'])
+    d => seasonSearchParameters.value.includes(d.season_id)
   const satisfiesTocPeriod = tocPeriodSearchParameters.value.length === 0 ? 
     d => true :
-    d => tocPeriodSearchParameters.value.includes(d['TOC Period'])
+    d => tocPeriodSearchParameters.value.includes(d.toc_period)
   const satisfiesPlayClassification = playClassificationSearchParameters.value.length === 0 ? 
     d => true :
-    d => playClassificationSearchParameters.value.includes(d['Play Classification'])
-  const satisfiesAllFilters = d => satisfiesSeason(d) && satisfiesTocPeriod(d) && satisfiesPlayClassification(d)
-
-  return d3.filter(allContestantStatData.value, satisfiesAllFilters)
+    d => playClassificationSearchParameters.value.includes(d.play_classification)
+  return d => satisfiesSeason(d) && satisfiesTocPeriod(d) && satisfiesPlayClassification(d)
 })
-
-const filteredAllGameStatData = computed(() => {
-  if (!allGameStatData.value) return undefined
-
-  const satisfiesSeason = seasonSearchParameters.value.length === 0 ? 
-    d => true :
-    d => seasonSearchParameters.value.includes(d['season'])
-  const satisfiesTocPeriod = tocPeriodSearchParameters.value.length === 0 ? 
-    d => true :
-    d => tocPeriodSearchParameters.value.includes(d['tocPeriod'])
-  const satisfiesPlayClassification = playClassificationSearchParameters.value.length === 0 ? 
-    d => true :
-    d => playClassificationSearchParameters.value.includes(d['playClassification'])
-  const satisfiesAllFilters = d => satisfiesSeason(d) && satisfiesTocPeriod(d) && satisfiesPlayClassification(d)
-
-  const filtered = d3.filter(allGameStatData.value, satisfiesAllFilters)
-  return filtered
-})
-
-const filteredAllContestantStatDataByContestant = computed(() => {
-  if (!filteredAllContestantStatData.value) return undefined
-  return d3.group(filteredAllContestantStatData.value, d => d['Jometry Contestant Id'])
-})
-
-const filteredAllContestantStatSummariesByContestant = computed(() => {
-  if (!filteredAllContestantStatDataByContestant.value) return undefined
-  return new d3.InternMap(d3.map(filteredAllContestantStatDataByContestant.value,
-    ([k, rs]) => [k, {
-      'Jometry Contestant Id': k,
-      'Contestant': rs[0]['Contestant'],
-      'mean': rollupData(rs, d3.mean),
-      'max': rollupData(rs, d3.max),
-      'sum': rollupData(rs, d3.sum),
-      'count': rollupData(rs, d3.count)
-    }]))
-})
-
-const displayContestantIds = computed(() => {
-  if (displayContestantIdParameters.value && displayContestantIdParameters.value.length > 0) {
-    return d3.map(displayContestantIdParameters.value, v => +v)
+const gameData = data.computedIfRefHasValue(data.gameData, gData => gData.filter(gameFilter.value))
+const gameDataById = data.computedIfRefHasValue(gameData, gData => d3.index(gData, g => g.game_id))
+const gameIds = data.computedIfRefHasValue(gameData, gData => gData.map(g => g.game_id))
+const contestantDataById = data.contestantDataById
+const contestantIds = data.computedIfRefHasValue(gameData, gData => [...new Set(gData.flatMap(g => [g.podium_1_contestant_id, g.podium_2_contestant_id, g.podium_3_contestant_id]))])
+const gameStatData = data.computedIfRefHasValues([data.gameStatData, gameIds], (gsData, gIds) => gsData.filter(gs => gIds.includes(gs.game_id)))
+const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.index(gsData, gs => gs.game_id))
+const gameContestantStatData = data.computedIfRefHasValues([data.gameContestantStatData, gameIds], (gcsData, gIds) => gcsData.filter(gs => gIds.includes(gs.game_id)))
+const gameContestantStatDataByGameId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.game_id))
+const gameContestantStatDataByContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.contestant_id))
+const gameContestantStatDataByGameIdAndContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id, gcs => gcs.contestant_id))
+const contestantWins = data.computedIfRefHasValue(gameData, gData => d3.rollup(gData, v => v.length, g => g.winning_contestant_id))
+const contestantWinnings = data.computedIfRefHasValues([gameData, gameContestantStatDataByGameIdAndContestantId], (gData, gcsData) => {
+  const aggregateWinnings = function(games) {
+    return games.map(g => gcsData.get(g.game_id).get(g.winning_contestant_id).score).reduce((a, b) => a + b, 0)
   }
-  if (!filteredAllContestantStatData.value) return undefined
-  const winRollup = d3.rollup(filteredAllContestantStatData.value, v => d3.sum(v, d1 => d1['Wins']), d => d['Jometry Contestant Id'])
-  const winScoreRollup = d3.rollup(filteredAllContestantStatData.value, v => d3.sum(v, d1 => d1['Win$']), d => d['Jometry Contestant Id'])
-  const finalScoreRollup = d3.rollup(filteredAllContestantStatData.value, v => d3.sum(v, d1 => d1['FJFinal$']), d => d['Jometry Contestant Id'])
-  const contestantIds = Array.from(winRollup.keys())
-  contestantIds.sort((a,b) => d3.descending(winRollup.get(a), winRollup.get(b)) || d3.descending(winScoreRollup.get(a), winScoreRollup.get(b)) || d3.descending(finalScoreRollup.get(a), finalScoreRollup.get(b)))
-  if (contestantIds.length <= 10) {
-    return contestantIds
-  }
-  var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min(winRollup.get(contestantIds[9]), 4), contestantIds.length > 21 ? 1 + winRollup.get(contestantIds[20]) : 0)
-  //Okay fine, if anyone ever wins 10001 games this will be a bug,
-  //but truthy values are weird when winLimit=0 is a primary case
-  var winLimit = winLimitString.value ? +winLimitString.value : 10000
-  return d3.filter(contestantIds, i => winRollup.get(i) >= winThreshold && winRollup.get(i) <= winLimit)
+  return d3.rollup(gData, aggregateWinnings, g => g.winning_contestant_id)
 })
+const contestantTotalScores = data.computedIfRefHasValue(gameContestantStatData, gcsData => {
+  return d3.rollup(gcsData, v => v.map(gcs => gcs.score).reduce((a, b) => a + b, 0), g => g.contestant_id)
+})
+const contestantSort = data.computedIfRefHasValues(
+  [contestantWins, contestantWinnings, contestantTotalScores],
+  (wins, winnings, totalScores) => ((a, b) => d3.descending(wins.get(a), wins.get(b)) || d3.descending(winnings.get(a), winnings.get(b)) || d3.descending(totalScores.get(a), totalScores.get(b))))
+const displayContestantIds = data.computedIfRefHasValues(
+  [displayContestantIdParameters, contestantIds, contestantSort, contestantWins],
+  (dcIdParameters, cids, cSort, wins) => {
+    if (dcIdParameters.length > 0) {
+      return dcIdParameters.map(v => +v)
+    }
+    cids.sort(cSort)
+    if (cids.length <= 10) {
+      return cids
+    }
+    var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min(wins.get(cids[9]), 4), cids.length > 21 ? 1 + (wins.get(cids[20]) ? wins.get(cids[20]) : 0) : 0)
+    //Okay fine, if anyone ever wins 10001 games this will be a bug,
+    //but truthy values are weird when winLimit=0 is a primary case
+    var winLimit = winLimitString.value ? +winLimitString.value : 10000
+    return cids.filter(i => {
+      var cwin = wins.get(i)
+      if (cwin === undefined) cwin = 0
+      return cwin >= winThreshold && cwin <= winLimit
+    })
+  })
+const displayContestantGameContestantStatData = data.computedIfRefHasValues(
+  [displayContestantIds, gameContestantStatData],
+  (dCids, gcsData) => gcsData.filter(gcs => dCids.includes(gcs.contestant_id))
+)
+const winnerContestantGameContestantStatData = data.computedIfRefHasValues(
+  [gameDataById, gameContestantStatData],
+  (gData, gcsData) => gcsData.filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id)
+)
 const graphDisplayLimit = ref(graphDisplayLimitString.value ? +graphDisplayLimitString.value : undefined)
 
 const colorSet = computed(() => {
@@ -169,318 +149,320 @@ const color = computed(() => {
   }
 })
 
-const filteredAllContestantSummary = computed(() => {
-  if (!filteredAllContestantStatData.value) return undefined
-  return [{
-      'Contestant': 'All Contestants',
-      'mean': rollupData(filteredAllContestantStatData.value, d3.mean),
-      'max': rollupData(filteredAllContestantStatData.value, d3.max),
-      'sum': rollupData(filteredAllContestantStatData.value, d3.sum),
-      'count': rollupData(filteredAllContestantStatData.value, d3.count)
-  }]
-})
-
-const filteredDisplayContestantStatData = computed(() => {
-  if (!filteredAllContestantStatData.value || !displayContestantIds.value) return undefined
-  return d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id']))
-})
-
-const filteredDisplayContestantSummary = computed(() => {
-  if (!filteredDisplayContestantStatData.value) return undefined
-  return [{
-      'Contestant': 'All Selected Contestants',
-      'mean': rollupData(filteredDisplayContestantStatData.value, d3.mean),
-      'max': rollupData(filteredDisplayContestantStatData.value, d3.max),
-      'sum': rollupData(filteredDisplayContestantStatData.value, d3.sum),
-      'count': rollupData(filteredDisplayContestantStatData.value, d3.count)
-  }]
-})
-
-const filteredWinningContestantStatData = computed(() => {
-  if (!filteredAllContestantStatData.value || !displayContestantIds.value) return undefined
-  return d3.filter(filteredAllContestantStatData.value, d => d['Wins'] === 1)
-})
-
-const filteredWinningContestantSummary = computed(() => {
-  if (!filteredWinningContestantStatData.value) return undefined
-  return [{
-      'Contestant': 'All Winning Contestants',
-      'mean': rollupData(filteredWinningContestantStatData.value, d3.mean),
-      'max': rollupData(filteredWinningContestantStatData.value, d3.max),
-      'sum': rollupData(filteredWinningContestantStatData.value, d3.sum),
-      'count': rollupData(filteredWinningContestantStatData.value, d3.count)
-  }]
-})
-
-const filteredDisplayContestantStatSummaries = computed(() => {
-  if (!filteredAllContestantStatSummariesByContestant.value || !displayContestantIds.value) return undefined
-  return d3.map(displayContestantIds.value, id => filteredAllContestantStatSummariesByContestant.value.get(id))
-})
-
-function contestantLink (contestantStatData) {
-  if (!contestantStatData['Jometry Contestant Id']) return contestantStatData['Contestant']
+function contestantLink (contestant_id, contestant_name) {
   return '<span style="color: ' + 
-    color.value(contestantStatData['Jometry Contestant Id']) + 
-    '">&#9632;</span>&nbsp;<a href="/contestant.html?data_source=' + dataSourceId.value + '&contestant_id=' + 
-    contestantStatData['Jometry Contestant Id'] + 
-    '">' + contestantStatData['Contestant'] + '</a>'
+    color.value(contestant_id) + 
+    '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
+    contestant_id + 
+    '">' + contestant_name + '</a>'
 }
 
-const leaderboardTablePanels = computed(() => {
-  const panels = [
-    {
-      label: 'Totals',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
-        { label: 'W', sortValueFunction: d => d['sum']['Wins'], attributeFunction: d => formatNumber(d['sum']['Wins'], 0, false), description: 'Wins'},
-        { label: 'Lk', sortValueFunction: d => d['sum']['Locks'], attributeFunction: d => formatNumber(d['sum']['Locks'], 0, false), description: 'Locks (Games finished at > 2x opponents)'},
-        { label: 'Cr', sortValueFunction: d => d['sum']['Crushes'], attributeFunction: d => formatNumber(d['sum']['Crushes'], 0, false), description: 'Crushes (Games finished at > 1.5x opponents)'},
-        { label: 'Ld', sortValueFunction: d => d['sum']['Leads'], attributeFunction: d => formatNumber(d['sum']['Leads'], 0, false), description: 'Locks (Games finished with lead)'},
-        { label: 'Win$', sortValueFunction: d => d['sum']['Win$'], attributeFunction: d => formatNumber(d['sum']['Win$'], 0, false)},
-        { label: 'Att', sortValueFunction: d => d['sum']['Att'] === undefined ? -Infinity : d['sum']['Att'], attributeFunction: d => formatNumber(d['sum']['Att'], 0, false)},
-        { label: 'Buz', sortValueFunction: d => d['sum']['Buz'], attributeFunction: d => formatNumber(d['sum']['Buz'], 0, false)},
-        { label: 'BuzC', sortValueFunction: d => d['sum']['BuzC'], attributeFunction: d => formatNumber(d['sum']['BuzC'], 0, false)},
-        { label: 'AttV', sortValueFunction: d => d['sum']['AttValue'] === undefined ? -Infinity : d['sum']['AttValue'], attributeFunction: d => formatNumber(d['sum']['AttValue'], 0, false)},
-        { label: 'BuzV', sortValueFunction: d => d['sum']['BuzValue'], attributeFunction: d => formatNumber(d['sum']['BuzValue'], 0, false)},
-        { label: 'Buz$', sortValueFunction: d => d['sum']['Buz$'], attributeFunction: d => formatNumber(d['sum']['Buz$'], 0, false)},
-        { label: 'DDF', sortValueFunction: d => d['sum']['DDF'], attributeFunction: d => formatNumber(d['sum']['DDF'], 0)},
-        { label: 'DD+', sortValueFunction: d => d['sum']['DD+'], attributeFunction: d => formatNumber(d['sum']['DD+'], 1, false, true)},
-        { label: 'DD$', sortValueFunction: d => d['sum']['DD$'], attributeFunction: d => formatNumber(d['sum']['DD$'], 0, false)},
-        { label: 'FJ', sortValueFunction: d => d['sum']['FJCor'] === undefined ? 0 : d['sum']['FJCor'], attributeFunction: d => formatNumber(d['sum']['FJCor'] === undefined ? 0 : d['sum']['FJCor'], 0, false) + '/' + formatNumber(d['count']['FJCor'] === undefined ? 0 : d['count']['FJCor'], 0, false)},
-        { label: 'FJ$', sortValueFunction: d => d['sum']['FJ$'], attributeFunction: d => formatNumber(d['sum']['FJ$'], 0, false)},
-      ]
-    },
-    {
-      label: 'Standard (Game Avg)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
-        { label: 'Buz', sortValueFunction: d => d['mean']['Buz'], attributeFunction: d => formatNumber(d['mean']['Buz'], 1, false)},
-        { label: 'BuzC', sortValueFunction: d => d['mean']['BuzC'], attributeFunction: d => formatNumber(d['mean']['BuzC'], 1, false)},
-        { label: 'Buz$', sortValueFunction: d => d['mean']['Buz$'], attributeFunction: d => formatNumber(d['mean']['Buz$'], 0, false)},
-        { label: 'DDF', sortValueFunction: d => d['mean']['DDF'], attributeFunction: d => formatNumber(d['mean']['DDF'], 1, false)},
-        { label: 'DD+', sortValueFunction: d => d['mean']['DD+'], attributeFunction: d => formatNumber(d['mean']['DD+'], 2, false, true)},
-        { label: 'DD$', sortValueFunction: d => d['mean']['DD$'], attributeFunction: d => formatNumber(d['mean']['DD$'], 0, false)},
-        { label: 'JFinal$', sortValueFunction: d => d['mean']['JFinal$'], attributeFunction: d => formatNumber(d['mean']['JFinal$'], 0, false)},
-        { label: 'DJFinal$', sortValueFunction: d => d['mean']['DJFinal$'], attributeFunction: d => formatNumber(d['mean']['DJFinal$'], 0, false)},
-        { label: 'FJ$', sortValueFunction: d => d['mean']['FJ$'], attributeFunction: d => formatNumber(d['mean']['FJ$'], 0, false)},
-        { label: 'FJFinal$', sortValueFunction: d => d['mean']['FJFinal$'], attributeFunction: d => formatNumber(d['mean']['FJFinal$'], 0, false)},
-      ]
-    },
-    {
-      label: 'Conversion (Game Avg)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
-        { label: 'Att', sortValueFunction: d => d['mean']['Att'] === undefined ? -Infinity : d['mean']['Att'], attributeFunction: d => formatNumber(d['mean']['Att'], 1, false)},
-        { label: 'Buz', sortValueFunction: d => d['mean']['Buz'], attributeFunction: d => formatNumber(d['mean']['Buz'], 1, false)},
-        { label: 'Buz%', sortValueFunction: d => d['mean']['Buz%'] === undefined ? -Infinity : d['mean']['Buz%'], attributeFunction: d => formatNumber(d['mean']['Buz%'], 1, false)},
-        { label: 'BuzC', sortValueFunction: d => d['mean']['BuzC'], attributeFunction: d => formatNumber(d['mean']['BuzC'], 1, false)},
-        { label: 'Acc%', sortValueFunction: d => d['mean']['Acc%'], attributeFunction: d => formatNumber(d['mean']['Acc%'], 1, false)},
-        { label: 'Conv%', sortValueFunction: d => d['mean']['Conv%'] === undefined ? -Infinity : d['mean']['Conv%'], attributeFunction: d => formatNumber(d['mean']['Conv%'], 1, false)},
-        { label: 'Time', sortValueFunction: d => d['mean']['Timing'] === undefined ? -Infinity : d['mean']['Timing'], attributeFunction: d => formatNumber(d['mean']['Timing'], 1, false, true)},
-        { label: 'Solo', sortValueFunction: d => d['mean']['Solo'] === undefined ? -Infinity : d['mean']['Solo'], attributeFunction: d => formatNumber(d['mean']['Solo'], 1, false)},
-        { label: 'AttV', sortValueFunction: d => d['mean']['AttValue'] === undefined ? -Infinity : d['mean']['AttValue'], attributeFunction: d => formatNumber(d['mean']['AttValue'], 0, false)},
-        { label: 'BuzV', sortValueFunction: d => d['mean']['BuzValue'], attributeFunction: d => formatNumber(d['mean']['BuzValue'], 0, false)},
-        { label: 'BuzV%', sortValueFunction: d => d['mean']['BuzValue%'] === undefined ? -Infinity : d['mean']['BuzValue%'], attributeFunction: d => formatNumber(d['mean']['BuzValue%'], 1, false)},
-        { label: 'Buz$', sortValueFunction: d => d['mean']['Buz$'], attributeFunction: d => formatNumber(d['mean']['Buz$'], 0, false)},
-        { label: 'AccV%', sortValueFunction: d => d['mean']['AccValue%'], attributeFunction: d => formatNumber(d['mean']['AccValue%'], 1, false)},
-        { label: 'ConvV%', sortValueFunction: d => d['mean']['ConvValue%'] === undefined ? -Infinity : d['mean']['ConvValue%'], attributeFunction: d => formatNumber(d['mean']['ConvValue%'], 1, false)},
-        { label: 'TimeV', sortValueFunction: d => d['mean']['TimingValue'] === undefined ? -Infinity : d['mean']['TimingValue'], attributeFunction: d => formatNumber(d['mean']['TimingValue'], 0, false, true)},
-        { label: 'SoloV', sortValueFunction: d => d['mean']['SoloValue'] === undefined ? -Infinity : d['mean']['SoloValue'], attributeFunction: d => formatNumber(d['mean']['SoloValue'], 0, false)},
-      ]
-    },
-    {
-      label: 'Standard (Game Max)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
-        { label: 'Buz', sortValueFunction: d => d['max']['Buz'], attributeFunction: d => formatNumber(d['max']['Buz'], 1, false)},
-        { label: 'BuzC', sortValueFunction: d => d['max']['BuzC'], attributeFunction: d => formatNumber(d['max']['BuzC'], 1, false)},
-        { label: 'Buz$', sortValueFunction: d => d['max']['Buz$'], attributeFunction: d => formatNumber(d['max']['Buz$'], 0, false)},
-        { label: 'DDF', sortValueFunction: d => d['max']['DDF'], attributeFunction: d => formatNumber(d['max']['DDF'], 1, false)},
-        { label: 'DD+', sortValueFunction: d => d['max']['DD+'], attributeFunction: d => formatNumber(d['max']['DD+'], 2, false, true)},
-        { label: 'DD$', sortValueFunction: d => d['max']['DD$'], attributeFunction: d => formatNumber(d['max']['DD$'], 0, false)},
-        { label: 'JFinal$', sortValueFunction: d => d['max']['JFinal$'], attributeFunction: d => formatNumber(d['max']['JFinal$'], 0, false)},
-        { label: 'DJFinal$', sortValueFunction: d => d['max']['DJFinal$'], attributeFunction: d => formatNumber(d['max']['DJFinal$'], 0, false)},
-        { label: 'FJ$', sortValueFunction: d => d['max']['FJ$'], attributeFunction: d => formatNumber(d['max']['FJ$'], 0, false)},
-        { label: 'FJFinal$', sortValueFunction: d => d['max']['FJFinal$'], attributeFunction: d => formatNumber(d['max']['FJFinal$'], 0, false)},
-      ]
-    },
-    {
-      label: 'Conversion (Game Max)',
-      columns: [
-        { label: 'Contestant', sortValueFunction: d => displayContestantIds.value.indexOf(d['Jometry Contestant Id']), attributeFunction: contestantLink},
-        { label: 'Att', sortValueFunction: d => d['max']['Att'] === undefined ? -Infinity : d['max']['Att'], attributeFunction: d => formatNumber(d['mean']['Att'], 1, false)},
-        { label: 'Buz', sortValueFunction: d => d['max']['Buz'], attributeFunction: d => formatNumber(d['max']['Buz'], 1, false)},
-        { label: 'Buz%', sortValueFunction: d => d['max']['Buz%'] === undefined ? -Infinity : d['max']['Buz%'], attributeFunction: d => formatNumber(d['mean']['Buz%'], 1, false)},
-        { label: 'BuzC', sortValueFunction: d => d['max']['BuzC'], attributeFunction: d => formatNumber(d['max']['BuzC'], 1, false)},
-        { label: 'Acc%', sortValueFunction: d => d['max']['Acc%'], attributeFunction: d => formatNumber(d['max']['Acc%'], 1, false)},
-        { label: 'Conv%', sortValueFunction: d => d['max']['Conv%'] === undefined ? -Infinity : d['max']['Conv%'], attributeFunction: d => formatNumber(d['max']['Conv%'], 1, false)},
-        { label: 'Time', sortValueFunction: d => d['max']['Timing'] === undefined ? -Infinity : d['max']['Timing'], attributeFunction: d => formatNumber(d['mean']['Timing'], 1, false, true)},
-        { label: 'Solo', sortValueFunction: d => d['max']['Solo'] === undefined ? -Infinity : d['max']['Solo'], attributeFunction: d => formatNumber(d['mean']['Solo'], 1, false)},
-        { label: 'AttV', sortValueFunction: d => d['max']['AttValue'] === undefined ? -Infinity : d['max']['AttValue'], attributeFunction: d => formatNumber(d['mean']['AttValue'], 0, false)},
-        { label: 'BuzV', sortValueFunction: d => d['max']['BuzValue'], attributeFunction: d => formatNumber(d['max']['BuzValue'], 0, false)},
-        { label: 'BuzV%', sortValueFunction: d => d['max']['BuzValue%'] === undefined ? -Infinity : d['max']['BuzValue%'], attributeFunction: d => formatNumber(d['mean']['BuzValue%'], 1, false)},
-        { label: 'Buz$', sortValueFunction: d => d['max']['Buz$'], attributeFunction: d => formatNumber(d['max']['Buz$'], 0, false)},
-        { label: 'AccV%', sortValueFunction: d => d['max']['AccValue%'], attributeFunction: d => formatNumber(d['max']['AccValue%'], 1, false)},
-        { label: 'ConvV%', sortValueFunction: d => d['max']['ConvValue%'] === undefined ? -Infinity : d['max']['ConvValue%'], attributeFunction: d => formatNumber(d['max']['ConvValue%'], 1, false)},
-        { label: 'TimeV', sortValueFunction: d => d['max']['TimingValue'] === undefined ? -Infinity : d['max']['TimingValue'], attributeFunction: d => formatNumber(d['mean']['TimingValue'], 0, false, true)},
-        { label: 'SoloV', sortValueFunction: d => d['max']['SoloValue'] === undefined ? -Infinity : d['max']['SoloValue'], attributeFunction: d => formatNumber(d['mean']['SoloValue'], 0, false)},
-      ]
-    },
-  ]
-  if (displayRounds.value >= 3) {
-    panels[1]['columns'].splice(9, 0, { label: 'TJFinal$', sortValueFunction: d => d['mean']['TJFinal$'], attributeFunction: d => formatNumber(d['mean']['TJFinal$'], 0, false)})
-    panels[3]['columns'].splice(9, 0, { label: 'TJFinal$', sortValueFunction: d => d['max']['TJFinal$'], attributeFunction: d => formatNumber(d['max']['TJFinal$'], 0, false)})
-  }
-  return panels
+//Tables
+const scoringTableRows = data.computedIfRefHasValues([displayContestantIds, contestantSort], (cIds, cSort) => {
+  cIds.sort(cSort)
+  return cIds.map((contestant_id, idx) => {
+    return {
+      'contestant_id': contestant_id,
+      'ranking': idx + 1
+    }
+  })
 })
 
-//Charts
-const graphAttributesList = computed(() => graphAttributes(displayRounds.value))
-const gameGraphAttributesList = ref(gameGraphAttributes)
+const scoringTableFooterRows = data.computedIfRefHasValues(
+  [displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
+  (displayGcsData, allGcsData, winGcsData) => [
+    {
+      label: 'Selected contestants',
+      dataToAggregate: displayGcsData
+    },
+    {
+      label: 'All contestants',
+      dataToAggregate: allGcsData
+    },
+    {
+      label: 'Winning contestants',
+      dataToAggregate: winGcsData
+    }
+  ])
 
-const boxWhiskerGraphAttributeIdx = ref(0)
-const boxWhiskerGraphAttribute = computed(() => graphAttributesList.value[boxWhiskerGraphAttributeIdx.value])
-const boxWhiskerGraphRoundIdx = ref(0)
+const generateScoringPanels = function(cDataById, gcsDataByCId, attrColumnDefs) {
+  return data.computedIfRefHasValues([cDataById, gcsDataByCId], (cData, gcsData) => {
+    var leadColumns = [{label: 'Contestant', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}]
+    var avgAttrColumns = attrColumnDefs.map(attrDef => ({
+      label: attrDef.short_label,
+      sortValueFunction: r => d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
+      attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
+    var maxAttrColumns = attrColumnDefs.map(attrDef => ({
+      label: attrDef.short_label,
+      sortValueFunction: r => d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
+      attributeFunction: r => attrDef.valueDisplayFormat(d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
 
-const xScatterGraphAttributeIdx = ref(0)
-const yScatterGraphAttributeIdx = ref(1)
-const xScatterGraphAttribute = computed(() => graphAttributesList.value[xScatterGraphAttributeIdx.value])
-const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatterGraphAttributeIdx.value])
-const scatterGraphRoundIdx = ref(0)
-const scatterGraphColorAttributeIdx = ref(null)
-const scatterGraphColorAttribute = computed(() => graphAttributesList.value[scatterGraphColorAttributeIdx.value])
+    var footerLeadAvgColumns = [
+      { attributeFunction: r => r.label + ' avg'}
+    ]
+    var footerAttrAvgColumns = attrColumnDefs.map(attrDef => ({
+      attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(r.dataToAggregate.map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
+    var footerLeadMaxColumns = [
+      { attributeFunction: r => r.label + ' max' }
+    ]
+    var footerAttrMaxColumns = attrColumnDefs.map(attrDef => ({
+      attributeFunction: r => attrDef.valueDisplayFormat(d3.max(r.dataToAggregate.map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
 
-const rollingAverageGraphAttributeIdx = ref(0)
-const rollingAverageRollCount = ref(5)
-const rollingAverageGraphAttribute = computed(() => gameGraphAttributesList.value[rollingAverageGraphAttributeIdx.value])
-
-const boxWhiskerGraphSpecification = computed(() => {
-  if (!filteredAllContestantStatDataByContestant.value || !displayContestantIds.value) return undefined
-  var sortedKeys = displayContestantIds.value.slice()
-  sortedKeys = d3.filter(sortedKeys, k => filteredAllContestantStatDataByContestant.value.get(k).some(d => boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value](d) !== undefined))
-  sortedKeys.sort((a,b) => d3.descending(
-    d3.mean(filteredAllContestantStatDataByContestant.value.get(a), boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value]),
-    d3.mean(filteredAllContestantStatDataByContestant.value.get(b), boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value])
-  ))
-  if (graphDisplayLimit.value) {
-    sortedKeys = sortedKeys.slice(0, graphDisplayLimit.value)
-  }
-  return {
-    dataByKey: filteredAllContestantStatDataByContestant.value,
-    orderedKeys: sortedKeys,
-    xLabel: ds => ds[0]['Contestant'],
-    yFunction: boxWhiskerGraphAttribute.value['generatingFunctions'][boxWhiskerGraphRoundIdx.value],
-    yLabel: d => d['Season'] + '-' + d['Game In Season'],
-    idColorFunction: color.value,
-    title: boxWhiskerGraphAttribute.value['label'],
-    additionalBoxes: [
+    var panels = [
       {
-        label: 'All Others',
-        yLabel: d => d['Contestant'] + ' ' + d['Season'] + '-' + d['Game In Season'],
-        filter: d => !sortedKeys.includes(d['Jometry Contestant Id']),
+        label: 'Game Average',
+        columns: leadColumns.concat(avgAttrColumns),
+        footerColumns: footerLeadAvgColumns.concat(footerAttrAvgColumns)
+      },
+      {
+        label: 'Game Max',
+        columns: leadColumns.concat(maxAttrColumns),
+        footerColumns: footerLeadMaxColumns.concat(footerAttrMaxColumns)
+      }
+    ]
+
+    return panels
+  })
+}
+
+const standardScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  [
+    gcsAttributes.buz,
+    gcsAttributes.buzc,
+    gcsAttributes.buz_score,
+    gcsAttributes.coryat_score,
+    gcsAttributes.dd_found,
+    gcsAttributes.dd_plus_buzc,
+    gcsAttributes.dd_plus_selection,
+    gcsAttributes.dd_score,
+    gcsAttributes.fj_start_score,
+    gcsAttributes.fj_score,
+    gcsAttributes.fj_final_score,  
+  ])
+
+const conversionScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  [
+    gcsAttributes.att,
+    gcsAttributes.att_clue,
+    gcsAttributes.buz,
+    gcsAttributes.buz_percent,
+    gcsAttributes.buzc,
+    gcsAttributes.acc_percent,
+    gcsAttributes.conversion_percent,
+    gcsAttributes.time,
+    gcsAttributes.solo 
+  ])
+
+const conversionValueScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  [
+    gcsAttributes.att_value,
+    gcsAttributes.buz_value,
+    gcsAttributes.buz_value_percent,
+    gcsAttributes.buz_score,
+    gcsAttributes.acc_value_percent,
+    gcsAttributes.conversion_value_percent,
+    gcsAttributes.time_value,
+    gcsAttributes.time_score,
+    gcsAttributes.solo_value,
+    gcsAttributes.solo_score
+  ])
+
+
+
+//Stacked bars
+const buildStackedBarSpecificationLambda = function(yAttrs, title) {
+  return (cids, cData, gcsData, displayGcsData, allGcsData, winGcsData) => {
+    const dataSet = cids.map(cid => ({
+      contestant_id: cid,
+      values: yAttrs.map(attr => d3.mean(gcsData.get(cid).map(attr.generatingFunction))),
+      displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(gcsData.get(cid).map(attr.generatingFunction)))),
+    }))
+    const aggregateDataSet = [
+      {
+        label: 'Selected contestant avg',
+        values: yAttrs.map(attr => d3.mean(displayGcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(displayGcsData.map(attr.generatingFunction)))),
+        color: 'black'
+      },
+      {
+        label: 'Winner avg',
+        values: yAttrs.map(attr => d3.mean(winGcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(winGcsData.map(attr.generatingFunction)))),
+        color: 'black'
+      },
+      {
+        label: 'All contestant avg',
+        values: yAttrs.map(attr => d3.mean(allGcsData.map(attr.generatingFunction))),
+        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(allGcsData.map(attr.generatingFunction)))),
         color: 'black'
       }
     ]
+    return {
+      data: dataSet,
+      aggregateData: aggregateDataSet,
+      xCoreLabelFunction: d => cData.get(d.contestant_id).name,
+      xGroupLabels: ['Contestants'],
+      yFunctionGroups: [d3.range(0, yAttrs.length).map(i => (d => d.displayValues[i]))],
+      colorFunction: d => color.value(d.contestant_id),
+      sortFunction: (a, b) => d3.descending(a.values[0], b.values[0]),
+      displayLimit: graphDisplayLimit.value,
+      yLabel: yAttrs.map(attr => attr.short_label).join(' -> '),
+      title: title
+    }
   }
-})
+}
 
-const scatterHistogramSpecification = computed(() => {
-  var scatterColorFunction = d => color.value(d['Jometry Contestant Id'])
-  if (scatterGraphColorAttributeIdx.value != null) {
-    const attrValues = d3.map(filteredAllContestantStatData.value, scatterGraphColorAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value])
-    const colorRange = d3.scaleLinear()
-      .domain([d3.min(attrValues), d3.median(attrValues), d3.max(attrValues)])
-      .range(["blue", "white", "red"])
-    scatterColorFunction = d => colorRange(scatterGraphColorAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value](d))
+const attemptBarChartSpecification = data.computedIfRefHasValues(
+  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId,
+    displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
+  buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], 'Attempts'))
+
+const attemptValueBarChartSpecification = data.computedIfRefHasValues(
+  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId,
+    displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
+  buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], 'Attempt Values'))
+
+//Charts
+const totalAttemptsChartSpecification = data.computedIfRefHasValues(
+  [gameIds, gameDataById, gameStatDataById, gameContestantStatDataByGameId],
+  (gIds, gData, gsData, gcsData) => {
+    const values = d3.zip(
+      movingAverageOfLast(5, gIds.map(gid => gsAttributes.att_total.generatingFunction(gsData.get(gid), gcsData.get(gid)))),
+      movingAverageOfLast(5, gIds.map(gid => gsAttributes.att_max.generatingFunction(gsData.get(gid), gcsData.get(gid)))),
+      movingAverageOfLast(5, gIds.map(gid => gsAttributes.att_med.generatingFunction(gsData.get(gid), gcsData.get(gid)))),
+      movingAverageOfLast(5, gIds.map(gid => gsAttributes.att_min.generatingFunction(gsData.get(gid), gcsData.get(gid))))
+    )
+    return {
+      data: d3.zip(gIds, values),
+      xFunction: d => dateFormat(gData.get(d[0]).airdate),
+      yFunctions: [d => d[1][0], d => d[1][1], d => d[1][2], d => d[1][3]],
+      colors: d3.schemeCategory10,
+      labels: [gsAttributes.att_total.label, gsAttributes.att_max.label, gsAttributes.att_med.label, gsAttributes.att_min.label],
+      xLabel: 'Airdate',
+      yLabel: 'Attempts',
+      title: 'Attempts 5 Game Rolling Average'
+    }
+  })
+
+const rollingAverageGraphAttributeIdx = ref(0)
+const rollingAverageRollCount = ref(5)
+const rollingGameStatAttributes = gsAttributes.all_attributes
+const rollingAverageGraphAttribute = computed(() => rollingGameStatAttributes[rollingAverageGraphAttributeIdx.value])
+const rollingChartSpecification = data.computedIfRefHasValues(
+  [gameIds, gameDataById, gameStatDataById, gameContestantStatDataByGameId, rollingAverageGraphAttribute, rollingAverageRollCount],
+  (gIds, gData, gsData, gcsData, attr, rollCount) => {
+    console.log(gcsData)
+    const numerators = movingAverageOfLast(rollCount, gIds.map(gid => attr.generatingFunction(gsData.get(gid), gcsData.get(gid))))
+    const denominators = new Array(numerators.length).fill(1.0)
+    const values = d3.zip(numerators, denominators).map(a => (1.0 * a[0] / a[1]))
+    return {
+      data: d3.zip(gIds, values),
+      xFunction: d => dateFormat(gData.get(d[0]).airdate),
+      yFunctions: [d => d[1]],
+      colors: d3.schemeCategory10,
+      labels: [attr.label],
+      xLabel: 'Airdate',
+      yLabel: attr.short_label,
+      title: attr.label + ' ' + rollCount + ' Game Rolling Average'
+    }
+  })
+
+const boxWhiskerGraphAttributeIdx = ref(0)
+const boxWhiskerGraphAttributes = gcsAttributes.all_attributes
+const boxWhiskerGraphAttribute = computed(() => boxWhiskerGraphAttributes[boxWhiskerGraphAttributeIdx.value])
+const boxWhiskerGraphRoundIdx = ref(0)
+const boxWhiskerGraphSpecification = data.computedIfRefHasValues(
+  [displayContestantIds, contestantDataById, gameDataById, gameContestantStatDataByContestantId, boxWhiskerGraphAttribute],
+  (cids, cData, gData, gcsData, attr) => {
+    cids = cids.filter(cid => gcsData.get(cid).some(gcs => attr.generatingFunction(gcs) !== undefined))
+    cids.sort((a,b) => d3.descending(
+      d3.mean(gcsData.get(a).map(attr.generatingFunction)),
+      d3.mean(gcsData.get(b).map(attr.generatingFunction))
+    ))
+    if (graphDisplayLimit.value) {
+      cids = cids.slice(0, graphDisplayLimit.value)
+    }
+    return {
+      dataByKey: gcsData,
+      orderedKeys: cids,
+      xLabel: k => cData.get(k).name,
+      yFunction: attr.generatingFunction,
+      yLabel: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+      idColorFunction: color.value,
+      title: attr.label,
+      additionalBoxes: [
+        {
+          label: 'All Others',
+          color: 'black',
+          yLabel: d => cData.get(d.contestant_id).name + ' ' + gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+          filter: d => !cids.includes(d.contestant_id)
+        }
+      ]
+    }
   }
-  return {
-    histogramData: filteredAllContestantStatData.value,
-    scatterData: d3.filter(filteredAllContestantStatData.value, d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
-    scatterLabelFunction: d => d['Contestant'] + ' ' + d['Season'] + '-' + d['Game In Season'],
-    scatterColorFunction: scatterColorFunction,
-    title: xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
-    xLabel: xScatterGraphAttribute.value['label'],
-    xFunction: xScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
-    xBins: xScatterGraphAttribute.value['bins'],
-    yLabel: yScatterGraphAttribute.value['label'],
-    yFunction: yScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value],
-    yBins: yScatterGraphAttribute.value['bins'],
-    scatterMode: 'markers'
+)
+
+const scatterGraphRoundIdx = ref(0)
+const scatterGraphAttributes = gcsAttributes.all_attributes
+const xScatterGraphAttributeIdx = ref(0)
+const yScatterGraphAttributeIdx = ref(2)
+const xScatterGraphAttribute = computed(() => scatterGraphAttributes[xScatterGraphAttributeIdx.value])
+const yScatterGraphAttribute = computed(() => scatterGraphAttributes[yScatterGraphAttributeIdx.value])
+const scatterGraphSpecification = data.computedIfRefHasValues(
+  [displayContestantIds, contestantDataById, gameDataById, gameContestantStatData, xScatterGraphAttribute, yScatterGraphAttribute, color],
+  (cids, cData, gData, gcsData, xAttr, yAttr, colorFunction) => {
+    return {
+      histogramData: gcsData,
+      scatterData: gcsData.filter(gcs => cids.includes(gcs.contestant_id)),
+      scatterLabelFunction: d => cData.get(d.contestant_id).name + ' ' + gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+      scatterColorFunction: d => colorFunction(d.contestant_id),
+      title: xAttr.label + ' vs ' + yAttr.label,
+      xLabel: xAttr.label,
+      xFunction: xAttr.generatingFunction,
+      xBins: xAttr.bins ? xAttr.bins : {},
+      yLabel: yAttr.label,
+      yFunction: yAttr.generatingFunction,
+      yBins: yAttr.bins ? yAttr.bins : {},
+      scatterMode: 'markers'
+    }
   }
-})
+)
 
-const scatterAverageHistogramSpecification = computed(() => ({
-  histogramData: Array.from(filteredAllContestantStatSummariesByContestant.value.values()),
-  scatterData: d3.filter(filteredAllContestantStatSummariesByContestant.value.values(), d => displayContestantIds.value.includes(d['Jometry Contestant Id'])),
-  scatterLabelFunction: d => d['Contestant'],
-  scatterColorFunction: d => color.value(d['Jometry Contestant Id']),
-  title: 'Average ' + xScatterGraphAttribute.value['label'] + ' vs ' + yScatterGraphAttribute.value['label'],
-  xLabel: xScatterGraphAttribute.value['label'],
-  xFunction: d => xScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value](d['mean']),
-  xBins: xScatterGraphAttribute.value['bins'],
-  yLabel: yScatterGraphAttribute.value['label'],
-  yFunction: d => yScatterGraphAttribute.value['generatingFunctions'][scatterGraphRoundIdx.value](d['mean']),
-  yBins: yScatterGraphAttribute.value['bins'],
-}))
 
-const attemptBarChartSpecification = computed(() => ({
-  data: filteredDisplayContestantStatSummaries.value,
-  xCoreLabelFunction: d => d['Contestant'],
-  xGroupLabels: ['Contestants'],
-  yFunctionGroups: [[d => formatNumber(d['mean']['BuzC'],1,false), d => formatNumber(d['mean']['Buz'],1,false), d => formatNumber(d['mean']['Att'],1,false)]],
-  colorFunction: d => color.value(d['Jometry Contestant Id']),
-  sortFunction: (a,b) => d3.descending(a['mean']['BuzC'], b['mean']['BuzC']),
-  displayLimit: graphDisplayLimit.value,
-  yLabel: 'BuzC -> Buz -> Att',
-  title: 'Attempts'
-}))
-
-const attemptValueBarChartSpecification = computed(() => ({
-  data: filteredDisplayContestantStatSummaries.value,
-  xCoreLabelFunction: d => d['Contestant'],
-  xGroupLabels: ['Contestants'],
-  yFunctionGroups: [[d => formatNumber(d['mean']['Buz$'],0), d => formatNumber(d['mean']['BuzValue'],0), d => formatNumber(d['mean']['AttValue'],0)]],
-  colorFunction: d => color.value(d['Jometry Contestant Id']),
-  sortFunction: (a,b) => d3.descending(a['mean']['Buz$'], b['mean']['Buz$']),
-  displayLimit: graphDisplayLimit.value,
-  yLabel: 'Buz$ -> BuzV -> AttV',
-  title: 'Attempt Values'
-}))
-
-const totalAttemptsLineChartSpecification = computed(() => {
-  if (filteredAllGameStatData.value === undefined) return
-  return {
-    data: d3.zip(filteredAllGameStatData.value,
-      movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['Att'])),
-      movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMax'])),
-      movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMed'])),
-      movingAverageOfLast(5, d3.map(filteredAllGameStatData.value, d => d['AttMin']))), //filteredAllGameStatData.value,//d3.zip(filteredAllGameStatData.value, movingAverageOfLast(10, d3.map(filteredAllGameStatData.value, d => d['Att']))),
-    xFunction: d => dateFormat(d[0]['date']),
-    yFunctions: [d => d[1], d => d[2], d => d[3], d => d[4]],//[d => d['Att'], d => d['Buz'], d => d['BuzC'], d => d['BuzI']], //[d => d[1]], //
-    labels: ['Att Total', 'Att Max', 'Att Median', 'Att Min'],// 'Buz', 'BuzC', 'BuzI'], //'BuzC'], //
-    xLabel: 'Airdate',
-    yLabel: 'Count',
-    title: '5 Game Rolling Average'
+const averageScatterGraphSpecification = data.computedIfRefHasValues(
+  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId, xScatterGraphAttribute, yScatterGraphAttribute, color],
+  (cids, cData, gcsData, xAttr, yAttr, colorFunction) => {
+    const gcsDataTransformed = transformValues(gcsData, gcsArray => [
+      d3.mean(gcsArray.map(xAttr.generatingFunction)),
+      d3.mean(gcsArray.map(yAttr.generatingFunction))
+    ])
+    const gcsDataForDisplay = [...gcsDataTransformed].map(([k, vs]) => [k].concat(vs))
+    return {
+      histogramData: gcsDataForDisplay,
+      scatterData: gcsDataForDisplay.filter(gcs => cids.includes(gcs[0])),
+      scatterLabelFunction: d => cData.get(d[0]).name,
+      scatterColorFunction: d => colorFunction(d[0]),
+      title: 'Average ' + xAttr.label + ' vs ' + yAttr.label,
+      xLabel: xAttr.label,
+      xFunction: d => d[1],
+      xBins: xAttr.bins ? xAttr.bins : {},
+      yLabel: yAttr.label,
+      yFunction: d => d[2],
+      yBins: yAttr.bins ? yAttr.bins : {}
+    }
   }
-})
+)
 
-const rollingLineChartSpecification = computed(() => {
-  if (filteredAllGameStatData.value === undefined) return
-  const numerators = movingAverageOfLast(rollingAverageRollCount.value, d3.map(filteredAllGameStatData.value, rollingAverageGraphAttribute.value.generatingFunction))
-  const denominators = rollingAverageGraphAttribute.value.denominatorGeneratingFunction ?
-    movingAverageOfLast(rollingAverageRollCount.value, d3.map(filteredAllGameStatData.value, rollingAverageGraphAttribute.value.denominatorGeneratingFunction)) :
-    new Array(numerators.length).fill(1.0)
-  const values = d3.map(d3.zip(numerators, denominators), a => 1.0 * a[0] / a[1])
-  return {
-    data: d3.zip(filteredAllGameStatData.value, values),
-    xFunction: d => dateFormat(d[0]['date']),
-    yFunctions: [d => d[1]],
-    labels: [rollingAverageGraphAttribute.value.label],
-    xLabel: 'Airdate',
-    yLabel: rollingAverageGraphAttribute.value.label,
-    title: rollingAverageRollCount.value + ' Game Rolling Average'
-  }
-})
+
+
 
 </script>
 
@@ -518,26 +500,41 @@ const rollingLineChartSpecification = computed(() => {
       </select>
       wins
     </div>
-    <div v-if="displayContestantIds && filteredDisplayContestantStatSummaries" class="section">
+    <div class="section">
       <h2>Leaders</h2>
+      <h4>Standard</h4>
       <CarouselTable 
-          :panels="leaderboardTablePanels"
-          :rowData="filteredDisplayContestantStatSummaries"
-          :footerRowData="filteredDisplayContestantSummary.concat(filteredWinningContestantSummary).concat(filteredAllContestantSummary)"
-          :defaultSortFunction="d => displayContestantIds.indexOf(d['Jometry Contestant Id'])"
-          />
+        :panels="standardScoringTablePanels"
+        :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
+        :defaultSortFunction="d => d['ranking']"
+        />
+      <h4>Conversion</h4>
+      <CarouselTable 
+        :panels="conversionScoringTablePanels"
+        :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
+        :defaultSortFunction="d => d['ranking']"
+        />
+      <h4>Conversion Value</h4>
+      <CarouselTable 
+        :panels="conversionValueScoringTablePanels"
+        :rowData="scoringTableRows"
+        :footerRowData="scoringTableFooterRows"
+        :defaultSortFunction="d => d['ranking']"
+        />
     </div>
     <div class="section">
       <h2>Attempts</h2>
-      <StackValueBarChart v-bind="attemptBarChartSpecification" />
+      <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
     <div class="section">
       <h2>Attempt Values</h2>
-      <StackValueBarChart v-bind="attemptValueBarChartSpecification" />
+      <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
     <div class="section">
       <h2>Total Attempts</h2>
-      <LineChart v-bind="totalAttemptsLineChartSpecification" />
+      <LineChart v-bind="totalAttemptsChartSpecification" />
     </div>
     <div class="section">
       <h2>Rolling Averages</h2>
@@ -547,59 +544,53 @@ const rollingLineChartSpecification = computed(() => {
         <option :value="20">20 games</option>
       </select>
       <select v-model="rollingAverageGraphAttributeIdx">
-        <option v-for="(gameGraphAttribute, idx) in gameGraphAttributesList" :value="idx">
-          {{ gameGraphAttribute.label }}
+        <option v-for="(attr, idx) in rollingGameStatAttributes" :value="idx">
+          {{ attr.short_label }}
         </option>
       </select>
-      <LineChart v-bind="rollingLineChartSpecification" />
+      <LineChart v-bind="rollingChartSpecification" />
     </div>
-    <div v-if="filteredAllContestantStatDataByContestant && displayContestantIds" class="section">
+    <div class="section">
       <h2>Selectable Box and Whisker Plots</h2>
       <select v-model="boxWhiskerGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.label }}
+        <option v-for="(attr, idx) in boxWhiskerGraphAttributes" :value="idx">
+          {{ attr.short_label }}
         </option>
       </select>
       <select v-model="boxWhiskerGraphRoundIdx">
         <option :value="0">Full Game</option>
-        <option :value="1">J! Round</option>
+        <!--<option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
-        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
+        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>-->
       </select><br/>
       <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
-    <div v-if="filteredAllContestantStatData && displayContestantIds" class="section">
+    <div class="section">
       <h2>Selectable Scatter Plots</h2>
       <select v-model="xScatterGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.label }}
+        <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
+          {{ graphAttribute.short_label }}
         </option>
       </select>
       <select v-model="yScatterGraphAttributeIdx">
-        <option :value="null">None</option>
-        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.label }}
+        <!--<option :value="null">None</option>-->
+        <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
+          {{ graphAttribute.short_label }}
         </option>
       </select>
       <select v-model="scatterGraphRoundIdx">
         <option :value="0">Full Game</option>
-        <option :value="1">J! Round</option>
+        <!--<option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
-        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
-      </select>
-      <select v-model="scatterGraphColorAttributeIdx">
-        <option :value="null">By Contestant</option>
-        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.label }}
-        </option>
+        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>-->
       </select>
       <div class="graph-subsection">
         <h3>All Games</h3>
-        <ScatterHistogram v-bind="scatterHistogramSpecification" />
+        <ScatterHistogram v-bind="scatterGraphSpecification"/>
       </div>
       <div class="graph-subsection">
         <h3>Average by Contestant</h3>
-        <ScatterHistogram v-bind="scatterAverageHistogramSpecification" />
+        <ScatterHistogram v-bind="averageScatterGraphSpecification"/>
       </div>
     </div>
   </div>

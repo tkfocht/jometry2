@@ -5,8 +5,8 @@ import * as d3 from 'd3'
 
 const showGames = ref(false)
 const props = defineProps({
-  gameStatData: Array,
-  dataSourceId: String
+  gameData: Array,
+  contestantData: Object
 })
 
 function toggleGames() {
@@ -23,10 +23,10 @@ function toggleGames() {
     <div v-if="showGames" class="toc-period-play-game-list">
         <table class="game-list">
             <tbody>
-                <tr v-for="game in gameStatData">
-                    <td><a :href="'game.html?data_source=' + dataSourceId + '&game_id=' + game.gameId">Season {{ game.season }} Game {{ game.gameInSeason }}</a></td>
-                    <td>{{ dateFormat(game.date) }}</td>
-                    <td>{{ d3.map(game.contestants, c => c.name).join(' vs ') }}</td>
+                <tr v-for="game in gameData">
+                    <td><a :href="'game.html?game_id=' + game.game_id">Season {{ game.season_id }} Game {{ game.game_in_season }}</a></td>
+                    <td>{{ dateFormat(game.airdate) }}</td>
+                    <td>{{ d3.map([game.podium_1_contestant_id, game.podium_2_contestant_id, game.podium_3_contestant_id], c => contestantData.get(c).name).join(' vs ') }}</td>
                 </tr>
             </tbody>
         </table>

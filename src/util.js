@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 
 var csvDateParse = d3.timeParse("%m/%d/%Y");
+var ymdDateParse = d3.timeParse("%Y-%m-%d");
 var urlDateParse = d3.timeParse("%m-%d-%Y");
 var dateFormat = d3.timeFormat("%m-%d-%Y");
 
@@ -32,6 +33,25 @@ var rollupData = function(rows, rollupFunction) {
 
 var averageData = function(rows) {
     return rollupData(rows, d3.mean)
+}
+
+var jschemaCsvDataAccessor = function(row) {
+    var r = {};
+    for (var k in row) {
+        if (k === 'airdate') {
+            r[k] = ymdDateParse(row[k]);
+        } else if (k === 'season_id' || k === 'toc_period') {
+            r[k] = row[k];
+        } else if (row[k] === '') {
+            r[k] = undefined;
+        } else {
+            r[k] = +row[k];
+            if (isNaN(r[k])) {
+                r[k] = row[k];
+            }
+        }
+    }
+    return r;
 }
 
 var csvDataAccessor = function(row) {
@@ -215,6 +235,16 @@ var roundAbbreviation = function(roundNumber) {
     return ''
 }
 
+var transformValues = function(map, lambda) {
+    return new Map([...map].map(([k, v]) => [k, lambda(v)]))
+}
+
+var filterValues = function(map, lambda) {
+    return new Map([...map].filter(([k, v]) => lambda(v)))
+}
+
+const threeColorSet = ['#0072B2','#E69F00','#009E73']
+
 export { averageData, rollupData, 
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat,
-    clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast };
+    clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues, filterValues, threeColorSet };
