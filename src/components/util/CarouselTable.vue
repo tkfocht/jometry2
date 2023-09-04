@@ -64,8 +64,8 @@ function displayPanelRight() {
                     <th v-for="attr in displayPanel.columns"
                         @click="setSortAttrFunction(attr.sortValueFunction ? attr.sortValueFunction : attr.attributeFunction)"
                         class="sort-control tooltip">
-                        <span :style="attr.description ? 'text-decoration-line: underline; text-decoration-style: dotted;' : ''">{{ attr.label }}</span>
-                        <span class="tooltiptext" v-if="attr.description">{{ attr.description }}</span>
+                        <span :class="attr.description ? 'tooltip-available' : ''">{{ attr.label }}</span>
+                        <span class="tooltiptext" v-if="attr.description" ref="tooltipRefs">{{ attr.description }}</span>
                     </th>
                 </tr>
             </thead>
@@ -80,11 +80,26 @@ function displayPanelRight() {
         </table>
     </div>
     <div class="table-footer">
-        Click on column headers to sort. Columns marked with dotted underlines can be hovered on for a description.
+        Click on column headers to sort.<span class="hover-instructions"> Columns marked with dotted underlines can be hovered on for a description.</span>
     </div>
 </template>
 
 <style scoped>
+
+span.hover-instructions {
+    visibility: hidden;
+}
+
+@media (hover: hover) {
+    span.tooltip-available {
+        text-decoration-line: underline;
+        text-decoration-style: dotted;
+    }
+
+    span.hover-instructions {
+        visibility: visible;
+    }
+}
 
 .table-display-control {
     display: flex;
@@ -130,7 +145,7 @@ th.tooltip span.tooltiptext {
   z-index: 1;
   left: 0%;
   top: 100%;
-  width: 20em;
+  width: 15em;
 }
 
 th.tooltip:hover span.tooltiptext {
