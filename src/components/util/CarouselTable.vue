@@ -57,26 +57,28 @@ function displayPanelRight() {
             {{ panel.label }}
         </div>
     </div>
-    <table v-if="displayPanel && props.rowData">
-        <thead>
-            <tr>
-                <th v-for="attr in displayPanel.columns"
-                    @click="setSortAttrFunction(attr.sortValueFunction ? attr.sortValueFunction : attr.attributeFunction)"
-                    class="sort-control tooltip">
-                    <span :style="attr.description ? 'text-decoration-line: underline; text-decoration-style: dotted;' : ''">{{ attr.label }}</span>
-                    <span class="tooltiptext" v-if="attr.description">{{ attr.description }}</span>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="row in sortedRowData">
-                <td v-for="attr in displayPanel.columns"><span v-html="attr.attributeFunction(row)"></span></td>
-            </tr>
-            <tr v-for="row in props.footerRowData">
-                <td v-for="attr in displayPanel.footerColumns"><span v-html="attr.attributeFunction(row)"></span></td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="table-container">
+        <table v-if="displayPanel && props.rowData">
+            <thead>
+                <tr>
+                    <th v-for="attr in displayPanel.columns"
+                        @click="setSortAttrFunction(attr.sortValueFunction ? attr.sortValueFunction : attr.attributeFunction)"
+                        class="sort-control tooltip">
+                        <span :style="attr.description ? 'text-decoration-line: underline; text-decoration-style: dotted;' : ''">{{ attr.label }}</span>
+                        <span class="tooltiptext" v-if="attr.description">{{ attr.description }}</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="row in sortedRowData">
+                    <td v-for="attr in displayPanel.columns"><span v-html="attr.attributeFunction(row)"></span></td>
+                </tr>
+                <tr v-for="row in props.footerRowData">
+                    <td v-for="attr in displayPanel.footerColumns"><span v-html="attr.attributeFunction(row)"></span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
     <div class="table-footer">
         Click on column headers to sort. Columns marked with dotted underlines can be hovered on for a description.
     </div>
@@ -106,6 +108,10 @@ function displayPanelRight() {
 .table-display-control-tab.current {
     background-color: #0072B2;
     color: white;
+}
+
+.table-container {
+    overflow-x: auto;
 }
 
 th.tooltip {
@@ -144,15 +150,15 @@ table th:hover {
     background-color: #999999;
 }
 
-table thead tr {
+table thead tr th {
     background: #CCCCCC;
 }
 
-table tbody tr:nth-child(even) {
+table tbody tr:nth-child(even) td {
     background: #EEEEEE;
 }
 
-table tbody tr:nth-child(odd) {
+table tbody tr:nth-child(odd) td {
     background: #FFFFFF;
 }
 
@@ -166,11 +172,9 @@ table td {
 
 table th:first-child, table td:first-child {
     text-align: left;
-    border-left: 1px solid #999999;
-}
-
-table th:last-child, table td:last-child {
-    border-right: 1px solid #999999;
+    position: sticky;
+    left: 0px;
+    z-index: 1;
 }
 
 table th span.control-container {
