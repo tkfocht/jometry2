@@ -33,9 +33,6 @@ const contestantData = data.computedIfRefHasValues(
   <div class="component-body">
     <div class="section" v-if="contestantData && gameContestantStatDataByContestantId">
       <h1>Contestant Index</h1>
-      <div v-for="[k, v] in duplicateContestants">
-        {{ k }}: {{ v }}
-      </div>
       <div v-for="c in contestantData">
         <a :href="'/contestant.html?data_source=standard&contestant_id=' + c.contestant_id">{{ c.name }}</a>&nbsp;
         <span v-if="gameContestantStatDataByContestantId.get(c.contestant_id)?.length > 0">
