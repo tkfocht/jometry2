@@ -5,7 +5,6 @@ import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor } from '@/u
 import { playClassificationName } from '@/configuration'
 import * as data from '@/data'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
-import { graphAttributes } from '@/graphAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
@@ -373,16 +372,16 @@ const finalJeopardyMatrixCells = computed(() => {
 
 
 //Charts
-const graphAttributesList = computed(() => graphAttributes)
+const graphAttributesList = gcsAttributes.all_attributes
 
 const histogramGraphAttributeIdx = ref(0)
-const histogramGraphAttribute = computed(() => graphAttributesList.value[histogramGraphAttributeIdx.value])
+const histogramGraphAttribute = computed(() => graphAttributesList[histogramGraphAttributeIdx.value])
 const histogramGraphRoundIdx = ref(0)
 
 const xScatterGraphAttributeIdx = ref(0)
-const xScatterGraphAttribute = computed(() => graphAttributesList.value[xScatterGraphAttributeIdx.value])
+const xScatterGraphAttribute = computed(() => graphAttributesList[xScatterGraphAttributeIdx.value])
 const yScatterGraphAttributeIdx = ref(2)
-const yScatterGraphAttribute = computed(() => graphAttributesList.value[yScatterGraphAttributeIdx.value])
+const yScatterGraphAttribute = computed(() => graphAttributesList[yScatterGraphAttributeIdx.value])
 const scatterGraphRoundIdx = ref(0)
 
 const scatterSpecification = computed(() => {
@@ -395,10 +394,8 @@ const scatterSpecification = computed(() => {
     histogramData = jschemaAllGameRoundContestantStatByRound.value.get(scatterGraphRoundIdx.value)
     scatterData = jschemaGameRoundContestantStatDataByRound.value[scatterGraphRoundIdx.value]
   }
-  if (xAttr['requiresBox'] || yAttr['requiresBox']) {
-    histogramData = d3.filter(histogramData, r => r.att !== undefined)
-    scatterData = d3.filter(scatterData, r => r.att !== undefined)
-  }
+  histogramData = d3.filter(histogramData, r => xAttr.generatingFunction(r) !== undefined && yAttr.generatingFunction(r) !== undefined)
+  scatterData = d3.filter(scatterData, r => xAttr.generatingFunction(r) !== undefined && yAttr.generatingFunction(r) !== undefined)
   return {
     histogramData: histogramData,
     scatterData: scatterData,
@@ -406,10 +403,10 @@ const scatterSpecification = computed(() => {
     scatterColorFunction: d => color.value(d.contestant_id),
     title: xAttr['label'] + ' vs ' + yAttr['label'],
     xLabel: xAttr['label'],
-    xFunction: xAttr['generatingFunctionFromSplit'],
+    xFunction: xAttr.generatingFunction,
     xBins: xAttr['bins'],
     yLabel: yAttr['label'],
-    yFunction: yAttr['generatingFunctionFromSplit'],
+    yFunction: yAttr.generatingFunction,
     yBins: yAttr['bins'],
   }
 })
@@ -423,10 +420,8 @@ const histogramSpecification = computed(() => {
     histogramData = jschemaAllGameRoundContestantStatByRound.value.get(histogramGraphRoundIdx.value)
     scatterData = jschemaGameRoundContestantStatDataByRound.value[histogramGraphRoundIdx.value]
   }
-  if (xAttr['requiresBox']) {
-    histogramData = d3.filter(histogramData, r => r.att !== undefined)
-    scatterData = d3.filter(scatterData, r => r.att !== undefined)
-  }
+  histogramData = d3.filter(histogramData, r => xAttr.generatingFunction(r) !== undefined)
+  scatterData = d3.filter(scatterData, r => xAttr.generatingFunction(r) !== undefined)
   return {
     histogramData: histogramData,
     scatterData: scatterData,
@@ -434,7 +429,7 @@ const histogramSpecification = computed(() => {
     scatterColorFunction: d => color.value(d.contestant_id),
     title: xAttr['label'],
     xLabel: xAttr['label'],
-    xFunction: xAttr['generatingFunctionFromSplit'],
+    xFunction: xAttr.generatingFunction,
     xBins: xAttr['bins']
   }
 })
@@ -595,7 +590,7 @@ const histogramSpecification = computed(() => {
       <h2>Selectable Histograms</h2>
       <select v-model="histogramGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.label }}
+          {{ graphAttribute.short_label }}
         </option>
       </select>
       <select v-model="histogramGraphRoundIdx">
@@ -610,12 +605,12 @@ const histogramSpecification = computed(() => {
       <h2>Selectable Scatter Plots</h2>
       <select v-model="xScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.label }}
+          {{ graphAttribute.short_label }}
         </option>
       </select>
       <select v-model="yScatterGraphAttributeIdx">
         <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.label }}
+          {{ graphAttribute.short_label }}
         </option>
       </select>
       <select v-model="scatterGraphRoundIdx">
