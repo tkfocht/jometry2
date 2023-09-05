@@ -583,16 +583,9 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
         </option>
       </select>
       <select v-model="yScatterGraphAttributeIdx">
-        <!--<option :value="null">None</option>-->
         <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
           {{ graphAttribute.short_label }}
         </option>
-      </select>
-      <select v-model="scatterGraphRoundIdx">
-        <option :value="0">Full Game</option>
-        <!--<option :value="1">J! Round</option>
-        <option :value="2">DJ! Round</option>
-        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>-->
       </select>
       <div class="graph-subsection">
         <h3>All Games</h3>
