@@ -11,7 +11,7 @@ import Header from './components/Header.vue'
       <div class="graph-description">
         <p>
           J!ometry is built and maintained by 2021 4-day champion and 2022 TOC semifinalist
-          <a href="https://j-ometry.com/contestant.html?toc_period_id=TOC2022R&contestant=287">John Focht</a>. The origin
+          <a href="https://j-ometry.com/contestant.html?contestant_id=287">John Focht</a>. The origin
           story is that I realized that the published box score PNGs would be difficult to work with in the long run,
           and so I wanted to make sure there was a spreadsheet or CSV or something that research could be done with, once
           there was enough data. Then it turned out that I wanted to do some of that research and talk about it. It became
@@ -32,23 +32,23 @@ import Header from './components/Header.vue'
         </p>
         <p>
           Jeopardy! actively encourages the use of their provided data and I do not own it or claim
-          rights to it. This is link is to allow others to easily use the harvested data.
+          rights to it. This link is to allow others to easily use the harvested data.
         </p>
       </div>
     </div>
     <div class="section">
       <h1>Issues</h1>
       <div class="graph-description">
-        Please report data issues to <a href="https://twitter.com/tkfocht">John Focht (@tkfocht)</a>. The site's
-        not really mature enough to take on other kinds of issues systematically yet. There is a work backlog
+        Please report data issues to me by commenting on <a href="https://jometry.substack.com">Substack</a> or by tagging <a href="https://bsky.app/profile/j-ometry.com">@j-ometry.com</a>
+        on Bluesky. The site's not really mature enough to take on other kinds of issues systematically yet. There is a work backlog
         but it's not ready for the public.
       </div>
     </div>
     <div class="section">
       <h1>Acknowledgements</h1>
       <div class="graph-description">
-        The backbone of data comes from Jeopardy!'s published <a href="https://www.jeopardy.com/jbuzz/news-events/jeopardy-daily-box-scores">box scores</a>.
-        Further data and metadata are pulled from <a href="https://j-archive.com">J! Archive</a>.
+        The site is only possible through the combination of data from Jeopardy!'s published <a href="https://www.jeopardy.com/track/jeopardata">box scores</a> with
+        data and metadata pulled from <a href="https://j-archive.com">J! Archive</a>.
       </div>
     </div>
   </div>
