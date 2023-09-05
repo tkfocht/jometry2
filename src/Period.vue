@@ -168,25 +168,8 @@ const scoringTableRows = data.computedIfRefHasValues([displayContestantIds, cont
   })
 })
 
-const scoringTableFooterRows = data.computedIfRefHasValues(
-  [displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData],
-  (displayGcsData, allGcsData, winGcsData) => [
-    {
-      label: 'Selected',
-      dataToAggregate: displayGcsData
-    },
-    {
-      label: 'All contestants',
-      dataToAggregate: allGcsData
-    },
-    {
-      label: 'Winners',
-      dataToAggregate: winGcsData
-    }
-  ])
-
-const generateScoringPanels = function(cDataById, gcsDataByCId, attrColumnDefs) {
-  return data.computedIfRefHasValues([cDataById, gcsDataByCId], (cData, gcsData) => {
+const generateScoringPanels = function(cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData, attrColumnDefs) {
+  return data.computedIfRefHasValues([cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData], (cData, gcsData, displayGcsData, allGcsData, winGcsData) => {
     var leadColumns = [{label: 'Contestant', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}]
     var avgAttrColumns = attrColumnDefs.map(attrDef => ({
       label: attrDef.short_label,
@@ -220,12 +203,40 @@ const generateScoringPanels = function(cDataById, gcsDataByCId, attrColumnDefs) 
       {
         label: 'Game Average',
         columns: leadColumns.concat(avgAttrColumns),
-        footerColumns: footerLeadAvgColumns.concat(footerAttrAvgColumns)
+        footerColumns: footerLeadAvgColumns.concat(footerAttrAvgColumns),
+        footerRows: [
+          {
+            label: 'Selected',
+            dataToAggregate: displayGcsData
+          },
+          {
+            label: 'All contestants',
+            dataToAggregate: allGcsData
+          },
+          {
+            label: 'Winners',
+            dataToAggregate: winGcsData
+          }
+        ]
       },
       {
         label: 'Game Max',
         columns: leadColumns.concat(maxAttrColumns),
-        footerColumns: footerLeadMaxColumns.concat(footerAttrMaxColumns)
+        footerColumns: footerLeadMaxColumns.concat(footerAttrMaxColumns),
+        footerRows: [
+          {
+            label: 'Selected',
+            dataToAggregate: displayGcsData
+          },
+          {
+            label: 'All contestants',
+            dataToAggregate: allGcsData
+          },
+          {
+            label: 'Winners',
+            dataToAggregate: winGcsData
+          }
+        ]
       }
     ]
 
@@ -234,6 +245,7 @@ const generateScoringPanels = function(cDataById, gcsDataByCId, attrColumnDefs) 
 }
 
 const standardScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData,
   [
     gcsAttributes.buz,
     gcsAttributes.buzc,
@@ -249,6 +261,7 @@ const standardScoringTablePanels = generateScoringPanels(contestantDataById, gam
   ])
 
 const conversionScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData,
   [
     gcsAttributes.att,
     gcsAttributes.att_clue,
@@ -262,6 +275,7 @@ const conversionScoringTablePanels = generateScoringPanels(contestantDataById, g
   ])
 
 const conversionValueScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
+  displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData,
   [
     gcsAttributes.att_value,
     gcsAttributes.buz_value,
@@ -505,21 +519,18 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
       <CarouselTable 
         :panels="standardScoringTablePanels"
         :rowData="scoringTableRows"
-        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d['ranking']"
         />
       <h4>Conversion</h4>
       <CarouselTable 
         :panels="conversionScoringTablePanels"
         :rowData="scoringTableRows"
-        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d['ranking']"
         />
       <h4>Conversion Value</h4>
       <CarouselTable 
         :panels="conversionValueScoringTablePanels"
         :rowData="scoringTableRows"
-        :footerRowData="scoringTableFooterRows"
         :defaultSortFunction="d => d['ranking']"
         />
     </div>
