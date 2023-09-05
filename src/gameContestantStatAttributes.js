@@ -1,10 +1,11 @@
 import { formatNumber } from '@/util'
+import * as _ from 'lodash'
 
 const att = {
     short_label: 'Att',
     label: 'Attempts',
     description: 'Attempts',
-    generatingFunction: gcs => gcs.att,
+    generatingFunction: gcs => _.isNil(gcs.att) ? null : Math.round(gcs.att),
     valueDisplayFormat: v => formatNumber(v, 0),
     averageDisplayFormat: v => formatNumber(v, 1, false),
     bins: { size: 1 }
@@ -54,7 +55,7 @@ const buz_percent = {
     short_label: 'Buz%',
     label: 'Buzz Percent',
     description: 'Buzzes as a percentage of attempts',
-    generatingFunction: gcs => 100.0 * gcs.buz_percent,
+    generatingFunction: gcs => _.isNil(gcs.buz_percent) ? null : 100.0 * gcs.buz_percent,
     valueDisplayFormat: v => formatNumber(v, 1, false),
     averageDisplayFormat: v => formatNumber(v, 1, false),
     bins: { size: 5 }
@@ -64,7 +65,7 @@ const buz_value_percent = {
     short_label: 'BuzV%',
     label: 'Buzz Value %',
     description: 'Buzz value as percentage of attempt value',
-    generatingFunction: gcs => 100.0 * gcs.buz_value_percent,
+    generatingFunction: gcs => _.isNil(gcs.buz_value_percent) ? null : 100.0 * gcs.buz_value_percent,
     valueDisplayFormat: v => formatNumber(v, 1, false),
     averageDisplayFormat: v => formatNumber(v, 1, false),
     bins: { size: 5 }
@@ -104,7 +105,7 @@ const acc_percent = {
     short_label: 'Acc%',
     label: 'Accuracy',
     description: 'Accuracy: Correct buzzes as a percentage of buzzes',
-    generatingFunction: gcs => 100.0 * gcs.acc_percent,
+    generatingFunction: gcs => _.isNil(gcs.acc_percent) ? null : 100.0 * gcs.acc_percent,
     valueDisplayFormat: v => formatNumber(v, 1, false),
     averageDisplayFormat: v => formatNumber(v, 1, false),
     bins: { size: 5 }
@@ -114,7 +115,7 @@ const acc_value_percent = {
     short_label: 'AccV%',
     label: 'Accuracy Value %',
     description: 'Accuracy Value: Buzz score as percentage of buzz value',
-    generatingFunction: gcs => 100.0 * gcs.acc_value_percent,
+    generatingFunction: gcs => _.isNil(gcs.acc_value_percent) ? null : 100.0 * gcs.acc_value_percent,
     valueDisplayFormat: v => formatNumber(v, 1, false),
     averageDisplayFormat: v => formatNumber(v, 1, false),
     bins: { size: 5 }
@@ -124,7 +125,7 @@ const conversion_percent = {
     short_label: 'Conv%',
     label: 'Conversion',
     description: 'Conversion: Correct buzzes as percentage of attempts',
-    generatingFunction: gcs => 100.0 * gcs.conversion_percent,
+    generatingFunction: gcs => _.isNil(gcs.conversion_percent) ? null : 100.0 * gcs.conversion_percent,
     valueDisplayFormat: v => formatNumber(v, 1, false),
     averageDisplayFormat: v => formatNumber(v, 1, false),
     bins: { size: 5 }
@@ -134,7 +135,7 @@ const conversion_value_percent = {
     short_label: 'ConvV%',
     label: 'Conversion Value %',
     description: 'Conversion Value: Buzz score as percentage of attempt value',
-    generatingFunction: gcs => 100.0 * gcs.conversion_value_percent,
+    generatingFunction: gcs => _.isNil(gcs.conversion_value_percent) ? null : 100.0 * gcs.conversion_value_percent,
     valueDisplayFormat: v => formatNumber(v, 1, false),
     averageDisplayFormat: v => formatNumber(v, 1, false),
     bins: { size: 5 }

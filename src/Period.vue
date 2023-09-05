@@ -436,7 +436,9 @@ const boxWhiskerGraphRoundIdx = ref(0)
 const boxWhiskerGraphSpecification = data.computedIfRefHasValues(
   [displayContestantIds, contestantDataById, gameDataById, gameContestantStatDataByContestantId, boxWhiskerGraphAttribute],
   (cids, cData, gData, gcsData, attr) => {
-    cids = cids.filter(cid => gcsData.get(cid).some(gcs => attr.generatingFunction(gcs) !== undefined))
+    cids = cids.filter(cid => {
+      return gcsData.get(cid).some(gcs => !_.isNil(attr.generatingFunction(gcs)))
+    })
     cids.sort((a,b) => d3.descending(
       d3.mean(gcsData.get(a).map(attr.generatingFunction)),
       d3.mean(gcsData.get(b).map(attr.generatingFunction))
