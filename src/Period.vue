@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { movingAverageOfLast, dateFormat, transformValues, threeColorSet } from '@/util'
 import { playClassificationName } from '@/configuration'
 import * as d3 from 'd3'
+import * as _ from 'lodash'
 import * as data from '@/data'
 import * as gsAttributes from '@/gameStatAttributes'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
@@ -101,7 +102,11 @@ const contestantTotalScores = data.computedIfRefHasValue(gameContestantStatData,
 })
 const contestantSort = data.computedIfRefHasValues(
   [contestantWins, contestantWinnings, contestantTotalScores],
-  (wins, winnings, totalScores) => ((a, b) => d3.descending(wins.get(a), wins.get(b)) || d3.descending(winnings.get(a), winnings.get(b)) || d3.descending(totalScores.get(a), totalScores.get(b))))
+  (wins, winnings, totalScores) => (
+    (a, b) =>
+      d3.descending(_.defaultTo(wins.get(a), 0), _.defaultTo(wins.get(b), 0)) ||
+      d3.descending(_.defaultTo(winnings.get(a), 0), _.defaultTo(winnings.get(b), 0)) ||
+      d3.descending(_.defaultTo(totalScores.get(a), 0), _.defaultTo(totalScores.get(b), 0))))
 const displayContestantIds = data.computedIfRefHasValues(
   [displayContestantIdParameters, contestantIds, contestantSort, contestantWins],
   (dcIdParameters, cids, cSort, wins) => {
@@ -169,8 +174,11 @@ const scoringTableRows = data.computedIfRefHasValues([displayContestantIds, cont
 })
 
 const generateScoringPanels = function(cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData, attrColumnDefs) {
-  return data.computedIfRefHasValues([cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData], (cData, gcsData, displayGcsData, allGcsData, winGcsData) => {
-    var leadColumns = [{label: 'Contestant', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}]
+  return data.computedIfRefHasValues([cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData, contestantWins],
+  (cData, gcsData, displayGcsData, allGcsData, winGcsData, cWins) => {
+    var leadColumns = [
+      {label: 'Contestant (Wins)', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name) + ' (' + _.defaultTo(cWins.get(d.contestant_id), 0) + ')'}
+    ]
     var supportsSum = attrDef => ![gcsAttributes.buz_percent, gcsAttributes.acc_percent, gcsAttributes.conversion_percent, gcsAttributes.buz_value_percent, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent].includes(attrDef)
     var avgAttrColumns = attrColumnDefs.map(attrDef => ({
       label: attrDef.short_label,
