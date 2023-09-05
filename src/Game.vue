@@ -1,7 +1,7 @@
 <script setup>
 import * as d3 from 'd3'
 import { ref, computed } from 'vue'
-import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor } from '@/util'
+import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor, roundAbbreviation } from '@/util'
 import { playClassificationName } from '@/configuration'
 import * as data from '@/data'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
@@ -144,9 +144,8 @@ const standardScoringTablePanels = data.computedIfRefHasValues(
         attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id))),
         description: attrDef.description
       }))
-      const round_label = rid == 1 ? 'J' : (rid == 2 ? 'DJ' : (rid == 3 ? 'TJ' : '?'))
       const panel = {
-        label: round_label + ' Round',
+        label: roundAbbreviation(rid) + ' Round',
         columns: leadColumns.concat(roundAttrColumns)
       }
       panels.push(panel)
@@ -192,9 +191,8 @@ const conversionScoringTablePanels = data.computedIfRefHasValues(
         attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id))),
         description: attrDef.description
       }))
-      const round_label = rid == 1 ? 'J' : (rid == 2 ? 'DJ' : (rid == 3 ? 'TJ' : '?'))
       const panel = {
-        label: round_label + ' Round',
+        label: roundAbbreviation(rid) + ' Round',
         columns: leadColumns.concat(roundAttrColumns)
       }
       panels.push(panel)
@@ -242,9 +240,8 @@ const conversionValueScoringTablePanels = data.computedIfRefHasValues(
         attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id))),
         description: attrDef.description
       }))
-      const round_label = rid == 1 ? 'J' : (rid == 2 ? 'DJ' : (rid == 3 ? 'TJ' : '?'))
       const panel = {
-        label: round_label + ' Round',
+        label: roundAbbreviation(rid) + ' Round',
         columns: leadColumns.concat(roundAttrColumns)
       }
       panels.push(panel)
@@ -559,7 +556,7 @@ const histogramSpecification = computed(() => {
       <StackValueBarChart 
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
-        :xGroupLabels="['J','DJ'].concat(gameRounds >= 3 ? ['TJ'] : [])"
+        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
             cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buzc,
@@ -575,7 +572,7 @@ const histogramSpecification = computed(() => {
       <StackValueBarChart 
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
-        :xGroupLabels="['J','DJ'].concat(gameRounds >= 3 ? ['TJ'] : [])"
+        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
             cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz_score,
