@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import * as _ from 'lodash'
 import { ref, computed } from 'vue'
 import { jschemaCsvDataAccessor } from '@/util'
 
@@ -12,11 +13,11 @@ function loadDataReference(reference, csvUrl) {
 }
 
 function computedIfRefHasValue(reference, lambdaFunction) {
-    return computed(() => reference.value ? lambdaFunction(reference.value) : null)
+    return computed(() => _.isUndefined(reference.value) || _.isNull(reference.value) ? null : lambdaFunction(reference.value))
 }
 
 function computedIfRefHasValues(references, lambdaFunction) {
-    return computed(() => references.every(r => r.value) ? lambdaFunction(...(references.map(r => r.value))) : null)
+    return computed(() => references.some(r => _.isUndefined(r.value) || _.isNull(r.value)) ? null : lambdaFunction(...(references.map(r => r.value))))
 }
 
 

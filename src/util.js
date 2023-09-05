@@ -226,11 +226,11 @@ var roundName = function(roundNumber) {
 
 var roundAbbreviation = function(roundNumber) {
     if (roundNumber === 1) {
-        return 'J'
+        return 'J!'
     } else if (roundNumber === 2) {
-        return 'DJ'
+        return 'DJ!'
     } else if (roundNumber === 3) {
-        return 'TJ'
+        return 'TJ!'
     }
     return ''
 }

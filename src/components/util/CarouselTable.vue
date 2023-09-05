@@ -1,11 +1,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import * as d3 from 'd3'
+import * as data from '@/data'
 
 const props = defineProps({
   panels: Array,
   rowData: Array,
-  footerRowData: Array,
   defaultSortFunction: Function
 })
 
@@ -17,10 +17,10 @@ const displayPanel = computed(() => {
 
 const sortAttrFunction = ref(props.defaultSortFunction)
 const sortDirectionDescending = ref(false)
-const sortedRowData = computed(() => {
+const sortedRowData = data.computedIfRefHasValue(sortAttrFunction, sortFn => {
     var sortedData = props.rowData.slice()
     var sortDirection = sortDirectionDescending.value ? d3.descending : d3.ascending
-    sortedData.sort((a,b) => sortDirection(sortAttrFunction.value(a), sortAttrFunction.value(b)))
+    sortedData.sort((a,b) => sortDirection(sortFn(a), sortFn(b)))
     return sortedData
 })
 
@@ -73,8 +73,8 @@ function displayPanelRight() {
                 <tr v-for="row in sortedRowData">
                     <td v-for="attr in displayPanel.columns"><span v-html="attr.attributeFunction(row)"></span></td>
                 </tr>
-                <tr v-for="row in props.footerRowData">
-                    <td v-for="attr in displayPanel.footerColumns"><span v-html="attr.attributeFunction(row)"></span></td>
+                <tr v-for="footerRow in displayPanel.footerRows">
+                    <td v-for="footerAttr in displayPanel.footerColumns"><span v-html="footerAttr.attributeFunction(footerRow)"></span></td>
                 </tr>
             </tbody>
         </table>
