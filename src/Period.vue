@@ -600,12 +600,12 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
           {{ attr.short_label }}
         </option>
       </select>
-      <select v-model="boxWhiskerGraphRoundIdx">
+      <!--<select v-model="boxWhiskerGraphRoundIdx">
         <option :value="0">Full Game</option>
-        <!--<option :value="1">J! Round</option>
+        <option :value="1">J! Round</option>
         <option :value="2">DJ! Round</option>
-        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>-->
-      </select><br/>
+        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
+      </select>--><br/>
       <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
     <div class="section">
