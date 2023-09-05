@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import * as _ from 'lodash'
 
 var csvDateParse = d3.timeParse("%m/%d/%Y");
 var ymdDateParse = d3.timeParse("%Y-%m-%d");
@@ -121,7 +122,7 @@ var csvDataAccessor = function(row) {
 };
 
 var formatNumber = function(n, p, dropZeros = true, sign = false) {
-    if (n === undefined) {
+    if (_.isNil(n)) {
         return undefined;
     }
     if (isNaN(n)) {

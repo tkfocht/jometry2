@@ -273,7 +273,7 @@ const fj_final_score = {
 
 const all_attributes = [
     att, att_clue, buz, buz_percent, buzc, acc_percent, conversion_percent, time, solo,
-    att_value, buz_score, coryat_score, buz_value_percent, acc_value_percent, conversion_value_percent,
+    att_value, buz_value, buz_score, coryat_score, buz_value_percent, acc_value_percent, conversion_value_percent,
     time_value, time_score, solo_value, solo_score,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score, fj_start_score, fj_score, fj_final_score]
 
