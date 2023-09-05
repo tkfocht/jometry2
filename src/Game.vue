@@ -767,10 +767,6 @@ div#view-boards > div {
     border-bottom: 1px solid #999999;
 }
 
-.game-stat-listing table th:hover {
-    background-color: #999999;
-}
-
 .game-stat-listing table thead tr th {
     background: #CCCCCC;
 }
