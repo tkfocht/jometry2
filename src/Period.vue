@@ -171,10 +171,17 @@ const scoringTableRows = data.computedIfRefHasValues([displayContestantIds, cont
 const generateScoringPanels = function(cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData, attrColumnDefs) {
   return data.computedIfRefHasValues([cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData], (cData, gcsData, displayGcsData, allGcsData, winGcsData) => {
     var leadColumns = [{label: 'Contestant', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}]
+    var supportsSum = attrDef => ![gcsAttributes.buz_percent, gcsAttributes.acc_percent, gcsAttributes.conversion_percent, gcsAttributes.buz_value_percent, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent].includes(attrDef)
     var avgAttrColumns = attrColumnDefs.map(attrDef => ({
       label: attrDef.short_label,
       sortValueFunction: r => d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
       attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
+    var sumAttrColumns = attrColumnDefs.filter(supportsSum).map(attrDef => ({
+      label: attrDef.short_label,
+      sortValueFunction: r => d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
+      attributeFunction: r => attrDef.valueDisplayFormat(d3.sum(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
       description: attrDef.description
     }))
     var maxAttrColumns = attrColumnDefs.map(attrDef => ({
@@ -191,6 +198,13 @@ const generateScoringPanels = function(cDataById, gcsDataByCId, displayGcsData, 
       attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(r.dataToAggregate.map(attrDef.generatingFunction))),
       description: attrDef.description
     }))
+    var footerLeadSumColumns = [
+      { attributeFunction: r => r.label + ' total'}
+    ]
+    var footerAttrSumColumns = attrColumnDefs.filter(supportsSum).map(attrDef => ({
+      attributeFunction: r => attrDef.averageDisplayFormat(d3.sum(r.dataToAggregate.map(attrDef.generatingFunction))),
+      description: attrDef.description
+    }))
     var footerLeadMaxColumns = [
       { attributeFunction: r => r.label + ' max' }
     ]
@@ -204,6 +218,25 @@ const generateScoringPanels = function(cDataById, gcsDataByCId, displayGcsData, 
         label: 'Game Average',
         columns: leadColumns.concat(avgAttrColumns),
         footerColumns: footerLeadAvgColumns.concat(footerAttrAvgColumns),
+        footerRows: [
+          {
+            label: 'Selected',
+            dataToAggregate: displayGcsData
+          },
+          {
+            label: 'All contestants',
+            dataToAggregate: allGcsData
+          },
+          {
+            label: 'Winners',
+            dataToAggregate: winGcsData
+          }
+        ]
+      },
+      {
+        label: 'Game Total',
+        columns: leadColumns.concat(sumAttrColumns),
+        footerColumns: footerLeadSumColumns.concat(footerAttrSumColumns),
         footerRows: [
           {
             label: 'Selected',
