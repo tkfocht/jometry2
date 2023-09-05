@@ -27,6 +27,12 @@ import Header from './components/Header.vue'
         </div>
       </div>
       <div class="entry">
+        <h2>AttCl: Attempt clues</h2>
+        <div class="definition">
+          Estimate of the number of clues attempted.
+        </div>
+      </div>
+      <div class="entry">
         <h2>AttValue (AttV): Attempt Value</h2>
         <div class="definition">
           Estimate of the value of clues attempted on.
@@ -73,7 +79,7 @@ import Header from './components/Header.vue'
           </div>
       </div>
       <div class="entry">
-          <h2>DD+: Daily Doubles Over Expectation</h2>
+          <h2>DD+C: Daily Doubles Over Expectation (Based on Correct Responses)</h2>
           <div class="definition">
               An estimate of how many more Daily Doubles a player found versus an expectation that each correct
               response in a round is equally likely to lead to finding a Daily Double. This statistic is zero-sum:
@@ -81,17 +87,33 @@ import Header from './components/Header.vue'
           </div>
       </div>
       <div class="entry">
+          <h2>DD+S: Daily Doubles Over Expectation (Based on Selections)</h2>
+          <div class="definition">
+              An estimate of how many more Daily Doubles a player found versus an expectation that each clue selection
+              in a round is equally likely to lead to finding a Daily Double. This statistic is zero-sum:
+              all positive DD+ must be balanced by negative DD+ for another contestant.
+          </div>
+      </div>
+      <div class="entry">
         <h2>Solo: Buzzes that are uncontested</h2>
         <div class="definition">
-          An estimate of how many correct responses did not block an opponent's attempt at a correct response.
-          That is, it is an estimate of how many clues the contestant alone was correct on.
+          An estimate of how many correct responses that did not block an opponent's attempt at a correct response.
+          That is, it is an estimate of how many opportunities the contestant alone was buzzing on.
         </div>
       </div>
       <div class="entry">
-        <h2>SoloValue (SoloV): Value of buzzes that are uncontested</h2>
+        <h2>Solo Score (Solo$): Score of buzzes that are uncontested</h2>
+        <div class="definition">
+          An estimate of the scoring on responses that did not block an opponent's attempt at a correct response.
+          That is, it is an estimate of the scoring on clues the contestant alone was buzzing on.
+        </div>
+      </div>
+      <div class="entry">
+        <h2>Solo Value (SoloV): Value of buzzes that are uncontested</h2>
         <div class="definition">
           An estimate of the clue value of correct responses did not block an opponent's attempt at a correct response.
-          That is, it is an estimate of the value of clues the contestant alone was correct on.
+          That is, it is an estimate of the value of clues in which there was a buzz opportunity where the contestant
+          was alone buzzing in.
         </div>
       </div>
       <div class="entry">
@@ -104,7 +126,16 @@ import Header from './components/Header.vue'
           </div>
       </div>
       <div class="entry">
-          <h2>TimingValue (TimeV): Value of buzzes created through buzzer timing</h2>
+          <h2>Timing Score (Time$): Score created through buzzer timing</h2>
+          <div class="definition">
+              An estimate of how score a player gains through good timing, or
+              gains through opponents' lack of timing. This statistic is a little weird sometimes, as bad timing
+              results in no score. A high positive score indicates a player with good timing and accuracy. A negative
+              score indicates a player with good timing and bad accuracy.
+          </div>
+      </div>
+      <div class="entry">
+          <h2>Timing Value (TimeV): Value of buzzes created through buzzer timing</h2>
           <div class="definition">
               An estimate of the value of additional response attempts a player gains through good timing, or
               gains through opponents' lack of timing. This statistic is almost zero-sum: most positive Timing
