@@ -498,7 +498,7 @@ const histogramSpecification = computed(() => {
       </div>
     </div>
     <h2>Daily Doubles</h2>
-    <div class="section daily-doubles-listing" v-if="jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
+    <div class="section game-stat-listing" v-if="jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
       <table>
         <thead>
           <tr>
@@ -530,6 +530,24 @@ const histogramSpecification = computed(() => {
     </div>
     <h2>Final Jeopardy! Win Matrix</h2>
     <div id="fj-matrix-container" class="section">
+      <div class="game-stat-listing">
+        <table>
+          <thead>
+            <tr>
+              <th>Contestant</th>
+              <th>If Incorrect</th>
+              <th>If Correct</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="gcsData in gameContestantStatData">
+              <td><span :style="'color: ' + color(gcsData.contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(gcsData.contestant_id).name }}</td>
+              <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) - Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
+              <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) + Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <table id="fj-matrix">
         <tr>
           <td class="empty"></td>
@@ -732,45 +750,44 @@ div#view-boards > div {
     margin-right: 20px;
 }
 
-.daily-doubles-listing {
+.game-stat-listing {
   display: flex;
   flex-flow: row wrap;
-  justify-content: space-around;
-  
+  justify-content: space-around;  
 }
 
-.daily-doubles-listing table {
+.game-stat-listing table {
     border-collapse: collapse;
     font-size: 13px;
 }
 
-.daily-doubles-listing table th, .daily-doubles-listing table td {
+.game-stat-listing table th, .game-stat-listing table td {
     padding: 2px 5px;
     border-top: 1px solid #999999;
     border-bottom: 1px solid #999999;
 }
 
-.daily-doubles-listing table th:hover {
+.game-stat-listing table th:hover {
     background-color: #999999;
 }
 
-.daily-doubles-listing table thead tr th {
+.game-stat-listing table thead tr th {
     background: #CCCCCC;
 }
 
-.daily-doubles-listing table tbody tr:nth-child(even) td {
+.game-stat-listing table tbody tr:nth-child(even) td {
     background: #EEEEEE;
 }
 
-.daily-doubles-listing table tbody tr:nth-child(odd) td {
+.game-stat-listing table tbody tr:nth-child(odd) td {
     background: #FFFFFF;
 }
 
-.daily-doubles-listing table tr:hover td {
+.game-stat-listing table tr:hover td {
     background-color: #CCCCCC;
 }
 
-.daily-doubles-listing table td {
+.game-stat-listing table td {
     text-align: center;
 }
 </style>
