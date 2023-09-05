@@ -241,9 +241,9 @@ const dd_score = {
 }
 
 const fj_start_score = {
-    short_label: 'FJStart$',
-    label: 'FJ Start Score',
-    description: 'Score at start of Final Jeopardy',
+    short_label: 'Clue$',
+    label: 'Clue Score',
+    description: 'Score from clues: Buz$ + DD$',
     generatingFunction: gcs => gcs.score - gcs.fj_score,
     valueDisplayFormat: v => formatNumber(v, 0, false),
     averageDisplayFormat: v => formatNumber(v, 0, false),
@@ -261,9 +261,9 @@ const fj_score = {
 }
 
 const fj_final_score = {
-    short_label: 'FJFinal$',
-    label: 'FJ Final Score',
-    description: 'Score at end of Final Jeopardy',
+    short_label: 'Total$',
+    label: 'Total Score',
+    description: 'Total Score',
     generatingFunction: gcs => gcs.score,
     valueDisplayFormat: v => formatNumber(v, 0, false),
     averageDisplayFormat: v => formatNumber(v, 0, false),
