@@ -68,6 +68,8 @@ async function fetchJschemaClueContestantStatData() {
   jschemaClueContestantStatData.value = res
 }
 fetchJschemaClueContestantStatData()
+const jschemaClueContestantStatDataByRoundClueAndContestantId = data.computedIfRefHasValue(jschemaClueContestantStatData,
+  ccsData => d3.index(ccsData, ccs => ccs.round_of_game, ccs => ccs.clue_of_round, ccs => ccs.contestant_id))
 
 const jschemaClueData = ref(null)
 async function fetchJschemaClueData() {
@@ -104,6 +106,12 @@ function contestantLink (contestant_id, contestant_name) {
     '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
     contestant_id + 
     '">' + contestant_name + '</a>'
+}
+
+function contestantLegend (contestant_id, contestant_name) {
+  return '<span style="color: ' + 
+    color.value(contestant_id) + 
+    '">&#9632;</span>&nbsp;' + contestant_name
 }
 
 const standardScoringTablePanels = data.computedIfRefHasValues(
@@ -489,6 +497,37 @@ const histogramSpecification = computed(() => {
         </table>
       </div>
     </div>
+    <h2>Daily Doubles</h2>
+    <div class="section daily-doubles-listing" v-if="jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
+      <table>
+        <thead>
+          <tr>
+            <th>Round</th>
+            <th>Clue</th>
+            <th>Value</th>
+            <th><span :style="'color: ' + color(gameContestantIds[0])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[0]).name }}</th>
+            <th><span :style="'color: ' + color(gameContestantIds[1])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[1]).name }}</th>
+            <th><span :style="'color: ' + color(gameContestantIds[2])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[2]).name }}</th>
+            <th>Selector</th>
+            <th>DD$</th>
+            <th>New Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="clueData in jschemaClueData.filter(c => c.is_daily_double)">
+            <td>{{ clueData.round_of_game }}</td>
+            <td>{{ clueData.clue_of_round }}</td>
+            <td>{{ clueData.value }}</td>
+            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[0]).prescore }}</td>
+            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[1]).prescore }}</td>
+            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[2]).prescore }}</td>
+            <td><span :style="'color: ' + color(clueData.selecting_contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(clueData.selecting_contestant_id).name }}</td>
+            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(clueData.selecting_contestant_id).dd_score }}</td>
+            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(clueData.selecting_contestant_id).postscore }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <h2>Final Jeopardy! Win Matrix</h2>
     <div id="fj-matrix-container" class="section">
       <table id="fj-matrix">
@@ -693,4 +732,45 @@ div#view-boards > div {
     margin-right: 20px;
 }
 
+.daily-doubles-listing {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  
+}
+
+.daily-doubles-listing table {
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.daily-doubles-listing table th, .daily-doubles-listing table td {
+    padding: 2px 5px;
+    border-top: 1px solid #999999;
+    border-bottom: 1px solid #999999;
+}
+
+.daily-doubles-listing table th:hover {
+    background-color: #999999;
+}
+
+.daily-doubles-listing table thead tr th {
+    background: #CCCCCC;
+}
+
+.daily-doubles-listing table tbody tr:nth-child(even) td {
+    background: #EEEEEE;
+}
+
+.daily-doubles-listing table tbody tr:nth-child(odd) td {
+    background: #FFFFFF;
+}
+
+.daily-doubles-listing table tr:hover td {
+    background-color: #CCCCCC;
+}
+
+.daily-doubles-listing table td {
+    text-align: center;
+}
 </style>
