@@ -22,6 +22,20 @@ const contestantData = data.contestantDataById
 <template>
   <Header />
   <div v-if="gameData && contestantData">
+    <div v-for="tocPeriod in ['2023', '2022', '2021', '2019']" class="toc-period">
+      <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
+        <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod">Summary</a>
+        <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
+        <a :href="'/period.html?data_source=standard&toc_period=2021,2022&play_classification=regular&contestants=267,164,542,492,318,186,458,348,437,144,473,371,290,638,284,621,588,306,570,461,374,359,330,212,602,632,650'">SCC Players Summary</a>
+      </div>
+      <div v-for="season in gameData.get(tocPeriod).keys()">
+        <div v-for="playClassification in gameData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
+          <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
+          <ToggleableGameListing :contestantData="contestantData" :gameData="gameData.get(tocPeriod).get(season).get(playClassification)"/>
+        </div>
+      </div>
+    </div>
     <div v-for="tocPeriod in ['M2023']" class="toc-period">
       <div class="toc-period-header">{{ tocPeriod.substring(1) }} Masters
       </div>
@@ -33,7 +47,7 @@ const contestantData = data.contestantDataById
         </div>
       </div>
     </div>
-    <div v-for="tocPeriod in ['2023', '2022', '2021', '2019']" class="toc-period">
+    <div v-for="tocPeriod in ['2022', '2021', '2019']" class="toc-period">
       <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
         <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod">Summary</a>
         <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
