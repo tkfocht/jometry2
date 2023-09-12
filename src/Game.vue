@@ -25,12 +25,13 @@ data.loadGameRoundContestantStatData()
 const contestantDataById = data.contestantDataById
 const gameData = data.computedIfRefHasValue(data.gameDataById, gData => gData.get(gameId))
 const gamePlayClassification = data.computedIfRefHasValue(gameData, gData => gData.play_classification)
+const gameTocPeriod = data.computedIfRefHasValue(gameData, gData => gData.toc_period)
 const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_classification == 'celebrity' ? 3 : 2)
 const gameContestantIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 
 const allGameContestantStatData = data.computedIfRefHasValues(
-  [data.gameContestantStatData, gamePlayClassification, data.gameDataById],
-  (gcsData, playClass, gData) => gcsData.filter(gcs => gData.get(gcs.game_id).play_classification === playClass))
+  [data.gameContestantStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
+  (gcsData, playClass, tocPeriod, gData) => gcsData.filter(gcs => gData.get(gcs.game_id).play_classification === playClass && gData.get(gcs.game_id).toc_period === tocPeriod))
 const gameContestantStatDataByContestantId = data.computedIfRefHasValue(data.gameContestantStatDataByGameIdContestantId, gcsData => gcsData.get(gameId))
 const gameContestantStatData = computed(() => {
   if (data.gameContestantStatDataByGameIdContestantId.value && gameContestantIds.value) {
