@@ -125,6 +125,7 @@ const standardScoringTablePanels = data.computedIfRefHasValues(
       gcsAttributes.buz,
       gcsAttributes.buzc,
       gcsAttributes.buz_score,
+      gcsAttributes.coryat_score,
       gcsAttributes.dd_found,
       gcsAttributes.dd_plus_buzc,
       gcsAttributes.dd_plus_selection,
