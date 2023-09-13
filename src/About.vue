@@ -74,6 +74,14 @@ import Header from './components/Header.vue'
   margin: 0 0 0 1em;
 }
 
+p {
+  margin-bottom: 1em;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
 
 
 </style>
