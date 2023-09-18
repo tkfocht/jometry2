@@ -13,6 +13,7 @@ import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
 import LineChart from './components/util/LineChart.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
+import SortableTable from './components/util/SortableTable.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
@@ -163,6 +164,61 @@ function contestantLink (contestant_id, contestant_name) {
 }
 
 //Tables
+const baseScoringTableRows = data.computedIfRefHasValues([displayContestantIds, contestantSort], (cIds, cSort) => {
+  cIds.sort(cSort)
+  return cIds.map((contestant_id, idx) => {
+    return {
+      'contestant_id': contestant_id,
+      'ranking': idx + 1
+    }
+  })
+})
+
+const baseScoringTableAggregation = ref(d3.mean)
+const baseScoringTableDisplayFunction = ref(attrSpec => attrSpec.averageDisplayFormat)
+
+const constructScoringTableSpecification = function(attrSpecs) {
+  return data.computedIfRefHasValues(
+    [baseScoringTableRows, contestantDataById, gameContestantStatDataByContestantId, baseScoringTableAggregation, baseScoringTableDisplayFunction],
+    (baseRows, cData, gcsData, aggrFn, attrDisplayFn) => {
+      var columns = [
+        {
+          label: 'Contestant'
+        }
+      ]
+      columns = columns.concat(attrSpecs.map(attr => ({
+        label: attr.short_label
+      })))
+
+      var rows = baseRows.map(baseRow => {
+        const cid = baseRow.contestant_id
+        var row = [
+          {
+            value: contestantLink(cid, cData.get(cid).name),
+            sortValue: baseRow.ranking
+          }
+        ]
+        row = row.concat(attrSpecs.map(attr => ({
+          value: attrDisplayFn(attr)(aggrFn(gcsData.get(cid).map(attr.generatingFunction))),
+          sortValue: aggrFn(gcsData.get(cid).map(attr.generatingFunction))
+        })))
+        return row
+      })
+
+      return {
+        columns: columns,
+        rows: rows,
+        footerRows: []
+      }
+    }
+  )
+}
+
+const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc]
+const standardScoringTableSpec = constructScoringTableSpecification(standardScoringAttributes)
+
+
+
 const scoringTableRows = data.computedIfRefHasValues([displayContestantIds, contestantSort], (cIds, cSort) => {
   cIds.sort(cSort)
   return cIds.map((contestant_id, idx) => {
@@ -555,6 +611,10 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
         <option :value="null">No limit</option>
       </select>
       wins
+    </div>
+    <div class="section">
+      <h2>Leaders</h2>
+      <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
     </div>
     <div class="section">
       <h2>Leaders</h2>
