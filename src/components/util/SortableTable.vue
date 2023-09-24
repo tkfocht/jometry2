@@ -36,7 +36,7 @@ function setSortColumn(newSortColumn) {
             <thead>
                 <tr>
                     <th v-for="column, colIdx in columns">
-                        <div class="column-header-container" @click="setSortColumn(colIdx)">
+                        <div class="column-header-container tooltip" @click="setSortColumn(colIdx)">
                             <div class="column-label">
                                 {{ column.label }}
                             </div>
@@ -44,6 +44,7 @@ function setSortColumn(newSortColumn) {
                                 <div :class="'sort-ascend ' + (sortColumn === colIdx && !sortDirectionDescending ? 'active' : 'inactive')">&#9650;</div>
                                 <div :class="'sort-descend ' + (sortColumn === colIdx && sortDirectionDescending ? 'active' : 'inactive')">&#9660;</div>
                             </div>
+                            <span class="tooltiptext" v-if="column.description" ref="tooltipRefs">{{ column.description }}</span>
                         </div>
                     </th>
                 </tr>
@@ -71,7 +72,7 @@ function setSortColumn(newSortColumn) {
 
 .table-container {
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
 }
 
 th .column-header-container {
@@ -169,6 +170,29 @@ table th {
 
 table th.sort-control {
     cursor: pointer;
+}
+
+.column-header-container.tooltip {
+    position: relative;
+    overflow-y: visible;
+}
+
+.column-header-container.tooltip span.tooltiptext {
+  visibility: hidden;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 6px 6px;
+  border-radius: 6px; 
+  position: absolute;
+  z-index: 3;
+  right: 15%;
+  top: 100%;
+  width: 15em;
+}
+
+.column-header-container:hover span.tooltiptext {
+  visibility: visible;
 }
 
 </style>

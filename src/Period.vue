@@ -215,7 +215,8 @@ const constructScoringTableSpecification = function(attrSpecs) {
         }
       ]
       columns = columns.concat(attrSpecs.map(attr => ({
-        label: attr.short_label
+        label: attr.short_label,
+        description: attr.description
       })))
 
       var rows = baseRows.map(baseRow => {
