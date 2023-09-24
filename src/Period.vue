@@ -12,6 +12,7 @@ import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import CarouselTable from './components/util/CarouselTable.vue'
 import LineChart from './components/util/LineChart.vue'
+import OptionGroup from './components/util/OptionGroup.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import SortableTable from './components/util/SortableTable.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
@@ -22,6 +23,7 @@ data.loadContestantData()
 data.loadGameData()
 data.loadGameStatData()
 data.loadGameContestantStatData()
+data.loadGameRoundContestantStatData()
 
 const seasonSearchParameters = ref(urlParams.get('season') ? urlParams.get('season').split(',') : [])
 const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
@@ -91,6 +93,10 @@ const gameContestantStatData = data.computedIfRefHasValues([data.gameContestantS
 const gameContestantStatDataByGameId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.game_id))
 const gameContestantStatDataByContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.contestant_id))
 const gameContestantStatDataByGameIdAndContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id, gcs => gcs.contestant_id))
+const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasValues(
+    [data.gameRoundContestantStatData, gameIds],
+    (gcsData, gIds) => d3.group(gcsData.filter(gr => gIds.includes(gr.game_id)), r => r.round_of_game, r => r.contestant_id))
+
 const contestantWins = data.computedIfRefHasValue(gameData, gData => d3.rollup(gData, v => v.length, g => g.winning_contestant_id))
 const contestantWinnings = data.computedIfRefHasValues([gameData, gameContestantStatDataByGameIdAndContestantId], (gData, gcsData) => {
   const aggregateWinnings = function(games) {
@@ -164,26 +170,48 @@ function contestantLink (contestant_id, contestant_name) {
 }
 
 //Tables
-const baseScoringTableRows = data.computedIfRefHasValues([displayContestantIds, contestantSort], (cIds, cSort) => {
+const roundOptionLabels = ref(['Full Game', 'J Round', 'DJ Round'])
+const selectedRoundIndex = ref(0)
+const aggregationOptionLabels = ref(['Game Average', 'Total', 'Game Max', 'Game Median', 'Game Min'])
+const selectedAggregationIndex = ref(0)
+
+const baseScoringTableData = data.computedIfRefHasValues(
+  [selectedRoundIndex, gameContestantStatDataByContestantId, gameRoundContestantStatDataByRoundIdContestantId],
+  (rIdx, gcsDataByCId, grcsDataByRIdCId) => {
+    if (rIdx === 0) {
+      return gcsDataByCId
+    }
+    return grcsDataByRIdCId.get(rIdx)
+  }
+)
+const baseScoringTableAggregation = data.computedIfRefHasValue(
+  selectedAggregationIndex, idx => [d3.mean, d3.sum, d3.max, d3.median, d3.min][idx])
+const baseScoringTableDisplayFunction = data.computedIfRefHasValue(
+  selectedAggregationIndex, idx => [
+    attrSpec => attrSpec.averageDisplayFormat,
+    attrSpec => attrSpec.valueDisplayFormat,
+    attrSpec => attrSpec.valueDisplayFormat,
+    attrSpec => attrSpec.valueDisplayFormat,
+    attrSpec => attrSpec.valueDisplayFormat][idx])
+
+const baseScoringTableRows = data.computedIfRefHasValues([displayContestantIds, contestantSort, contestantWins], (cIds, cSort, cWins) => {
   cIds.sort(cSort)
   return cIds.map((contestant_id, idx) => {
     return {
       'contestant_id': contestant_id,
-      'ranking': idx + 1
+      'wins': cWins.get(contestant_id),
+      'ranking': cIds.length - idx - 1
     }
   })
 })
 
-const baseScoringTableAggregation = ref(d3.mean)
-const baseScoringTableDisplayFunction = ref(attrSpec => attrSpec.averageDisplayFormat)
-
 const constructScoringTableSpecification = function(attrSpecs) {
   return data.computedIfRefHasValues(
-    [baseScoringTableRows, contestantDataById, gameContestantStatDataByContestantId, baseScoringTableAggregation, baseScoringTableDisplayFunction],
-    (baseRows, cData, gcsData, aggrFn, attrDisplayFn) => {
+    [baseScoringTableRows, gameDataById, contestantDataById, baseScoringTableData, baseScoringTableAggregation, baseScoringTableDisplayFunction],
+    (baseRows, gData, cData, gcsData, aggrFn, attrDisplayFn) => {
       var columns = [
         {
-          label: 'Contestant'
+          label: 'Contestant (Wins)'
         }
       ]
       columns = columns.concat(attrSpecs.map(attr => ({
@@ -194,7 +222,7 @@ const constructScoringTableSpecification = function(attrSpecs) {
         const cid = baseRow.contestant_id
         var row = [
           {
-            value: contestantLink(cid, cData.get(cid).name),
+            value: contestantLink(cid, cData.get(cid).name) + '&nbsp;(' + baseRow.wins + ')',
             sortValue: baseRow.ranking
           }
         ]
@@ -205,187 +233,60 @@ const constructScoringTableSpecification = function(attrSpecs) {
         return row
       })
 
+      var footerRows = [
+        [ { value: 'Selected' } ],
+        [ { value: 'All' } ],
+        [ { value: 'Winners' } ]
+      ]
+
+      footerRows[0] = footerRows[0].concat(attrSpecs.map(attr => {
+        const contestantIds = baseRows.map(baseRow => baseRow.contestant_id)
+        const gcses = contestantIds.flatMap(cid => gcsData.get(cid))
+        return {
+          value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
+        }
+      }))
+
+      footerRows[1] = footerRows[1].concat(attrSpecs.map(attr => {
+        const gcses = [...gcsData.values()].flatMap(l => l)
+        return {
+          value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
+        }
+      }))
+
+      footerRows[2] = footerRows[2].concat(attrSpecs.map(attr => {
+        const gcses = [...gcsData.values()].flatMap(l => l).filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id)
+        return {
+          value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
+        }
+      }))
+
       return {
         columns: columns,
         rows: rows,
-        footerRows: []
+        footerRows: footerRows,
+        initialSortColumnIndex: 0,
+        initialSortDescending: true
       }
     }
   )
 }
 
-const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc]
+const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
+  gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
+  gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
 const standardScoringTableSpec = constructScoringTableSpecification(standardScoringAttributes)
 
+const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
+    gcsAttributes.time, gcsAttributes.solo]
+const conversionScoringTableSpec = constructScoringTableSpecification(conversionScoringAttributes)
 
-
-const scoringTableRows = data.computedIfRefHasValues([displayContestantIds, contestantSort], (cIds, cSort) => {
-  cIds.sort(cSort)
-  return cIds.map((contestant_id, idx) => {
-    return {
-      'contestant_id': contestant_id,
-      'ranking': idx + 1
-    }
-  })
-})
-
-const generateScoringPanels = function(cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData, attrColumnDefs) {
-  return data.computedIfRefHasValues([cDataById, gcsDataByCId, displayGcsData, allGcsData, winGcsData, contestantWins],
-  (cData, gcsData, displayGcsData, allGcsData, winGcsData, cWins) => {
-    var leadColumns = [
-      {label: 'Contestant (Wins)', sortValueFunction: d => -d.ranking, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name) + ' (' + _.defaultTo(cWins.get(d.contestant_id), 0) + ')'}
-    ]
-    var supportsSum = attrDef => ![gcsAttributes.buz_percent, gcsAttributes.acc_percent, gcsAttributes.conversion_percent, gcsAttributes.buz_value_percent, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent].includes(attrDef)
-    var avgAttrColumns = attrColumnDefs.map(attrDef => ({
-      label: attrDef.short_label,
-      sortValueFunction: r => d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-      attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-      description: attrDef.description
-    }))
-    var sumAttrColumns = attrColumnDefs.filter(supportsSum).map(attrDef => ({
-      label: attrDef.short_label,
-      sortValueFunction: r => d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-      attributeFunction: r => attrDef.valueDisplayFormat(d3.sum(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-      description: attrDef.description
-    }))
-    var maxAttrColumns = attrColumnDefs.map(attrDef => ({
-      label: attrDef.short_label,
-      sortValueFunction: r => d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction)),
-      attributeFunction: r => attrDef.valueDisplayFormat(d3.max(gcsData.get(r.contestant_id).map(attrDef.generatingFunction))),
-      description: attrDef.description
-    }))
-
-    var footerLeadAvgColumns = [
-      { attributeFunction: r => r.label + ' avg'}
-    ]
-    var footerAttrAvgColumns = attrColumnDefs.map(attrDef => ({
-      attributeFunction: r => attrDef.averageDisplayFormat(d3.mean(r.dataToAggregate.map(attrDef.generatingFunction))),
-      description: attrDef.description
-    }))
-    var footerLeadSumColumns = [
-      { attributeFunction: r => r.label + ' total'}
-    ]
-    var footerAttrSumColumns = attrColumnDefs.filter(supportsSum).map(attrDef => ({
-      attributeFunction: r => attrDef.averageDisplayFormat(d3.sum(r.dataToAggregate.map(attrDef.generatingFunction))),
-      description: attrDef.description
-    }))
-    var footerLeadMaxColumns = [
-      { attributeFunction: r => r.label + ' max' }
-    ]
-    var footerAttrMaxColumns = attrColumnDefs.map(attrDef => ({
-      attributeFunction: r => attrDef.valueDisplayFormat(d3.max(r.dataToAggregate.map(attrDef.generatingFunction))),
-      description: attrDef.description
-    }))
-
-    var panels = [
-      {
-        label: 'Game Average',
-        columns: leadColumns.concat(avgAttrColumns),
-        footerColumns: footerLeadAvgColumns.concat(footerAttrAvgColumns),
-        footerRows: [
-          {
-            label: 'Selected',
-            dataToAggregate: displayGcsData
-          },
-          {
-            label: 'All contestants',
-            dataToAggregate: allGcsData
-          },
-          {
-            label: 'Winners',
-            dataToAggregate: winGcsData
-          }
-        ]
-      },
-      {
-        label: 'Game Total',
-        columns: leadColumns.concat(sumAttrColumns),
-        footerColumns: footerLeadSumColumns.concat(footerAttrSumColumns),
-        footerRows: [
-          {
-            label: 'Selected',
-            dataToAggregate: displayGcsData
-          },
-          {
-            label: 'All contestants',
-            dataToAggregate: allGcsData
-          },
-          {
-            label: 'Winners',
-            dataToAggregate: winGcsData
-          }
-        ]
-      },
-      {
-        label: 'Game Max',
-        columns: leadColumns.concat(maxAttrColumns),
-        footerColumns: footerLeadMaxColumns.concat(footerAttrMaxColumns),
-        footerRows: [
-          {
-            label: 'Selected',
-            dataToAggregate: displayGcsData
-          },
-          {
-            label: 'All contestants',
-            dataToAggregate: allGcsData
-          },
-          {
-            label: 'Winners',
-            dataToAggregate: winGcsData
-          }
-        ]
-      }
-    ]
-
-    return panels
-  })
-}
-
-const standardScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
-  displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData,
-  [
-    gcsAttributes.buz,
-    gcsAttributes.buzc,
-    gcsAttributes.buz_score,
-    gcsAttributes.coryat_score,
-    gcsAttributes.dd_found,
-    gcsAttributes.dd_plus_buzc,
-    gcsAttributes.dd_plus_selection,
-    gcsAttributes.dd_score,
-    gcsAttributes.fj_start_score,
-    gcsAttributes.fj_score,
-    gcsAttributes.fj_final_score,  
-  ])
-
-const conversionScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
-  displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData,
-  [
-    gcsAttributes.att,
-    gcsAttributes.att_clue,
-    gcsAttributes.buz,
-    gcsAttributes.buz_percent,
-    gcsAttributes.buzc,
-    gcsAttributes.acc_percent,
-    gcsAttributes.conversion_percent,
-    gcsAttributes.time,
-    gcsAttributes.solo 
-  ])
-
-const conversionValueScoringTablePanels = generateScoringPanels(contestantDataById, gameContestantStatDataByContestantId,
-  displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData,
-  [
-    gcsAttributes.att_value,
-    gcsAttributes.buz_value,
-    gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score,
-    gcsAttributes.acc_value_percent,
-    gcsAttributes.conversion_value_percent,
-    gcsAttributes.time_value,
-    gcsAttributes.time_score,
-    gcsAttributes.solo_value,
-    gcsAttributes.solo_score
-  ])
-
+const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.time_value, gcsAttributes.time_score,
+    gcsAttributes.solo_value, gcsAttributes.solo_score]
+const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
 
 
 //Stacked bars
@@ -613,29 +514,25 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
       wins
     </div>
     <div class="section">
-      <h2>Leaders</h2>
-      <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
-    </div>
-    <div class="section">
-      <h2>Leaders</h2>
-      <h4>Standard</h4>
-      <CarouselTable 
-        :panels="standardScoringTablePanels"
-        :rowData="scoringTableRows"
-        :defaultSortFunction="d => d['ranking']"
-        />
-      <h4>Conversion</h4>
-      <CarouselTable 
-        :panels="conversionScoringTablePanels"
-        :rowData="scoringTableRows"
-        :defaultSortFunction="d => d['ranking']"
-        />
-      <h4>Conversion Value</h4>
-      <CarouselTable 
-        :panels="conversionValueScoringTablePanels"
-        :rowData="scoringTableRows"
-        :defaultSortFunction="d => d['ranking']"
-        />
+      <h2>Statistics Tables</h2>
+      <div class="option-groups">
+        <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
+          @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
+        <OptionGroup :optionLabels="aggregationOptionLabels" :selectionIndex="selectedAggregationIndex"
+          @newSelectionIndex="(idx) => selectedAggregationIndex = idx" />
+      </div>
+      <div class="subsection">
+        <h3>Standard Metrics</h3>
+        <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
+      </div>
+      <div class="subsection">
+        <h3>Conversion Metrics</h3>
+        <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
+      </div>
+      <div class="subsection">
+        <h3>Conversion Value Metrics</h3>
+        <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
+      </div>
     </div>
     <div class="section">
       <h2>Attempts</h2>
@@ -706,16 +603,38 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
 <style scoped>
 
 .component-body {
-  margin: 0 2em;
+  margin: 0 auto;
+  width: min(900px, 90vw);
 }
 
 .section {
-  padding: 0.5em 0 2em 0;
-  border-bottom: 1px solid black;
+  padding: 2em 0 2em 0;
+  text-align: center;
+}
+
+.section >>> table {
+  width: 100%;
+}
+
+.section .subsection {
+  padding: 1em 0 0 0;
 }
 
 .graph-subsection {
   margin-top: 1em;
+}
+
+.option-groups {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+  background-color: #CCCCCC;
+  max-width: 75%;
+  margin: 0 auto;
+}
+
+.option-groups > div {
+  padding: 0.5em 0.25em;
 }
 
 </style>

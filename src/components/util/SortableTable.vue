@@ -1,18 +1,19 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import * as d3 from 'd3'
-import * as data from '@/data'
 
 const props = defineProps({
   columns: Array,
   rows: Array,
-  footerRows: Array
+  footerRows: Array,
+  initialSortColumnIndex: Number,
+  initialSortDescending: Boolean
 })
 
-const sortColumn = ref(0)
-const sortDirectionDescending = ref(false)
-const sortedRows = data.computedIfRefHasValue(props.rows, (rows) => {
-    var sortedData = rows.slice()
+const sortColumn = ref(props.initialSortColumnIndex ? props.initialSortColumnIndex : 0)
+const sortDirectionDescending = ref(props.initialSortDescending ? props.initialSortDescending : false)
+const sortedRows = computed(() => {
+    var sortedData = props.rows.slice()
     var sortDirection = sortDirectionDescending.value ? d3.descending : d3.ascending
     sortedData.sort((a,b) => sortDirection(a[sortColumn.value].sortValue, b[sortColumn.value].sortValue))
     return sortedData
@@ -31,23 +32,35 @@ function setSortColumn(newSortColumn) {
 
 <template>
     <div class="table-container">
-        <table v-if="props.columns && props.rows">
+        <table v-if="props.columns && sortedRows">
             <thead>
                 <tr>
-                    <th v-for="column in columns">
-                        {{ column.label }}
+                    <th v-for="column, colIdx in columns">
+                        <div class="column-header-container" @click="setSortColumn(colIdx)">
+                            <div class="column-label">
+                                {{ column.label }}
+                            </div>
+                            <div class="sort-control">
+                                <div :class="'sort-ascend ' + (sortColumn === colIdx && !sortDirectionDescending ? 'active' : 'inactive')">&#9650;</div>
+                                <div :class="'sort-descend ' + (sortColumn === colIdx && sortDirectionDescending ? 'active' : 'inactive')">&#9660;</div>
+                            </div>
+                        </div>
                     </th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="row in rows">
+                <tr v-for="row in sortedRows">
                     <td v-for="cell in row">
                         <span v-html="cell.value"></span>
                     </td>
                 </tr>
             </tbody>
             <tfoot>
-
+                <tr v-for="row in props.footerRows">
+                    <td v-for="cell in row">
+                        <span v-html="cell.value"></span>
+                    </td>
+                </tr>
             </tfoot>
         </table>
     </div>
@@ -55,71 +68,38 @@ function setSortColumn(newSortColumn) {
 
 <style scoped>
 
-span.hover-instructions {
-    visibility: hidden;
-}
-
-@media (hover: hover) {
-    span.tooltip-available {
-        text-decoration-line: underline;
-        text-decoration-style: dotted;
-    }
-
-    span.hover-instructions {
-        visibility: visible;
-    }
-}
-
-.table-display-control {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    align-items: flex-end;
-}
-
-.table-display-control-tab {
-    padding: 0.25em 0.5em;
-    cursor: pointer;
-    border-width: 1px 1px 0 0;
-    border-color: #999999;
-    border-style: solid;
-}
-
-.table-display-control-tab:first-child {
-    border-left-width: 1px;
-}
-
-.table-display-control-tab.current {
-    background-color: #0072B2;
-    color: white;
-}
 
 .table-container {
     overflow-x: auto;
     overflow-y: hidden;
 }
 
-th.tooltip {
-    position: relative;
+th .column-header-container {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
 }
 
-th.tooltip span.tooltiptext {
-  visibility: hidden;
-  background-color: black;
-  color: #fff;
-  text-align: center;
-  padding: 6px 6px;
-  border-radius: 6px; 
-  position: absolute;
-  z-index: 1;
-  left: 0%;
-  top: 100%;
-  width: 15em;
+th .column-header-container .sort-control {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    font-size: 60%;
+    margin-left: 2px;
 }
 
-th.tooltip:hover span.tooltiptext {
-  visibility: visible;
+th .column-header-container .sort-control .sort-ascend {
+    margin-bottom: -100%;
 }
+
+th .column-header-container .sort-control .inactive {
+    color: #999999;
+}
+
+th .column-header-container .sort-control .active {
+    color: #000000;
+}
+
 
 table {
     border-collapse: collapse;
@@ -132,8 +112,16 @@ table th, table td {
     border-bottom: 1px solid #999999;
 }
 
+table tr:first-child th, table tr:first-child td {
+    border-top: 2px solid #000000;
+}
+
+table tr:last-child th, table tr:last-child td {
+    border-bottom: 2px solid #000000;
+}
+
 table th:hover {
-    background-color: #999999;
+    background-color: #AAAAAA;
 }
 
 table thead tr th {
@@ -148,7 +136,19 @@ table tbody tr:nth-child(odd) td {
     background: #FFFFFF;
 }
 
-table tr:hover td {
+table tbody tr:hover td {
+    background-color: #CCCCCC;
+}
+
+table tfoot tr:nth-child(even) td {
+    background: #EEEEEE;
+}
+
+table tfoot tr:nth-child(odd) td {
+    background: #FFFFFF;
+}
+
+table tfoot tr:hover td {
     background-color: #CCCCCC;
 }
 
@@ -163,25 +163,12 @@ table th:first-child, table td:first-child {
     z-index: 1;
 }
 
-table th span.control-container {
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: row;
-    align-content: center;
-    justify-content: space-between;
-}
-
-table th span.control {
+table th {
     cursor: pointer;
 }
 
 table th.sort-control {
     cursor: pointer;
-}
-
-.table-footer {
-    font-style: italic;
-    font-size: 12px;
 }
 
 </style>
