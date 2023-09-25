@@ -627,7 +627,7 @@ h2 {
   text-align: center;
 }
 
-.section >>> table {
+.section :deep(table) {
   width: 100%;
 }
 
