@@ -550,25 +550,29 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
     </div>
     <div class="section">
       <h2>Rolling Averages</h2>
-      <select v-model="rollingAverageRollCount">
-        <option :value="5">5 games</option>
-        <option :value="10">10 games</option>
-        <option :value="20">20 games</option>
-      </select>
-      <select v-model="rollingAverageGraphAttributeIdx">
-        <option v-for="(attr, idx) in rollingGameStatAttributes" :value="idx">
-          {{ attr.short_label }}
-        </option>
-      </select>
+      <div class="option-groups">
+        <select v-model="rollingAverageRollCount">
+          <option :value="5">5 games</option>
+          <option :value="10">10 games</option>
+          <option :value="20">20 games</option>
+        </select>
+        <select v-model="rollingAverageGraphAttributeIdx">
+          <option v-for="(attr, idx) in rollingGameStatAttributes" :value="idx">
+            {{ attr.short_label }}
+          </option>
+        </select>
+      </div>
       <LineChart v-bind="rollingChartSpecification" />
     </div>
     <div class="section">
       <h2>Selectable Box and Whisker Plots</h2>
-      <select v-model="boxWhiskerGraphAttributeIdx">
-        <option v-for="(attr, idx) in boxWhiskerGraphAttributes" :value="idx">
-          {{ attr.short_label }}
-        </option>
-      </select>
+      <div class="option-groups">
+        <select v-model="boxWhiskerGraphAttributeIdx">
+          <option v-for="(attr, idx) in boxWhiskerGraphAttributes" :value="idx">
+            {{ attr.short_label }}
+          </option>
+        </select>
+      </div>
       <!--<select v-model="boxWhiskerGraphRoundIdx">
         <option :value="0">Full Game</option>
         <option :value="1">J! Round</option>
@@ -579,21 +583,23 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
     </div>
     <div class="section">
       <h2>Selectable Scatter Plots</h2>
-      <select v-model="xScatterGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-          {{ graphAttribute.short_label }}
-        </option>
-      </select>
-      <select v-model="yScatterGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-          {{ graphAttribute.short_label }}
-        </option>
-      </select>
-      <div class="graph-subsection">
+      <div class="option-groups">
+        <select v-model="xScatterGraphAttributeIdx">
+          <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
+            {{ graphAttribute.short_label }}
+          </option>
+        </select>
+        <select v-model="yScatterGraphAttributeIdx">
+          <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
+            {{ graphAttribute.short_label }}
+          </option>
+        </select>
+      </div>
+      <div class="subsection">
         <h3>All Games</h3>
         <ScatterHistogram v-bind="scatterGraphSpecification"/>
       </div>
-      <div class="graph-subsection">
+      <div class="subsection">
         <h3>Average by Contestant</h3>
         <ScatterHistogram v-bind="averageScatterGraphSpecification"/>
       </div>
@@ -610,6 +616,12 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
   text-align: center;
 }
 
+h2 {
+  background-color: var(--color-jometry-primary);
+  color: var(--color-text-on-jometry-primary);
+  margin-bottom: 1em;
+}
+
 .section {
   margin-top: var(--section-gap);
   text-align: center;
@@ -623,21 +635,21 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
   padding: 1em 0 0 0;
 }
 
-.graph-subsection {
-  margin-top: 1em;
-}
-
 .option-groups {
   display: flex;
   flex-flow: row wrap;
-  justify-content: space-around;
+  justify-content: center;
   background-color: var(--color-jometry-secondary);
   max-width: 75%;
   margin: 0 auto;
 }
 
-.option-groups > div {
+.option-groups {
   padding: 0.5em 0.25em;
+}
+
+.option-groups > div {
+  margin: auto 0.5em;
 }
 
 </style>
