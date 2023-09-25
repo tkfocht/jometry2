@@ -15,10 +15,16 @@
 #header {
     display: flex;
     flex-wrap: nowrap;
-    justify-content: flex-start;
-    align-items: flex-end;
+    justify-content: center;
+    align-items: center;
 
-    border-bottom: 2px solid black;
+    background-color: var(--color-jometry-primary);
+    color: var(--color-text-on-jometry-primary);
+}
+
+#header a:link, #header a:visited {
+    color: var(--color-text-on-jometry-primary);
+    text-decoration: none;
 }
 
 #site-mast {
@@ -28,7 +34,7 @@
 }
 
 .navigation-item {
-    margin-left: 0.5em;
+    margin: auto 0.7em;
 }
 </style>
 

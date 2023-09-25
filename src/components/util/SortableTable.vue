@@ -126,7 +126,7 @@ table th:hover {
 }
 
 table thead tr th {
-    background: #CCCCCC;
+    background: var(--color-jometry-secondary);
 }
 
 table tbody tr:nth-child(even) td {

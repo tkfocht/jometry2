@@ -197,9 +197,10 @@ const baseScoringTableDisplayFunction = data.computedIfRefHasValue(
 const baseScoringTableRows = data.computedIfRefHasValues([displayContestantIds, contestantSort, contestantWins], (cIds, cSort, cWins) => {
   cIds.sort(cSort)
   return cIds.map((contestant_id, idx) => {
+    const foundWins = cWins.get(contestant_id)
     return {
       'contestant_id': contestant_id,
-      'wins': cWins.get(contestant_id),
+      'wins': _.isNil(foundWins) ? 0 : foundWins,
       'ranking': cIds.length - idx - 1
     }
   })
@@ -322,13 +323,13 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title) {
       data: dataSet,
       aggregateData: aggregateDataSet,
       xCoreLabelFunction: d => cData.get(d.contestant_id).name,
-      xGroupLabels: ['Contestants'],
+      xGroupLabels: [],
       yFunctionGroups: [d3.range(0, yAttrs.length).map(i => (d => d.displayValues[i]))],
       colorFunction: d => color.value(d.contestant_id),
       sortFunction: (a, b) => d3.descending(a.values[0], b.values[0]),
       displayLimit: graphDisplayLimit.value,
       yLabel: yAttrs.map(attr => attr.short_label).join(' -> '),
-      title: title
+      title: null
     }
   }
 }
@@ -606,10 +607,11 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
 .component-body {
   margin: 0 auto;
   width: min(900px, 90vw);
+  text-align: center;
 }
 
 .section {
-  padding: 2em 0 2em 0;
+  margin-top: var(--section-gap);
   text-align: center;
 }
 
@@ -629,7 +631,7 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
   display: flex;
   flex-flow: row wrap;
   justify-content: space-around;
-  background-color: #CCCCCC;
+  background-color: var(--color-jometry-secondary);
   max-width: 75%;
   margin: 0 auto;
 }
