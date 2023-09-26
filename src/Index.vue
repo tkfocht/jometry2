@@ -24,10 +24,11 @@ const contestantData = data.contestantDataById
   <div class="component-body">
     <div v-if="gameData && contestantData">
       <div v-for="tocPeriod in ['2024']" class="toc-period section">
-        <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
+        <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period<br/>
           <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod">Summary</a>
           <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
-          <a :href="'/period.html?data_source=standard&toc_period=2021,2022&play_classification=regular&contestants=267,164,542,492,318,186,458,348,437,144,473,371,290,638,284,621,588,306,570,461,374,359,330,212,602,632,650'">SCC Players Summary</a>
+          <a :href="'/period.html?data_source=standard&toc_period=2021,2022&play_classification=regular&contestants=267,164,542,492,318,186,458,348,437,144,473,371,290,638,284,621,588,306,570,461,374,359,330,212,602,632,650'">S37 SCC Players Summary</a>
+          <a :href="'/period.html?data_source=standard&toc_period=2021,2022&play_classification=regular&contestants=117,398,812,1007,4539,126,4271,189,134,365,488,4463,4368,4014,474,303,4278,231,368,11,24,314,4493,4523,4497,197,630'">S37/38 CWC Spade Players Summary</a>
         </div>
         <div v-for="season in gameData.get(tocPeriod).keys()">
           <div v-for="playClassification in gameData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
