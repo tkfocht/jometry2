@@ -696,28 +696,6 @@ const histogramSpecification = computed(() => {
 
 <style scoped>
 
-.component-body {
-  margin: 0 auto;
-  width: min(900px, 90vw);
-  text-align: center;
-}
-
-h2 {
-  background-color: var(--color-jometry-primary);
-  color: var(--color-text-on-jometry-primary);
-  margin-bottom: 1em;
-  border-radius: 15px;
-}
-
-.section {
-  margin-top: var(--section-gap);
-  text-align: center;
-}
-
-.section .subsection {
-  padding: 1em 0 0 0;
-}
-
 .section.player-statistics :deep(table) {
   width: 100%;
 }
@@ -818,39 +796,6 @@ div#view-boards > div {
     text-align: center;
 }
 
-.overview {
-  text-align: center;
-  background-color: var(--color-jometry-primary);
-  color: var(--color-text-on-jometry-primary);
-  border-radius: 15px;
-}
-
-.overview .value {
-  font-size: 28px;
-}
-
-.overview .caption {
-  font-size: 16px;
-}
-
-.overview .overview-row {
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: space-around;
-}
-
-.overview .overview-row > div {
-  margin: 1em 1em;
-}
-
-.overview .overview-window {
-  background-color: white;
-  color: black;
-  padding: 0.5em 0.5em;
-  border-radius: 15px;
-  flex-grow: 1;
-}
-
 .overview table {
   margin: 0 auto;
 }
@@ -865,24 +810,6 @@ div#view-boards > div {
 
 .overview table td:first-child {
   text-align: left;
-}
-
-.option-groups {
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: center;
-  background-color: var(--color-jometry-secondary);
-  max-width: 75%;
-  margin: 0 auto;
-}
-
-.option-groups {
-  padding: 0.5em 0.25em;
-  border-radius: 15px;
-}
-
-.option-groups > div {
-  margin: auto 0.5em;
 }
 
 </style>

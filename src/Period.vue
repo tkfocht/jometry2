@@ -10,7 +10,6 @@ import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
-import CarouselTable from './components/util/CarouselTable.vue'
 import LineChart from './components/util/LineChart.vue'
 import OptionGroup from './components/util/OptionGroup.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
@@ -610,48 +609,9 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
 
 <style scoped>
 
-.component-body {
-  margin: 0 auto;
-  width: min(900px, 90vw);
-  text-align: center;
-}
-
-h2 {
-  background-color: var(--color-jometry-primary);
-  color: var(--color-text-on-jometry-primary);
-  margin-bottom: 1em;
-  border-radius: 15px;
-}
-
-.section {
-  margin-top: var(--section-gap);
-  text-align: center;
-}
 
 .section :deep(table) {
   width: 100%;
-}
-
-.section .subsection {
-  padding: 1em 0 0 0;
-}
-
-.option-groups {
-  display: flex;
-  flex-flow: row wrap;
-  justify-content: center;
-  background-color: var(--color-jometry-secondary);
-  max-width: 75%;
-  margin: 0 auto;
-}
-
-.option-groups {
-  padding: 0.5em 0.25em;
-}
-
-.option-groups > div {
-  margin: auto 0.5em;
-  border-radius: 15px;
 }
 
 </style>

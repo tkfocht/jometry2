@@ -7,12 +7,12 @@ import { threeColorSet, roundAbbreviation } from '@/util'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
-import CarouselTable from './components/util/CarouselTable.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
+import OptionGroup from './components/util/OptionGroup.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
+import SortableTable from './components/util/SortableTable.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
 import { dateFormat } from './util'
-import { ref2id } from 'plotly.js-dist'
 
 let urlParams = new URLSearchParams(window.location.search);
 const contestantId = +urlParams.get('contestant_id')
@@ -77,171 +77,81 @@ function gameLink(game_id, season_id, game_of_season) {
     '">' + season_id + '-' + game_of_season + '</a>'
 }
 
-const scoringTableRows = data.computedIfRefHasValues([data.gameDataById, singleContestantGameContestantStatData], (gData, gcsData) => {
-  const gIds = gcsData.map(gcs => gcs.game_id)
-  return gIds.map((game_id, idx) => {
-    return {
-      'game_id': game_id,
-      'season_id': gData.get(game_id).season_id,
-      'game_in_season': gData.get(game_id).game_in_season,
-      'airdate': gData.get(game_id).airdate
-    }
+const baseScoringTableRows = data.computedIfRefHasValues(
+  [data.gameDataById, singleContestantGameContestantStatData],
+  (gData, gcsData) => {
+    const gIds = gcsData.map(gcs => gcs.game_id)
+    return gIds.map((game_id, idx) => {
+      return {
+        'game_id': game_id,
+        'season_id': gData.get(game_id).season_id,
+        'game_in_season': gData.get(game_id).game_in_season,
+        'airdate': gData.get(game_id).airdate
+      }
+    })
   })
-})
 
+const baseScoringTableData = data.computedIfRefHasValues(
+  [singleContestantGameContestantStatData, singleContestantRoundContestantStatData],
+  (gcsData, gcrsData) => {
+    return d3.index(gcsData, gcs => gcs.game_id)
+  })
 
-const generateScoringPanels = function(attrColumnDefs) {
+const constructScoringTableSpecification = function(attrSpecs) {
   return data.computedIfRefHasValues(
-    [displayRounds,
-      singleContestantGameContestantStatDataByGameId, singleContestantRoundContestantStatDataByRoundAndGameId,
-      singleContestantGameContestantStatData, singleContestantRoundContestantStatData, gameContestantStatData, roundContestantStatDataByRound,
-      winnerGameContestantStatData, winnerRoundContestantStatDataByRound],
-    (dRounds, singleGcsDataByGameId, singleRcsDataByRoundAndGameId, singleGcsData, singleRcsDataByRound, allGcsData, allRcsData, winGcsData, winRcsData) => {
-      var leadColumns = [{label: 'Game', sortValueFunction: d => d.airdate, attributeFunction: d => gameLink(d.game_id, d.season_id, d.game_in_season) + ' ' + dateFormat(d.airdate)}]
-      var attrColumnsForDataset = attrColumnDefs.map(attrDef => (csData => ({
-        label: attrDef.short_label,
-        sortValueFunction: r => attrDef.generatingFunction(csData.get(r.game_id)),
-        attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(csData.get(r.game_id))),
-        description: attrDef.description
-      })))
-
-      var footerLeadColumns = [
-        { attributeFunction: r => r.label }
-      ]
-      var footerAttrColumns = attrColumnDefs.map(attrDef => ({
-        attributeFunction: fr => fr.displayFunction(attrDef)(fr.aggregation(fr.dataToAggregate.map(attrDef.generatingFunction))),
-        description: attrDef.description
-      }))
-
-      var panels = [
+    [baseScoringTableRows, data.gameDataById, baseScoringTableData],
+    (baseRows, gData, gcsData) => {
+      var columns = [
         {
-          label: 'Full Game',
-          columns: leadColumns.concat(attrColumnsForDataset.map(attrCol => attrCol(singleGcsDataByGameId))),
-          footerColumns: footerLeadColumns.concat(footerAttrColumns),
-          footerRows: [
-            {
-              label: 'Contestant avg',
-              dataToAggregate: singleGcsData,
-              aggregation: d3.mean,
-              displayFunction: attrDef => attrDef.averageDisplayFormat
-            },
-            {
-              label: 'All contestants avg',
-              dataToAggregate: allGcsData,
-              aggregation: d3.mean,
-              displayFunction: attrDef => attrDef.averageDisplayFormat
-            },
-            {
-              label: 'Winners avg',
-              dataToAggregate: winGcsData,
-              aggregation: d3.mean,
-              displayFunction: attrDef => attrDef.averageDisplayFormat
-            }
-          ]
+          label: 'Game'
         }
       ]
+      columns = columns.concat(attrSpecs.map(attr => ({
+        label: attr.short_label,
+        description: attr.description
+      })))
 
-      for (const i of d3.range(1, dRounds+1)) {
-        panels.push({
-          label: roundAbbreviation(i) + ' Round ',
-          columns: leadColumns.concat(attrColumnsForDataset.map(attrCol => attrCol(singleRcsDataByRoundAndGameId.get(i)))),
-          footerColumns: footerLeadColumns.concat(footerAttrColumns),
-          footerRows: [
-            {
-              label: 'Contestant avg',
-              dataToAggregate: singleRcsDataByRound.get(i),
-              aggregation: d3.mean,
-              displayFunction: attrDef => attrDef.averageDisplayFormat
-            },
-            {
-              label: 'All contestants avg',
-              dataToAggregate: allRcsData.get(i),
-              aggregation: d3.mean,
-              displayFunction: attrDef => attrDef.averageDisplayFormat
-            },
-            {
-              label: 'Winners avg',
-              dataToAggregate: winRcsData.get(i),
-              aggregation: d3.mean,
-              displayFunction: attrDef => attrDef.averageDisplayFormat
-            }
-          ]
-        })
+      var rows = baseRows.map(baseRow => {
+        const gid = baseRow.game_id
+        var row = [
+          {
+            value: gameLink(gid, gData.get(gid).season_id, gData.get(gid).game_in_season),
+            sortValue: baseRow.airdate
+          }
+        ]
+        row = row.concat(attrSpecs.map(attr => ({
+          value: attr.valueDisplayFormat(attr.generatingFunction(gcsData.get(gid))),
+          sortValue: attr.valueDisplayFormat(attr.generatingFunction(gcsData.get(gid)))
+        })))
+        return row
+      })
+
+      return {
+        columns: columns,
+        rows: rows,
+        footerRows: [],
+        initialSortColumnIndex: 0,
+        initialSortDescending: false
       }
-
-      return panels
-    })
+    }
+  )
 }
 
-const standardScoringTablePanels = generateScoringPanels(
-  [
-    gcsAttributes.buz,
-    gcsAttributes.buzc,
-    gcsAttributes.buz_score,
-    gcsAttributes.coryat_score,
-    gcsAttributes.dd_found,
-    gcsAttributes.dd_plus_buzc,
-    gcsAttributes.dd_plus_selection,
-    gcsAttributes.dd_score,
-    gcsAttributes.fj_start_score,
-    gcsAttributes.fj_score,
-    gcsAttributes.fj_final_score,
-  ])
+const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
+  gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
+  gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
+const standardScoringTableSpec = constructScoringTableSpecification(standardScoringAttributes)
 
-const standardScoringTableSpecification = data.computedIfRefHasValues(
-  [standardScoringTablePanels, scoringTableRows],
-  (p, r) => ({
-    panels: p,
-    rowData: r,
-    defaultSortFunction: d => d.airdate
-  })
-)
+const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
+    gcsAttributes.time, gcsAttributes.solo]
+const conversionScoringTableSpec = constructScoringTableSpecification(conversionScoringAttributes)
 
-const conversionScoringTablePanels = generateScoringPanels(
-  [
-    gcsAttributes.att,
-    gcsAttributes.att_clue,
-    gcsAttributes.buz,
-    gcsAttributes.buz_percent,
-    gcsAttributes.buzc,
-    gcsAttributes.acc_percent,
-    gcsAttributes.conversion_percent,
-    gcsAttributes.time,
-    gcsAttributes.solo
-  ])
-
-const conversionScoringTableSpecification = data.computedIfRefHasValues(
-  [conversionScoringTablePanels, scoringTableRows],
-  (p, r) => ({
-    panels: p,
-    rowData: r,
-    defaultSortFunction: d => d.airdate
-  })
-)
-
-const conversionValueScoringTablePanels = generateScoringPanels(
-  [
-    gcsAttributes.att_value,
-    gcsAttributes.buz_value,
-    gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score,
-    gcsAttributes.acc_value_percent,
-    gcsAttributes.conversion_value_percent,
-    gcsAttributes.time_value,
-    gcsAttributes.time_score,
-    gcsAttributes.solo_value,
-    gcsAttributes.solo_score
-  ])
-
-const conversionValueScoringTableSpecification = data.computedIfRefHasValues(
-  [conversionValueScoringTablePanels, scoringTableRows],
-  (p, r) => ({
-    panels: p,
-    rowData: r,
-    defaultSortFunction: d => d.airdate
-  })
-)
-
+const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.time_value, gcsAttributes.time_score,
+    gcsAttributes.solo_value, gcsAttributes.solo_score]
+const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
 
 //Stacked bars
 const buildStackedBarSpecificationLambda = function(yAttrs, title) {
@@ -377,82 +287,118 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
 <template>
   <Header />
   <div class="component-body">
-    <div v-if="singleContestantData" class="section">
-      <h1>{{ singleContestantData.name }}</h1>
-      <h1 v-if="playClassificationPeriod">{{ playClassificationNameByTocPeriod(playClassificationPeriod[1], playClassificationPeriod[0]) }} ({{ playClassificationPeriod[0] }} TOC period)</h1>
-      <select v-model="playClassificationPeriodIdx">
-        <option v-for="(pcp, idx) in playClassificationPeriods" :value="idx">
-          {{ playClassificationNameByTocPeriod(pcp[1], pcp[0]) }} ({{ pcp[0] }} TOC period)
-        </option>
-      </select>
-      <h2>Statistics</h2>
-      <h4>Standard</h4>
-      <CarouselTable v-if="standardScoringTableSpecification"
-        v-bind="standardScoringTableSpecification"
-        />
-      <h4>Conversion</h4>
-      <CarouselTable v-if="conversionScoringTableSpecification"
-        v-bind="conversionScoringTableSpecification"
-        />
-      <h4>Conversion Value</h4>
-      <CarouselTable v-if="conversionValueScoringTableSpecification"
-        v-bind="conversionValueScoringTableSpecification"
-        />
+    <div id="contestant-overview" class="section">
+      <div class="subsection" v-if="playClassificationPeriods">
+        <div class="option-groups">
+          <OptionGroup
+            :optionLabels="playClassificationPeriods.map(pcp => playClassificationNameByTocPeriod(pcp[1], pcp[0]) + ' (' + pcp[[0]] + ' TOC)')"
+            :selectionIndex="playClassificationPeriodIdx"
+            @newSelectionIndex="(idx) => playClassificationPeriodIdx = idx" />
+        </div>  
+      </div>
+      <div v-if="singleContestantData && singleContestantGameContestantStatData" class="subsection">
+        <div class="overview">
+          <div class="overview-row">
+            <div class="value">{{ singleContestantData.name }}</div>
+            <div class="overview-window">
+              <div class="overview-row">
+                <div class="caption-stack">
+                  <div class="caption">Games</div>
+                  <div class="value">{{ singleContestantGameContestantStatData.length }}</div>
+                </div>
+                <div class="caption-stack">
+                  <div class="caption">Total Final$</div>
+                  <div class="value">${{ d3.sum(singleContestantGameContestantStatData.map(gcsAttributes.fj_final_score.generatingFunction)) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="overview-window">
+              <div class="overview-row">
+                <div class="caption-stack">
+                  <div class="caption">Avg Attempt Value</div>
+                  <div class="value">${{ gcsAttributes.att_value.averageDisplayFormat(d3.mean(singleContestantGameContestantStatData.map(gcsAttributes.att_value.generatingFunction))) }}</div>
+                </div>
+                <div class="caption-stack">
+                  <div class="caption">Avg Buzz Value</div>
+                  <div class="value">${{ gcsAttributes.buz_value.averageDisplayFormat(d3.mean(singleContestantGameContestantStatData.map(gcsAttributes.buz_value.generatingFunction))) }}</div>
+                </div>
+                <div class="caption-stack">
+                  <div class="caption">Avg Buzz Score</div>
+                  <div class="value">${{ gcsAttributes.buz_score.averageDisplayFormat(d3.mean(singleContestantGameContestantStatData.map(gcsAttributes.buz_score.generatingFunction))) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section" v-if="standardScoringTableSpec && conversionScoringTableSpec && conversionValueScoringTableSpec">
+      <div class="subsection">
+        <h3>Standard Metrics</h3>
+        <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
+      </div>
+      <div class="subsection">
+        <h3>Conversion Metrics</h3>
+        <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
+      </div>
+      <div class="subsection">
+        <h3>Conversion Value Metrics</h3>
+        <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
+      </div>
     </div>
     <div v-if="singleContestantGameContestantStatData" class="section">
       <h2>Attempts</h2>
-      <select v-model="attemptBarChartRoundIdx">
-        <option :value="0">Full Game</option>
-        <option :value="1">{{ roundAbbreviation(1) }} Round</option>
-        <option :value="2">{{ roundAbbreviation(2) }} Round</option>
-        <option v-if="displayRounds >= 3" :value="3">{{ roundAbbreviation(3) }} Round</option>
-      </select><br/>
+      <div class="option-groups">
+        <OptionGroup
+          :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
+          :selectionIndex="attemptBarChartRoundIdx"
+          @newSelectionIndex="(idx) => attemptBarChartRoundIdx = idx" />
+      </div>
       <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
     <div v-if="singleContestantGameContestantStatData" class="section">
       <h2>Attempt Value</h2>
-      <select v-model="attemptValueBarChartRoundIdx">
-        <option :value="0">Full Game</option>
-        <option :value="1">{{ roundAbbreviation(1) }} Round</option>
-        <option :value="2">{{ roundAbbreviation(2) }} Round</option>
-        <option v-if="displayRounds >= 3" :value="3">{{ roundAbbreviation(3) }} Round</option>
-      </select><br/>
+      <div class="option-groups">
+        <OptionGroup
+          :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
+          :selectionIndex="attemptValueBarChartRoundIdx"
+          @newSelectionIndex="(idx) => attemptValueBarChartRoundIdx = idx" />
+      </div>
       <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
     <div class="section">
       <h2>Selectable Histograms</h2>
-      <select v-model="histogramGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in histogramGraphAttributes" :value="idx">
-          {{ graphAttribute.short_label }}
-        </option>
-      </select>
-      <select v-model="histogramGraphRoundIdx">
-        <option :value="0">Full Game</option>
-        <option :value="1">{{ roundAbbreviation(1) }} Round</option>
-        <option :value="2">{{ roundAbbreviation(2) }} Round</option>
-        <option v-if="displayRounds >= 3" :value="3">{{ roundAbbreviation(3) }} Round</option>
-      </select><br/>
+      <div class="option-groups">
+        <select v-model="histogramGraphAttributeIdx">
+          <option v-for="(graphAttribute, idx) in histogramGraphAttributes" :value="idx">
+            {{ graphAttribute.short_label }}
+          </option>
+        </select>
+        <OptionGroup
+          :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
+          :selectionIndex="histogramGraphRoundIdx"
+          @newSelectionIndex="(idx) => histogramGraphRoundIdx = idx" />
+      </div>
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
     <div class="section">
       <h2>Selectable Scatter Plots</h2>
-      <select v-model="xScatterGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-          {{ graphAttribute.short_label }}
-        </option>
-      </select>
-      <select v-model="yScatterGraphAttributeIdx">
-        <option :value="null">None</option>
-        <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-          {{ graphAttribute.short_label }}
-        </option>
-      </select>
-      <select v-model="scatterGraphRoundIdx">
-        <option :value="0">Full Game</option>
-        <option :value="1">{{ roundAbbreviation(1) }} Round</option>
-        <option :value="2">{{ roundAbbreviation(2) }} Round</option>
-        <option v-if="displayRounds >= 3" :value="3">{{ roundAbbreviation(3) }} Round</option>
-      </select><br/>
+      <div class="option-groups">
+        <select v-model="xScatterGraphAttributeIdx">
+          <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
+            {{ graphAttribute.short_label }}
+          </option>
+        </select>
+        <select v-model="yScatterGraphAttributeIdx">
+          <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
+            {{ graphAttribute.short_label }}
+          </option>
+        </select>
+        <OptionGroup
+          :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
+          :selectionIndex="scatterGraphRoundIdx"
+          @newSelectionIndex="(idx) => scatterGraphRoundIdx = idx" />
+      </div>
       <ScatterHistogram v-bind="scatterHistogramSpecification" />
     </div>
   </div>
@@ -461,16 +407,12 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
 
 <style scoped>
 
-.component-body {
-  margin: 0 2em;
+#contestant-overview.section {
+  margin-top: 1em;
 }
 
-.section {
-  padding: 0.5em 0 2em 0;
-  border-bottom: 1px solid black;
-  max-width: min(95vw, 960px);
+.section :deep(table) {
+  width: 100%;
 }
-
-
 
 </style>
