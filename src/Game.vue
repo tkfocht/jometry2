@@ -47,7 +47,9 @@ const gameContestantStatData = computed(() => {
   }
 })
 
-const jschemaAllGameRoundContestantStatDataFlat = data.gameRoundContestantStatData
+const jschemaAllGameRoundContestantStatDataFlat = data.computedIfRefHasValues(
+  [data.gameRoundContestantStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
+  (grcsData, playClass, tocPeriod, gData) => grcsData.filter(grcs => gData.get(grcs.game_id).play_classification === playClass && gData.get(grcs.game_id).toc_period === tocPeriod))
 const jschemaAllGameRoundContestantStatData = computed(() => {
   if (jschemaAllGameRoundContestantStatDataFlat.value) return d3.index(jschemaAllGameRoundContestantStatDataFlat.value, r => r.game_id, r => r.round_of_game, r => r.contestant_id)
   else return null
