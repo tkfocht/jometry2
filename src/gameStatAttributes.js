@@ -37,6 +37,15 @@ const att_min = {
     averageDisplayFormat: v => formatNumber(v, 1, false)
 }
 
+const att_value_total = {
+    short_label: 'AttV',
+    label: 'Attempt Value',
+    description: 'Total attempt value',
+    generatingFunction: (gs, gcs) => gs.att_value_total > 0 ? gs.att_value_total : undefined,
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 1, false)
+}
+
 const buzc_total = {
     short_label: 'BuzC',
     label: 'Correct Buzzes',
@@ -73,8 +82,29 @@ const coryat_score_total = {
     averageDisplayFormat: v => formatNumber(v, 0, false)
 }
 
+const coryat_positive_score_total = {
+    short_label: 'Coryat Positive',
+    label: 'Coryat Positive',
+    description: 'Total Coryat Positive',
+    generatingFunction: (gs, gcs) => gs.coryat_score_positive_total,
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 0, false)
+}
+
+const contention = {
+    short_label: 'Contention',
+    label: 'Contention',
+    description: 'Contention',
+    generatingFunction: (gs, gcs) => gs.contention,
+    valueDisplayFormat: v => formatNumber(v, 2),
+    averageDisplayFormat: v => formatNumber(v, 2, false)
+}
+
 const all_attributes = [
-    att_total, att_max, att_med, att_min, buzc_total, buzi_total, buz_score_total, coryat_score_total
+    att_total, att_max, att_med, att_min, att_value_total, buzc_total, buzi_total, buz_score_total,
+    coryat_score_total, coryat_positive_score_total, contention
 ]
 
-export { all_attributes, att_total, att_max, att_med, att_min, buzc_total, buzi_total, buz_score_total, coryat_score_total };
+export { all_attributes, att_total, att_max, att_med, att_min, att_value_total,
+    buzc_total, buzi_total, buz_score_total, coryat_score_total, coryat_positive_score_total,
+    contention };

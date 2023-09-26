@@ -8,7 +8,11 @@
 <style scoped>
 #footer {
     font-size: 12px;
-    margin: 1em 0 1em 2em;
+    margin: var(--section-gap) auto 0 auto;
+    padding: 0.5em 0.5em;
+    background-color: var(--color-jometry-secondary);
+    border-top: 1px solid #999999;
+    text-align: center;
 }
 </style>
 

@@ -7,10 +7,11 @@ import * as data from '@/data'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
-import CarouselTable from './components/util/CarouselTable.vue'
 import CumulativeLineChart from './components/util/CumulativeLineChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
+import OptionGroup from './components/util/OptionGroup.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
+import SortableTable from './components/util/SortableTable.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
 let urlParams = new URLSearchParams(window.location.search);
@@ -19,16 +20,21 @@ const gameId = +urlParams.get('game_id')
 
 data.loadContestantData()
 data.loadGameData()
+data.loadGameStatData()
 data.loadGameContestantStatData()
 data.loadGameRoundContestantStatData()
 
 const contestantDataById = data.contestantDataById
 const gameData = data.computedIfRefHasValue(data.gameDataById, gData => gData.get(gameId))
+const gameStatData = data.computedIfRefHasValue(data.gameStatDataById, gsData => gsData.get(gameId))
 const gamePlayClassification = data.computedIfRefHasValue(gameData, gData => gData.play_classification)
 const gameTocPeriod = data.computedIfRefHasValue(gameData, gData => gData.toc_period)
 const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_classification == 'celebrity' ? 3 : 2)
 const gameContestantIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 
+const allGameStatData = data.computedIfRefHasValues(
+  [data.gameStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
+  (gsData, playClass, tocPeriod, gData) => gsData.filter(gs => gData.get(gs.game_id).play_classification === playClass && gData.get(gs.game_id).toc_period === tocPeriod))
 const allGameContestantStatData = data.computedIfRefHasValues(
   [data.gameContestantStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
   (gcsData, playClass, tocPeriod, gData) => gcsData.filter(gcs => gData.get(gcs.game_id).play_classification === playClass && gData.get(gcs.game_id).toc_period === tocPeriod))
@@ -62,6 +68,9 @@ const jschemaGameRoundContestantStatDataByRound = computed(() => {
   }
   return data
 })
+const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasValues(
+    [data.gameRoundContestantStatData],
+    (gcsData) => d3.index(gcsData.filter(gr => gameId === gr.game_id), r => r.round_of_game, r => r.contestant_id))
 
 const jschemaClueContestantStatData = ref(null)
 async function fetchJschemaClueContestantStatData() {
@@ -115,161 +124,86 @@ function contestantLegend (contestant_id, contestant_name) {
     '">&#9632;</span>&nbsp;' + contestant_name
 }
 
-const standardScoringTablePanels = data.computedIfRefHasValues(
-  [gameRounds, contestantDataById, gameContestantStatDataByContestantId, data.gameRoundContestantStatDataByGameIdRoundIdContestantId],
-  (rounds, cData, gcsData, grcsData) => {
-    const leadColumns = [
-      {label: 'Contestant', sortValueFunction: d => -d.podium, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}
-    ]
-    const attrColumnDefs = [
-      gcsAttributes.buz,
-      gcsAttributes.buzc,
-      gcsAttributes.buz_score,
-      gcsAttributes.coryat_score,
-      gcsAttributes.dd_found,
-      gcsAttributes.dd_plus_buzc,
-      gcsAttributes.dd_plus_selection,
-      gcsAttributes.dd_score,
-      gcsAttributes.fj_start_score,
-      gcsAttributes.fj_score,
-      gcsAttributes.fj_final_score,
-    ]
-    const fullGameAttrColumns = attrColumnDefs.map(attrDef => ({
-      label: attrDef.short_label,
-      sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.contestant_id)),
-      attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.contestant_id))),
-      description: attrDef.description
-    }))
-    var panels = [
-      {
-        label: 'Full Game',
-        columns: leadColumns.concat(fullGameAttrColumns)
-      }
-    ]
-    const rids = Array.from(grcsData.get(gameId).keys()).filter(r => r <= rounds)
-    for (const rid of rids) {
-      const roundAttrColumns = attrColumnDefs.slice(0, -3).map(attrDef => ({
-        label: attrDef.short_label,
-        sortValueFunction: r => attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id)),
-        attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id))),
-        description: attrDef.description
-      }))
-      const panel = {
-        label: roundAbbreviation(rid) + ' Round',
-        columns: leadColumns.concat(roundAttrColumns)
-      }
-      panels.push(panel)
+//Tables
+const roundOptionLabels = ref(['Full Game', 'J Round', 'DJ Round'])
+const selectedRoundIndex = ref(0)
+
+const baseScoringTableData = data.computedIfRefHasValues(
+  [selectedRoundIndex, gameContestantStatDataByContestantId, gameRoundContestantStatDataByRoundIdContestantId],
+  (rIdx, gcsDataByCId, gcrsData) => {
+    if (rIdx === 0) {
+      return gcsDataByCId
     }
-    return panels
+    return gcrsData.get(rIdx)
   }
 )
 
-const conversionScoringTablePanels = data.computedIfRefHasValues(
-  [gameRounds, contestantDataById, gameContestantStatDataByContestantId, data.gameRoundContestantStatDataByGameIdRoundIdContestantId],
-  (rounds, cData, gcsData, grcsData) => {
-    const leadColumns = [
-      {label: 'Contestant', sortValueFunction: d => -d.podium, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}
-    ]
-    const attrColumnDefs = [
-      gcsAttributes.att,
-      gcsAttributes.att_clue,
-      gcsAttributes.buz,
-      gcsAttributes.buz_percent,
-      gcsAttributes.buzc,
-      gcsAttributes.acc_percent,
-      gcsAttributes.conversion_percent,
-      gcsAttributes.time,
-      gcsAttributes.solo
-    ]
-    const fullGameAttrColumns = attrColumnDefs.map(attrDef => ({
-      label: attrDef.short_label,
-      sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.contestant_id)),
-      attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.contestant_id))),
-      description: attrDef.description
-    }))
-    var panels = [
-      {
-        label: 'Full Game',
-        columns: leadColumns.concat(fullGameAttrColumns)
-      }
-    ]
-    const rids = Array.from(grcsData.get(gameId).keys()).filter(r => r <= rounds)
-    for (const rid of rids) {
-      const roundAttrColumns = attrColumnDefs.map(attrDef => ({
-        label: attrDef.short_label,
-        sortValueFunction: r => attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id)),
-        attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id))),
-        description: attrDef.description
-      }))
-      const panel = {
-        label: roundAbbreviation(rid) + ' Round',
-        columns: leadColumns.concat(roundAttrColumns)
-      }
-      panels.push(panel)
-    }
-    return panels
-  }
-)
-
-
-const conversionValueScoringTablePanels = data.computedIfRefHasValues(
-  [gameRounds, contestantDataById, gameContestantStatDataByContestantId, data.gameRoundContestantStatDataByGameIdRoundIdContestantId],
-  (rounds, cData, gcsData, grcsData) => {
-    const leadColumns = [
-      {label: 'Contestant', sortValueFunction: d => -d.podium, attributeFunction: d => contestantLink(d.contestant_id, cData.get(d.contestant_id).name)}
-    ]
-    const attrColumnDefs = [
-      gcsAttributes.att_value,
-      gcsAttributes.buz_value,
-      gcsAttributes.buz_value_percent,
-      gcsAttributes.buz_score,
-      gcsAttributes.acc_value_percent,
-      gcsAttributes.conversion_value_percent,
-      gcsAttributes.time_value,
-      gcsAttributes.time_score,
-      gcsAttributes.solo_value,
-      gcsAttributes.solo_score
-    ]
-    const fullGameAttrColumns = attrColumnDefs.map(attrDef => ({
-      label: attrDef.short_label,
-      sortValueFunction: r => attrDef.generatingFunction(gcsData.get(r.contestant_id)),
-      attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(gcsData.get(r.contestant_id))),
-      description: attrDef.description
-    }))
-    var panels = [
-      {
-        label: 'Full Game',
-        columns: leadColumns.concat(fullGameAttrColumns)
-      }
-    ]
-    const rids = Array.from(grcsData.get(gameId).keys()).filter(r => r <= rounds)
-    for (const rid of rids) {
-      const roundAttrColumns = attrColumnDefs.map(attrDef => ({
-        label: attrDef.short_label,
-        sortValueFunction: r => attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id)),
-        attributeFunction: r => attrDef.valueDisplayFormat(attrDef.generatingFunction(grcsData.get(gameId).get(rid).get(r.contestant_id))),
-        description: attrDef.description
-      }))
-      const panel = {
-        label: roundAbbreviation(rid) + ' Round',
-        columns: leadColumns.concat(roundAttrColumns)
-      }
-      panels.push(panel)
-    }
-    return panels
-  }
-)
-
-const scoringTableRows = computed(() => {
-  if (!gameContestantIds.value) return null
-  if (!gameContestantStatDataByContestantId.value) return null
-  return gameContestantIds.value.map((contestant_id, idx) => {
+const baseScoringTableRows = data.computedIfRefHasValues([gameContestantIds], (cIds) => {
+  return cIds.map((cid, idx) => {
     return {
-      contestant_id: contestant_id,
-      podium: idx + 1
+      contestant_id: cid,
+      podium: cIds.length - (idx + 1)
     }
   })
 })
+
+const constructScoringTableSpecification = function(attrSpecs) {
+  return data.computedIfRefHasValues(
+    [baseScoringTableRows, contestantDataById, baseScoringTableData],
+    (baseRows, cData, gcsData) => {
+      var columns = [
+        {
+          label: 'Contestant'
+        }
+      ]
+      columns = columns.concat(attrSpecs.map(attr => ({
+        label: attr.short_label,
+        description: attr.description
+      })))
+
+      var rows = baseRows.map(baseRow => {
+        const cid = baseRow.contestant_id
+        var row = [
+          {
+            value: contestantLink(cid, cData.get(cid).name),
+            sortValue: baseRow.podium
+          }
+        ]
+        row = row.concat(attrSpecs.map(attr => ({
+          value: attr.valueDisplayFormat(attr.generatingFunction(gcsData.get(cid))),
+          sortValue: attr.generatingFunction(gcsData.get(cid))
+        })))
+        return row
+      })
+
+      return {
+        columns: columns,
+        rows: rows,
+        footerRows: [],
+        initialSortColumnIndex: 0,
+        initialSortDescending: true
+      }
+    }
+  )
+}
+
+const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
+  gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
+  gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
+const standardScoringTableSpec = constructScoringTableSpecification(standardScoringAttributes)
+
+const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
+    gcsAttributes.time, gcsAttributes.solo]
+const conversionScoringTableSpec = constructScoringTableSpecification(conversionScoringAttributes)
+
+const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.time_value, gcsAttributes.time_score,
+    gcsAttributes.solo_value, gcsAttributes.solo_score]
+const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
+
+
 
 const cumulativeDataAttributesList = [
   {
@@ -446,52 +380,208 @@ const histogramSpecification = computed(() => {
 <template>
   <Header />
   <div class="component-body">
-    <div v-if="gameData" class="section">
-      <h1>Season <span id="season">{{ gameData.season_id }}</span> Game <span id="game-number">{{ gameData.game_in_season }}</span>, <span id="game-date">{{ dateFormat(gameData.airdate) }}</span></h1>
-      <h1>{{ playClassificationName(gameData?.play_classification, gameData?.season_id) }} ({{ gameData?.toc_period }} TOC period)</h1>
-      <h2>Player Statistics</h2>
-      <h4>Standard</h4>
-      <CarouselTable 
-        :panels="standardScoringTablePanels"
-        :rowData="scoringTableRows"
-        :defaultSortFunction="d => d['podium']"
-        />
-      <h4>Conversion</h4>
-      <CarouselTable 
-        :panels="conversionScoringTablePanels"
-        :rowData="scoringTableRows"
-        :defaultSortFunction="d => d['podium']"
-        />
-      <h4>Conversion Value</h4>
-      <CarouselTable 
-        :panels="conversionValueScoringTablePanels"
-        :rowData="scoringTableRows"
-        :defaultSortFunction="d => d['podium']"
-        />
-    </div>
-    <h2>Correct Responses</h2>
-    <div id="view-boards" class="section">
-      <div v-for="round in d3.range(1, gameRounds + 1)">
-        <h3>{{ roundName(round) }} Round</h3>
-        <table class="view-board" v-if="jschemaClueByRoundRowColumn && jschemaClueByRoundRowColumn.get(round) && jschemaResponseByRoundClue && jschemaResponseByRoundClue.get(round)" >
-          <tr v-for="row in d3.range(1,6)">
-            <td v-for="column in d3.range(1,7)">
-              <div v-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)"
-                  :class="jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_daily_double'] === 1 ? 'daily-double' : ''">
-                <template v-if="jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
-                      jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length > 0">
-                  <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
-                    :style="'background-color: ' + color(correctResponseItem.contestant_id)"
-                    >
-                  </div>                  
-                </template>
-                <template v-else>
-                  <div style="background-color: gray">
-                  </div>
-                </template>
+    <div v-if="gameData && gameStatData" class="section">
+      <div class="overview">
+        <div class="overview-row">
+          <div class="caption-stack">
+            <div class="caption">Date</div>
+            <div class="value">{{ dateFormat(gameData.airdate) }}</div>
+          </div>
+          <div class="caption-stack">
+            <div class="caption">Season</div>
+            <div class="value">{{ gameData.season_id }}</div>
+          </div>
+          <div class="caption-stack">
+            <div class="caption">Game</div>
+            <div class="value">{{ gameData.game_in_season }}</div>
+          </div>
+          <div class="caption-stack">
+            <div class="caption">Type</div>
+            <div class="value">{{ playClassificationName(gameData?.play_classification, gameData?.season_id) }}</div>
+          </div>
+          <div class="caption-stack">
+            <div class="caption">TOC Period</div>
+            <div class="value">{{ gameData?.toc_period }}</div>
+          </div>
+        </div>
+        <div class="overview-row">
+          <div class="overview-window">
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>Buz$</th>
+                  <th>DD$</th>
+                  <th>FJ$</th>
+                  <th>Total$</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="gcs in gameContestantStatData" :class="gcs.contestant_id === gameData.winning_contestant_id ? 'winner' : ''">
+                  <td v-html="contestantLink(gcs.contestant_id, contestantDataById.get(gcs.contestant_id).name)"></td>
+                  <td>{{ gcsAttributes.buz_score.generatingFunction(gcs) }}</td>
+                  <td>{{ gcsAttributes.dd_score.generatingFunction(gcs) }}</td>
+                  <td>{{ gcsAttributes.fj_score.generatingFunction(gcs) }}</td>
+                  <td>{{ gcsAttributes.fj_final_score.generatingFunction(gcs) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="overview-window">
+            <div class="overview-row">
+              <div class="caption-stack">
+                <div class="caption">Total Attempt Value</div>
+                <div class="value">${{ formatNumber(gameStatData.att_value_total, 0, true) }}</div>
               </div>
-              <div v-else>
-                <div style="background-color: black">
+              <div class="caption-stack">
+                <div class="caption">Combined Positive Coryat</div>
+                <div class="value">${{ formatNumber(gameStatData.coryat_score_positive_total, 0, true) }}</div>
+              </div>
+              <div class="caption-stack">
+                <div class="caption">Contention</div>
+                <div class="value">{{ formatNumber(gameStatData.contention * 100, 0, true) }}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="gameData" class="section player-statistics">
+      <h2>Player Statistics</h2>
+      <div class="option-groups">
+        <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
+          @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
+      </div>
+      <div class="subsection">
+        <h3>Standard Metrics</h3>
+        <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
+      </div>
+      <div class="subsection">
+        <h3>Conversion Metrics</h3>
+        <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
+      </div>
+      <div class="subsection">
+        <h3>Conversion Value Metrics</h3>
+        <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
+      </div>
+    </div>
+    <div class="section">
+      <h2>Correct Responses</h2>
+      <div id="view-boards">
+        <div v-for="round in d3.range(1, gameRounds + 1)">
+          <h3>{{ roundName(round) }} Round</h3>
+          <table class="view-board" v-if="jschemaClueByRoundRowColumn && jschemaClueByRoundRowColumn.get(round) && jschemaResponseByRoundClue && jschemaResponseByRoundClue.get(round)" >
+            <tr v-for="row in d3.range(1,6)">
+              <td v-for="column in d3.range(1,7)">
+                <div v-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)"
+                    :class="jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_daily_double'] === 1 ? 'daily-double' : ''">
+                  <template v-if="jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
+                        jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length > 0">
+                    <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
+                      :style="'background-color: ' + color(correctResponseItem.contestant_id)"
+                      >
+                    </div>                  
+                  </template>
+                  <template v-else>
+                    <div style="background-color: gray">
+                    </div>
+                  </template>
+                </div>
+                <div v-else>
+                  <div style="background-color: black">
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="section" v-if="jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
+      <h2>Daily Doubles</h2>
+      <div class="game-stat-listing">
+        <table>
+          <thead>
+            <tr>
+              <th>Round</th>
+              <th>Clue</th>
+              <th>Value</th>
+              <th><span :style="'color: ' + color(gameContestantIds[0])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[0]).name }}</th>
+              <th><span :style="'color: ' + color(gameContestantIds[1])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[1]).name }}</th>
+              <th><span :style="'color: ' + color(gameContestantIds[2])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[2]).name }}</th>
+              <th>Selector</th>
+              <th>DD$</th>
+              <th>New Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="clueData in jschemaClueData.filter(c => c.is_daily_double)">
+              <td>{{ clueData.round_of_game }}</td>
+              <td>{{ clueData.clue_of_round }}</td>
+              <td>{{ clueData.value }}</td>
+              <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[0]).prescore }}</td>
+              <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[1]).prescore }}</td>
+              <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[2]).prescore }}</td>
+              <td><span :style="'color: ' + color(clueData.selecting_contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(clueData.selecting_contestant_id).name }}</td>
+              <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(clueData.selecting_contestant_id).dd_score }}</td>
+              <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(clueData.selecting_contestant_id).postscore }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section">
+      <h2>Final Jeopardy! Win Matrix</h2>
+      <div id="fj-matrix-container">
+        <div class="game-stat-listing">
+          <table>
+            <thead>
+              <tr>
+                <th>Contestant</th>
+                <th>If Incorrect</th>
+                <th>If Correct</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="gcsData in gameContestantStatData">
+                <td><span :style="'color: ' + color(gcsData.contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(gcsData.contestant_id).name }}</td>
+                <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) - Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
+                <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) + Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <table id="fj-matrix">
+          <tr>
+            <td class="empty"></td>
+            <th colspan="2" :style="'background-color: ' + threeColorSet[1]">Correct</th>
+            <th colspan="2" :style="'background-color: ' + threeColorSet[1]">Incorrect</th>
+          </tr>
+          <tr>
+            <td class="empty"></td>
+            <th :style="'background-color: ' + threeColorSet[2]">Correct</th>
+            <th :style="'background-color: ' + threeColorSet[2]">Incorrect</th>
+            <th :style="'background-color: ' + threeColorSet[2]">Correct</th>
+            <th :style="'background-color: ' + threeColorSet[2]">Incorrect</th>
+          </tr>
+          <tr>
+            <th :style="'background-color: ' + threeColorSet[0]">Correct</th>
+            <td v-for="idx in [0,1,2,3]">
+              <div>
+                <div v-for="winnerItem in finalJeopardyMatrixCells[idx]"
+                    :style="'background-color: ' + (winnerItem === -1 ? 'black' : (winnerItem === 0 ? 'gray' : threeColorSet[winnerItem-1]))"
+                    >
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <th :style="'background-color: ' + threeColorSet[0]">Incorrect</th>
+            <td v-for="idx in [4,5,6,7]">
+              <div>
+                <div v-for="winnerItem in finalJeopardyMatrixCells[idx]"
+                    :style="'background-color: ' + (winnerItem === -1 ? 'black' : (winnerItem === 0 ? 'gray' : threeColorSet[winnerItem-1]))"
+                    >
                 </div>
               </div>
             </td>
@@ -499,101 +589,16 @@ const histogramSpecification = computed(() => {
         </table>
       </div>
     </div>
-    <h2>Daily Doubles</h2>
-    <div class="section game-stat-listing" v-if="jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
-      <table>
-        <thead>
-          <tr>
-            <th>Round</th>
-            <th>Clue</th>
-            <th>Value</th>
-            <th><span :style="'color: ' + color(gameContestantIds[0])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[0]).name }}</th>
-            <th><span :style="'color: ' + color(gameContestantIds[1])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[1]).name }}</th>
-            <th><span :style="'color: ' + color(gameContestantIds[2])">&#9632;</span>&nbsp;{{ contestantDataById.get(gameContestantIds[2]).name }}</th>
-            <th>Selector</th>
-            <th>DD$</th>
-            <th>New Score</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="clueData in jschemaClueData.filter(c => c.is_daily_double)">
-            <td>{{ clueData.round_of_game }}</td>
-            <td>{{ clueData.clue_of_round }}</td>
-            <td>{{ clueData.value }}</td>
-            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[0]).prescore }}</td>
-            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[1]).prescore }}</td>
-            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameContestantIds[2]).prescore }}</td>
-            <td><span :style="'color: ' + color(clueData.selecting_contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(clueData.selecting_contestant_id).name }}</td>
-            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(clueData.selecting_contestant_id).dd_score }}</td>
-            <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(clueData.selecting_contestant_id).postscore }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <h2>Final Jeopardy! Win Matrix</h2>
-    <div id="fj-matrix-container" class="section">
-      <div class="game-stat-listing">
-        <table>
-          <thead>
-            <tr>
-              <th>Contestant</th>
-              <th>If Incorrect</th>
-              <th>If Correct</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="gcsData in gameContestantStatData">
-              <td><span :style="'color: ' + color(gcsData.contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(gcsData.contestant_id).name }}</td>
-              <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) - Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
-              <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) + Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <table id="fj-matrix">
-        <tr>
-          <td class="empty"></td>
-          <th colspan="2" :style="'background-color: ' + threeColorSet[1]">Correct</th>
-          <th colspan="2" :style="'background-color: ' + threeColorSet[1]">Incorrect</th>
-        </tr>
-        <tr>
-          <td class="empty"></td>
-          <th :style="'background-color: ' + threeColorSet[2]">Correct</th>
-          <th :style="'background-color: ' + threeColorSet[2]">Incorrect</th>
-          <th :style="'background-color: ' + threeColorSet[2]">Correct</th>
-          <th :style="'background-color: ' + threeColorSet[2]">Incorrect</th>
-        </tr>
-        <tr>
-          <th :style="'background-color: ' + threeColorSet[0]">Correct</th>
-          <td v-for="idx in [0,1,2,3]">
-            <div>
-              <div v-for="winnerItem in finalJeopardyMatrixCells[idx]"
-                  :style="'background-color: ' + (winnerItem === -1 ? 'black' : (winnerItem === 0 ? 'gray' : threeColorSet[winnerItem-1]))"
-                  >
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <th :style="'background-color: ' + threeColorSet[0]">Incorrect</th>
-          <td v-for="idx in [4,5,6,7]">
-            <div>
-              <div v-for="winnerItem in finalJeopardyMatrixCells[idx]"
-                  :style="'background-color: ' + (winnerItem === -1 ? 'black' : (winnerItem === 0 ? 'gray' : threeColorSet[winnerItem-1]))"
-                  >
-              </div>
-            </div>
-          </td>
-        </tr>
-      </table>
-    </div>
+
     <div class="section">
       <h2>Game Progress</h2>
-      <select v-model="byClueLineChartAttributeIdx">
-        <option v-for="(graphAttribute, idx) in cumulativeDataAttributesList" :value="idx">
-          {{ graphAttribute.label }}
-        </option>
-      </select>
+      <div class="option-groups">
+        <select v-model="byClueLineChartAttributeIdx">
+          <option v-for="(graphAttribute, idx) in cumulativeDataAttributesList" :value="idx">
+            {{ graphAttribute.label }}
+          </option>
+        </select>
+      </div>
       <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById"
         :data="byClueLineChartData"
         :xFunction="d => d['clue_identifier']"
@@ -644,37 +649,41 @@ const histogramSpecification = computed(() => {
     </div>
     <div class="section" v-if="histogramSpecification">
       <h2>Selectable Histograms</h2>
-      <select v-model="histogramGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.short_label }}
-        </option>
-      </select>
-      <select v-model="histogramGraphRoundIdx">
-        <option :value="0">Full Game</option>
-        <option :value="1">J! Round</option>
-        <option :value="2">DJ! Round</option>
-        <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
-      </select><br/>
+      <div class="option-groups">
+        <select v-model="histogramGraphAttributeIdx">
+          <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+            {{ graphAttribute.short_label }}
+          </option>
+        </select>
+        <select v-model="histogramGraphRoundIdx">
+          <option :value="0">Full Game</option>
+          <option :value="1">J! Round</option>
+          <option :value="2">DJ! Round</option>
+          <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
+        </select>
+      </div>
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
     <div class="section" v-if="scatterSpecification">
       <h2>Selectable Scatter Plots</h2>
-      <select v-model="xScatterGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.short_label }}
-        </option>
-      </select>
-      <select v-model="yScatterGraphAttributeIdx">
-        <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-          {{ graphAttribute.short_label }}
-        </option>
-      </select>
-      <select v-model="scatterGraphRoundIdx">
-        <option :value="0">Full Game</option>
-        <option :value="1">J! Round</option>
-        <option :value="2">DJ! Round</option>
-        <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
-      </select><br/>
+      <div class="option-groups">
+        <select v-model="xScatterGraphAttributeIdx">
+          <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+            {{ graphAttribute.short_label }}
+          </option>
+        </select>
+        <select v-model="yScatterGraphAttributeIdx">
+          <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
+            {{ graphAttribute.short_label }}
+          </option>
+        </select>
+        <select v-model="scatterGraphRoundIdx">
+          <option :value="0">Full Game</option>
+          <option :value="1">J! Round</option>
+          <option :value="2">DJ! Round</option>
+          <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
+        </select>
+      </div>
       <ScatterHistogram v-bind="scatterSpecification" />
     </div>
   </div>
@@ -684,13 +693,28 @@ const histogramSpecification = computed(() => {
 <style scoped>
 
 .component-body {
-  margin: 0 2em;
+  margin: 0 auto;
+  width: min(900px, 90vw);
+  text-align: center;
+}
+
+h2 {
+  background-color: var(--color-jometry-primary);
+  color: var(--color-text-on-jometry-primary);
+  margin-bottom: 1em;
 }
 
 .section {
-  padding: 0.5em 0 2em 0;
-  border-bottom: 1px solid black;
-  max-width: min(95vw, 960px);
+  margin-top: var(--section-gap);
+  text-align: center;
+}
+
+.section .subsection {
+  padding: 1em 0 0 0;
+}
+
+.section.player-statistics :deep(table) {
+  width: 100%;
 }
 
 table.view-board td {
@@ -770,7 +794,7 @@ div#view-boards > div {
 }
 
 .game-stat-listing table thead tr th {
-    background: #CCCCCC;
+  background: var(--color-jometry-secondary)
 }
 
 .game-stat-listing table tbody tr:nth-child(even) td {
@@ -788,4 +812,71 @@ div#view-boards > div {
 .game-stat-listing table td {
     text-align: center;
 }
+
+.overview {
+  text-align: center;
+  background-color: var(--color-jometry-primary);
+  color: var(--color-text-on-jometry-primary);
+  border-radius: 15px;
+}
+
+.overview .value {
+  font-size: 28px;
+}
+
+.overview .caption {
+  font-size: 16px;
+}
+
+.overview .overview-row {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-around;
+}
+
+.overview .overview-row > div {
+  margin: 1em 1em;
+}
+
+.overview .overview-window {
+  background-color: white;
+  color: black;
+  padding: 0.5em 0.5em;
+  border-radius: 15px;
+  flex-grow: 1;
+}
+
+.overview table {
+  margin: 0 auto;
+}
+
+.overview table td, .overview table th {
+  padding: 0.1em 0.5em;
+}
+
+.overview table tr.winner td {
+  font-weight: bold;
+}
+
+.overview table td:first-child {
+  text-align: left;
+}
+
+.option-groups {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  background-color: var(--color-jometry-secondary);
+  max-width: 75%;
+  margin: 0 auto;
+}
+
+.option-groups {
+  padding: 0.5em 0.25em;
+}
+
+.option-groups > div {
+  margin: auto 0.5em;
+}
+
 </style>
