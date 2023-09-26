@@ -706,6 +706,7 @@ h2 {
   background-color: var(--color-jometry-primary);
   color: var(--color-text-on-jometry-primary);
   margin-bottom: 1em;
+  border-radius: 15px;
 }
 
 .section {
@@ -877,6 +878,7 @@ div#view-boards > div {
 
 .option-groups {
   padding: 0.5em 0.25em;
+  border-radius: 15px;
 }
 
 .option-groups > div {

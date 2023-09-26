@@ -106,6 +106,7 @@ const contestantData = data.contestantDataById
     background-color: var(--color-jometry-primary);
     color: var(--color-text-on-jometry-primary);
     padding: 0 1em;
+    border-radius: 15px;
 }
 
 .toc-period-play-class {
@@ -117,6 +118,7 @@ const contestantData = data.contestantDataById
     background-color: var(--color-jometry-secondary);
     color: var(--color-text-on-jometry-secondary);
     padding: 0 1em;
+    border-radius: 15px;
 }
 
 .toc-period-play-class  :deep(div) {

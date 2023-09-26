@@ -620,6 +620,7 @@ h2 {
   background-color: var(--color-jometry-primary);
   color: var(--color-text-on-jometry-primary);
   margin-bottom: 1em;
+  border-radius: 15px;
 }
 
 .section {
@@ -650,6 +651,7 @@ h2 {
 
 .option-groups > div {
   margin: auto 0.5em;
+  border-radius: 15px;
 }
 
 </style>
