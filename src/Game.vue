@@ -431,7 +431,8 @@ const histogramSpecification = computed(() => {
             <div class="overview-row">
               <div class="caption-stack">
                 <div class="caption">Total Attempt Value</div>
-                <div class="value">${{ formatNumber(gameStatData.att_value_total, 0, true) }}</div>
+                <div class="value" v-if="gameStatData.att_value_total > 0">${{ formatNumber(gameStatData.att_value_total, 0, true) }}</div>
+                <div class="value" v-else></div>
               </div>
               <div class="caption-stack">
                 <div class="caption">Combined Positive Coryat</div>
@@ -439,7 +440,8 @@ const histogramSpecification = computed(() => {
               </div>
               <div class="caption-stack">
                 <div class="caption">Contention</div>
-                <div class="value">{{ formatNumber(gameStatData.contention * 100, 0, true) }}%</div>
+                <div class="value" v-if="gameStatData.contention > 0">{{ formatNumber(gameStatData.contention * 100, 0, true) }}%</div>
+                <div class="value" v-else></div>
               </div>
             </div>
           </div>
