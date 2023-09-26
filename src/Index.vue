@@ -23,7 +23,7 @@ const contestantData = data.contestantDataById
   <Header />
   <div class="component-body">
     <div v-if="gameData && contestantData">
-      <div v-for="tocPeriod in ['2023']" class="toc-period">
+      <div v-for="tocPeriod in ['2024']" class="toc-period">
         <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
           <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod">Summary</a>
           <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
