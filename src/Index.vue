@@ -74,8 +74,8 @@ const contestantData = data.contestantDataById
           </div>
         </div>
       </div>
-      <div v-for="tocPeriod in ['C2023']" class="toc-period">
-        <div class="toc-period-header">{{ tocPeriod.substring(1) }} Primetime Celebrity Tournament
+      <div v-for="tocPeriod in ['C2022']" class="toc-period">
+        <div class="toc-period-header">2022-23 Primetime Celebrity Tournament
           <a :href="'/period.html?data_source=celebrity&toc_period=' + tocPeriod">Summary</a>
         </div>
         <div v-for="season in gameData.get(tocPeriod).keys()">
