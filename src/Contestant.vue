@@ -77,6 +77,9 @@ function gameLink(game_id, season_id, game_of_season) {
     '">' + season_id + '-' + game_of_season + '</a>'
 }
 
+const roundOptionLabels = ref(['Full Game', 'J Round', 'DJ Round'])
+const selectedRoundIndex = ref(0)
+
 const baseScoringTableRows = data.computedIfRefHasValues(
   [data.gameDataById, singleContestantGameContestantStatData],
   (gData, gcsData) => {
@@ -94,7 +97,10 @@ const baseScoringTableRows = data.computedIfRefHasValues(
 const baseScoringTableData = data.computedIfRefHasValues(
   [singleContestantGameContestantStatData, singleContestantRoundContestantStatData],
   (gcsData, gcrsData) => {
-    return d3.index(gcsData, gcs => gcs.game_id)
+    if (selectedRoundIndex.value === 0) {
+      return d3.index(gcsData, gcs => gcs.game_id)
+    }
+    return d3.index(gcrsData.get(selectedRoundIndex.value), gcs => gcs.game_id)
   })
 
 const constructScoringTableSpecification = function(attrSpecs) {
@@ -126,10 +132,23 @@ const constructScoringTableSpecification = function(attrSpecs) {
         return row
       })
 
+      var footerRows = [
+        [ { value: 'Average' } ]
+      ]
+
+      footerRows[0] = footerRows[0].concat(attrSpecs.map(attr => {
+        const gameIds = baseRows.map(baseRow => baseRow.game_id)
+        const gcses = gameIds.flatMap(gid => gcsData.get(gid))
+        return {
+          value: attr.averageDisplayFormat(d3.mean(gcses.map(attr.generatingFunction)))
+        }
+      }))
+
+
       return {
         columns: columns,
         rows: rows,
-        footerRows: [],
+        footerRows: footerRows,
         initialSortColumnIndex: 0,
         initialSortDescending: false
       }
@@ -333,6 +352,11 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
     </div>
     <div class="section" v-if="standardScoringTableSpec && conversionScoringTableSpec && conversionValueScoringTableSpec">
+      <h2>Game Statistic Tables</h2>
+      <div class="option-groups">
+        <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
+          @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
+      </div>
       <div class="subsection">
         <h3>Standard Metrics</h3>
         <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />

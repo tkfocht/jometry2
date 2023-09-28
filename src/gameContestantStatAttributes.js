@@ -156,7 +156,7 @@ const time_value = {
     label: 'Timing Value',
     description: 'Estimated clue value of buzzes earned through timing',
     generatingFunction: gcs => gcs.timing_value,
-    valueDisplayFormat: v => formatNumber(v, 0, false),
+    valueDisplayFormat: v => formatNumber(v, 0, false, true),
     averageDisplayFormat: v => formatNumber(v, 0, false, true),
     bins: { size: 500 }
 }
