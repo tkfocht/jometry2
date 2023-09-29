@@ -9,42 +9,31 @@ const props = defineProps({
   chart: Object
 })
 
-const screenWidth = ref(0)
-const screenHeight = ref(0)
-const onResize = function() {
-    screenWidth.value = window.innerWidth
-    screenHeight.value = window.innerHeight
-}
-const debouncedOnResize = _.debounce(onResize, 100, {leading: false, trailing: true})
-window.addEventListener("resize", debouncedOnResize);
-
 onMounted(() => {
-    screenWidth.value = window.innerWidth
-
-    if (props.chart) Plotly.newPlot(c.value, props.chart.traces, props.chart.layout)
+    if (props.chart) Plotly.newPlot(c.value, props.chart.traces, props.chart.layout, {responsive: true})
     else Plotly.newPlot(c.value, [], {})
 })
 
 watch(() => props.chart, (newValue, oldValue) => {
-    Plotly.react(c.value, newValue.traces, newValue.layout)
-}, { deep: true })
-
-watch(() => screenWidth, (newValue, oldValue) => {
-    Plotly.newPlot(c.value, props.chart.traces, props.chart.layout)
-}, { deep: true })
-watch(() => screenHeight, (newValue, oldValue) => {
-    Plotly.newPlot(c.value, props.chart.traces, props.chart.layout)
+    Plotly.react(c.value, newValue.traces, newValue.layout, newValue.config)
 }, { deep: true })
 
 </script>
 
 <template>
-    <div ref="c" class="graph"></div>
+    <div ref="c" class="graph ratio"></div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/mixins';
+
 div.graph {
     width: min(95vw, 900px);
-    height: max(min(95vh, 450px), 200px);
+    --bs-aspect-ratio: 100%;
+    @include media-breakpoint-up(sm) {
+        --bs-aspect-ratio: calc(9 / 16 * 100%);
+    }
 }
 </style>
