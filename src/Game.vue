@@ -128,7 +128,8 @@ function contestantLegend (contestant_id, contestant_name) {
 }
 
 //Tables
-const roundOptionLabels = ref(['Full Game', 'J Round', 'DJ Round'])
+const roundOptionLabels = computed(() => 
+  ['Full Game', 'J Round', 'DJ Round'].concat(gameRounds.value && gameRounds.value > 2 ? ['TJ Round'] : []))
 const selectedRoundIndex = ref(0)
 
 const baseScoringTableData = data.computedIfRefHasValues(
