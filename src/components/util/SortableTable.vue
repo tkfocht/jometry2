@@ -33,7 +33,7 @@ function setSortColumn(newSortColumn) {
 <template>
     <div class="table-container">
         <table v-if="props.columns && sortedRows">
-            <thead class="bg-secondary">
+            <thead>
                 <tr>
                     <th v-for="column, colIdx in columns">
                         <div class="column-header-container has-tooltip" @click="setSortColumn(colIdx)">
@@ -67,7 +67,10 @@ function setSortColumn(newSortColumn) {
     </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@import '@/assets/_variables.scss';
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
 
 
 .table-container {
@@ -119,6 +122,10 @@ table tr:first-child th, table tr:first-child td {
 
 table tr:last-child th, table tr:last-child td {
     border-bottom: 2px solid black;
+}
+
+table th {
+    background-color: $secondary;
 }
 
 table th:hover {

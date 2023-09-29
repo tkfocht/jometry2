@@ -1,15 +1,8 @@
-$colorJometryPrimary: #0072B2;
-$colorJometrySecondary: #C4E0F9;
+@import './variables.scss';
 
-$font-family-base: Roboto, Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-$font-size-base: 1rem;
-$line-height-base: 1.6;
-
-$sectionGap: 3rem;
-
-$primary: $colorJometryPrimary;
-$secondary: $colorJometrySecondary;
-
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/mixins';
 @import 'bootstrap/scss/bootstrap';
 
 a:link, a:visited, a:hover {
@@ -119,4 +112,5 @@ a:link, a:visited, a:hover {
   flex-flow: row nowrap;
   justify-content: center;
   align-items: stretch;
+  max-width: 100%;
 }

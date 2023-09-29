@@ -691,7 +691,10 @@ const histogramSpecification = computed(() => {
   <Footer/>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/mixins';
 
 .section.player-statistics :deep(table) {
   width: 100%;
@@ -764,12 +767,17 @@ div#view-boards > div {
 .game-stat-listing {
   display: flex;
   flex-flow: row wrap;
-  justify-content: space-around;  
+  justify-content: flex-start;
+  overflow-x: auto;
 }
 
 .game-stat-listing table {
-    border-collapse: collapse;
-    font-size: 13px;
+  border-collapse: collapse;
+  font-size: 0.6rem;
+  align-self: left;
+  @include media-breakpoint-up(sm) {
+    font-size: 0.8rem;
+  }
 }
 
 .game-stat-listing table th, .game-stat-listing table td {
@@ -802,9 +810,13 @@ div#view-boards > div {
   margin: 0 auto;
 }
 
+
 .overview table td, .overview table th {
   padding: 0.1rem 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.6rem;
+  @include media-breakpoint-up(sm) {
+    font-size: 0.8rem;
+  }
 }
 
 .overview table tr.winner td {
