@@ -1,37 +1,27 @@
 <template>
-    <div id="header" class="navbar text-bg-primary">
-        <div id="site-mast"><a href="/">J!ometry</a></div>
-        <div id="navigation">
-            <span class="navigation-item"><a href="/">Home</a></span>
-            <span class="navigation-item"><a href="/contestant_index.html">Contestant&nbsp;Index</a></span>
-            <span class="navigation-item"><a href="/glossary.html">Glossary</a></span>
-            <span class="navigation-item"><a href="https:///jometry.substack.com">Substack</a></span>
-            <span class="navigation-item"><a href="/about.html">About</a></span>
+    <div class="navbar navbar-dark navbar-expand-md text-bg-primary navbar-primary">
+        <div id="site-mast" class="navbar-brand text-bg-primary ms-3"><a href="/">J!ometry</a></div>
+        <button class="navbar-toggler me-3" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" area-expanded="false" area-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="navbarSupportedContent" class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-md-0 ms-2">
+                <li class="nav-item ms-md-3"><a href="/">Home</a></li>
+                <li class="nav-item ms-md-3"><a href="/contestant_index.html">Contestant&nbsp;Index</a></li>
+                <li class="nav-item ms-md-3"><a href="/glossary.html">Glossary</a></li>
+                <li class="nav-item ms-md-3"><a href="https:///jometry.substack.com">Substack</a></li>
+                <li class="nav-item ms-md-3"><a href="/about.html">About</a></li>
+            </ul>
         </div>
     </div>
 </template>
 
 <style lang="scss" scoped>
-#header {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-#site-mast {
-    font-size: 1.5rem;
-    margin-left: 0.5em;
-    margin-right: 1em;
-}
-
-.navigation-item {
-    margin: auto 0.7rem;
-}
-
 a:link, a:visited, a:hover {
   text-decoration: none;
 }
+
 </style>
 
