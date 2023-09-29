@@ -319,7 +319,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <div v-if="singleContestantData && singleContestantGameContestantStatData" class="subsection">
         <div class="overview">
           <div class="overview-row">
-            <div class="value">{{ singleContestantData.name }}</div>
+            <div id="overview-name" class="value">{{ singleContestantData.name }}</div>
             <div class="overview-window">
               <div class="overview-row">
                 <div class="caption-stack">
@@ -434,6 +434,11 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
 
 #contestant-overview.section {
   margin-top: 1em;
+}
+
+#overview-name {
+  min-width: 40%;
+  align-self: center;
 }
 
 .section :deep(table) {
