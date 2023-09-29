@@ -7,8 +7,8 @@ import Header from './components/Header.vue'
   <Header />
   <div class="component-body">
     <div class="section">
-      <h1>Construction</h1>
-      <div class="graph-description">
+      <div class="section-header">Construction</div>
+      <div class="about-text">
         <p>
           J!ometry is built and maintained by 2021 4-day champion and 2022 TOC semifinalist
           <a href="https://j-ometry.com/contestant.html?contestant_id=287">John Focht</a>. The origin
@@ -21,8 +21,8 @@ import Header from './components/Header.vue'
       </div>
     </div>
     <div class="section">
-      <h1>Data Usage</h1>
-      <div class="graph-description">
+      <div class="section-header">Data Usage</div>
+      <div class="about-text">
         <p>
           Although things have grown beyond that now, the original intent was just to compile and make
           the box score data available. A CSV containing data from all box score games is <a href="https://j-ometry.com/csvs/box.csv">available</a>
@@ -37,16 +37,16 @@ import Header from './components/Header.vue'
       </div>
     </div>
     <div class="section">
-      <h1>Issues</h1>
-      <div class="graph-description">
+      <div class="section-header">Issues</div>
+      <div class="about-text">
         Please report data issues to me by commenting on <a href="https://jometry.substack.com">Substack</a> or by tagging <a href="https://bsky.app/profile/j-ometry.com">@j-ometry.com</a>
         on Bluesky. The site's not really mature enough to take on other kinds of issues systematically yet. There is a work backlog
         but it's not ready for the public.
       </div>
     </div>
     <div class="section">
-      <h1>Acknowledgements</h1>
-      <div class="graph-description">
+      <div class="section-header">Acknowledgements</div>
+      <div class="about-text">
         The site is only possible through the combination of data from Jeopardy!'s published <a href="https://www.jeopardy.com/track/jeopardata">box scores</a> with
         data and metadata pulled from <a href="https://j-archive.com">J! Archive</a>.
       </div>
@@ -57,31 +57,8 @@ import Header from './components/Header.vue'
 
 <style scoped>
 
-.component-body {
-  margin: 0 2em;
+.about-text {
+  text-align: left;
 }
-
-.section {
-  padding: 0.5em 0 2em 0;
-  width: 960px;
-}
-
-.entry {
-  margin: 0 0 1em 0;
-}
-
-.definition {
-  margin: 0 0 0 1em;
-}
-
-p {
-  margin-bottom: 1em;
-}
-
-p:last-child {
-  margin-bottom: 0;
-}
-
-
 
 </style>

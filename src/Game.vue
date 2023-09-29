@@ -410,7 +410,7 @@ const histogramSpecification = computed(() => {
         </div>
         <div class="overview-row">
           <div class="overview-window">
-            <table>
+            <table id="game-result-overview">
               <thead>
                 <tr>
                   <th></th>
@@ -453,29 +453,29 @@ const histogramSpecification = computed(() => {
       </div>
     </div>
     <div v-if="gameData" class="section player-statistics">
-      <h2>Player Statistics</h2>
+      <div class="section-header">Player Statistics</div>
       <div class="option-groups">
         <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
           @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
       </div>
       <div class="subsection">
-        <h3>Standard Metrics</h3>
+        <div class="subsection-header">Standard Metrics</div>
         <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
       </div>
       <div class="subsection">
-        <h3>Conversion Metrics</h3>
+        <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
       </div>
       <div class="subsection">
-        <h3>Conversion Value Metrics</h3>
+        <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
       </div>
     </div>
     <div class="section">
-      <h2>Correct Responses</h2>
+      <div class="section-header">Correct Responses</div>
       <div id="view-boards">
         <div v-for="round in d3.range(1, gameRounds + 1)">
-          <h3>{{ roundName(round) }} Round</h3>
+          <div class="subsection-header">{{ roundName(round) }} Round</div>
           <table class="view-board" v-if="jschemaClueByRoundRowColumn && jschemaClueByRoundRowColumn.get(round) && jschemaResponseByRoundClue && jschemaResponseByRoundClue.get(round)" >
             <tr v-for="row in d3.range(1,6)">
               <td v-for="column in d3.range(1,7)">
@@ -504,11 +504,11 @@ const histogramSpecification = computed(() => {
       </div>
     </div>
     <div class="section" v-if="jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
-      <h2>Daily Doubles</h2>
+      <div class="section-header">Daily Doubles</div>
       <div class="game-stat-listing">
         <table>
           <thead>
-            <tr>
+            <tr class="bg-secondary">
               <th>Round</th>
               <th>Clue</th>
               <th>Value</th>
@@ -537,12 +537,12 @@ const histogramSpecification = computed(() => {
       </div>
     </div>
     <div class="section">
-      <h2>Final Jeopardy! Win Matrix</h2>
+      <div class="section-header">Final Jeopardy! Win Matrix</div>
       <div id="fj-matrix-container">
         <div class="game-stat-listing">
           <table>
             <thead>
-              <tr>
+              <tr class="bg-secondary">
                 <th>Contestant</th>
                 <th>If Incorrect</th>
                 <th>If Correct</th>
@@ -597,7 +597,7 @@ const histogramSpecification = computed(() => {
     </div>
 
     <div class="section">
-      <h2>Game Progress</h2>
+      <div class="section-header">Game Progress</div>
       <div class="option-groups">
         <OptionDropdown
           :optionLabels="cumulativeDataAttributesList.map(attr => attr.label)"
@@ -617,7 +617,7 @@ const histogramSpecification = computed(() => {
       />
     </div>
     <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
-      <h2>Attempts</h2>
+      <div class="section-header">Attempts</div>
       <StackValueBarChart 
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
@@ -633,7 +633,7 @@ const histogramSpecification = computed(() => {
         :title="'Attempts'"/>
     </div>
     <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
-      <h2>Attempt Values</h2>
+      <div class="section-header">Attempt Values</div>
       <StackValueBarChart 
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
@@ -649,7 +649,7 @@ const histogramSpecification = computed(() => {
         :title="'Attempt Values'"/>
     </div>
     <div class="section" v-if="histogramSpecification">
-      <h2>Selectable Histograms</h2>
+      <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
         <select v-model="histogramGraphAttributeIdx">
           <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
@@ -666,7 +666,7 @@ const histogramSpecification = computed(() => {
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
     <div class="section" v-if="scatterSpecification">
-      <h2>Selectable Scatter Plots</h2>
+      <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <select v-model="xScatterGraphAttributeIdx">
           <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
@@ -722,10 +722,15 @@ table.view-board div div {
     flex-grow: 1;
 }
 
+table#fj-matrix {
+  border-collapse: separate;
+}
+
 table#fj-matrix td, table#fj-matrix th {
     width: 70px;
     height: 40px;
     border: 1px solid black;
+    font-size: 13px;
 }
 
 table#fj-matrix td.empty {
@@ -798,7 +803,8 @@ div#view-boards > div {
 }
 
 .overview table td, .overview table th {
-  padding: 0.1em 0.5em;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.8rem;
 }
 
 .overview table tr.winner td {

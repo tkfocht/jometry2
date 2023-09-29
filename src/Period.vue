@@ -519,7 +519,7 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
       wins
     </div>
     <div class="section">
-      <h2>Statistics Tables</h2>
+      <div class="section-header">Statistics Tables</div>
       <div class="option-groups">
         <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
           @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
@@ -527,37 +527,37 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
           @newSelectionIndex="(idx) => selectedAggregationIndex = idx" />
       </div>
       <div class="subsection">
-        <h3>Standard Metrics</h3>
+        <div class="subsection-header">Standard Metrics</div>
         <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
       </div>
       <div class="subsection">
-        <h3>Conversion Metrics</h3>
+        <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
       </div>
       <div class="subsection">
-        <h3>Conversion Value Metrics</h3>
+        <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
       </div>
     </div>
     <div class="section">
-      <h2>Attempts</h2>
+      <div class="section-header">Attempts</div>
       <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
     <div class="section">
-      <h2>Attempt Values</h2>
+      <div class="section-header">Attempt Values</div>
       <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
     <div class="section">
-      <h2>Total Attempts</h2>
+      <div class="section-header">Total Attempts</div>
       <LineChart v-bind="totalAttemptsChartSpecification" />
     </div>
     <div class="section">
-      <h2>Rolling Averages</h2>
+      <div class="section-header">Rolling Averages</div>
       <div class="option-groups">
         <OptionGroup :optionLabels="rollingAverageRollCountLabels" :selectionIndex="rollingAverageRollCountIdx"
           @newSelectionIndex="(idx) => rollingAverageRollCountIdx = idx" />
         <OptionDropdown
-          :optionLabels="rollingGameStatAttributes.map(attr => attr.short_label)"
+          :optionLabels="rollingGameStatAttributes.map(attr => attr.label)"
           :selectionIndex="rollingAverageGraphAttributeIdx"
           @newSelectionIndex="(idx) => rollingAverageGraphAttributeIdx = idx"
         />
@@ -565,36 +565,36 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
       <LineChart v-bind="rollingChartSpecification" />
     </div>
     <div class="section">
-      <h2>Selectable Box and Whisker Plots</h2>
+      <div class="section-header">Selectable Box and Whisker Plots</div>
       <div class="option-groups">
-        <select v-model="boxWhiskerGraphAttributeIdx">
-          <option v-for="(attr, idx) in boxWhiskerGraphAttributes" :value="idx">
-            {{ attr.short_label }}
-          </option>
-        </select>
+        <OptionDropdown
+          :optionLabels="boxWhiskerGraphAttributes.map(attr => attr.label)"
+          :selectionIndex="boxWhiskerGraphAttributeIdx"
+          @newSelectionIndex="(idx) => boxWhiskerGraphAttributeIdx = idx"
+        />
       </div>
       <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
     <div class="section">
-      <h2>Selectable Scatter Plots</h2>
+      <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
-        <select v-model="xScatterGraphAttributeIdx">
-          <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-            {{ graphAttribute.short_label }}
-          </option>
-        </select>
-        <select v-model="yScatterGraphAttributeIdx">
-          <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-            {{ graphAttribute.short_label }}
-          </option>
-        </select>
+        <OptionDropdown
+          :optionLabels="scatterGraphAttributes.map(attr => attr.label)"
+          :selectionIndex="xScatterGraphAttributeIdx"
+          @newSelectionIndex="(idx) => xScatterGraphAttributeIdx = idx"
+        />
+        <OptionDropdown
+          :optionLabels="scatterGraphAttributes.map(attr => attr.label)"
+          :selectionIndex="yScatterGraphAttributeIdx"
+          @newSelectionIndex="(idx) => yScatterGraphAttributeIdx = idx"
+        />
       </div>
       <div class="subsection">
-        <h3>All Games</h3>
+        <div class="subsection-header">All Games</div>
         <ScatterHistogram v-bind="scatterGraphSpecification"/>
       </div>
       <div class="subsection">
-        <h3>Average by Contestant</h3>
+        <div class="subsection-header">Average by Contestant</div>
         <ScatterHistogram v-bind="averageScatterGraphSpecification"/>
       </div>
     </div>

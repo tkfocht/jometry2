@@ -104,7 +104,7 @@ th .column-header-container .sort-control .active {
 
 table {
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 0.8rem;
 }
 
 table th, table td {
@@ -114,11 +114,11 @@ table th, table td {
 }
 
 table tr:first-child th, table tr:first-child td {
-    border-top: 2px solid #000000;
+    border-top: 2px solid black;
 }
 
 table tr:last-child th, table tr:last-child td {
-    border-bottom: 2px solid #000000;
+    border-bottom: 2px solid black;
 }
 
 table th:hover {

@@ -8,6 +8,7 @@ import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
+import OptionDropdown from './components/util/OptionDropdown.vue'
 import OptionGroup from './components/util/OptionGroup.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import SortableTable from './components/util/SortableTable.vue'
@@ -352,26 +353,26 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
     </div>
     <div class="section" v-if="standardScoringTableSpec && conversionScoringTableSpec && conversionValueScoringTableSpec">
-      <h2>Game Statistic Tables</h2>
+      <div class="section-header">Game Statistic Tables</div>
       <div class="option-groups">
         <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
           @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
       </div>
       <div class="subsection">
-        <h3>Standard Metrics</h3>
+        <div class="subsection-header">Standard Metrics</div>
         <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
       </div>
       <div class="subsection">
-        <h3>Conversion Metrics</h3>
+        <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
       </div>
       <div class="subsection">
-        <h3>Conversion Value Metrics</h3>
+        <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
       </div>
     </div>
     <div v-if="singleContestantGameContestantStatData" class="section">
-      <h2>Attempts</h2>
+      <div class="section-header">Attempts</div>
       <div class="option-groups">
         <OptionGroup
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
@@ -381,7 +382,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
     <div v-if="singleContestantGameContestantStatData" class="section">
-      <h2>Attempt Value</h2>
+      <div class="section-header">Attempt Value</div>
       <div class="option-groups">
         <OptionGroup
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
@@ -391,13 +392,13 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
     <div class="section">
-      <h2>Selectable Histograms</h2>
+      <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
-        <select v-model="histogramGraphAttributeIdx">
-          <option v-for="(graphAttribute, idx) in histogramGraphAttributes" :value="idx">
-            {{ graphAttribute.short_label }}
-          </option>
-        </select>
+        <OptionDropdown
+          :optionLabels="histogramGraphAttributes.map(attr => attr.label)"
+          :selectionIndex="histogramGraphAttributeIdx"
+          @newSelectionIndex="(idx) => histogramGraphAttributeIdx = idx"
+        />
         <OptionGroup
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
           :selectionIndex="histogramGraphRoundIdx"
@@ -406,18 +407,18 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
     <div class="section">
-      <h2>Selectable Scatter Plots</h2>
+      <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
-        <select v-model="xScatterGraphAttributeIdx">
-          <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-            {{ graphAttribute.short_label }}
-          </option>
-        </select>
-        <select v-model="yScatterGraphAttributeIdx">
-          <option v-for="(graphAttribute, idx) in scatterGraphAttributes" :value="idx">
-            {{ graphAttribute.short_label }}
-          </option>
-        </select>
+        <OptionDropdown
+          :optionLabels="scatterGraphAttributes.map(attr => attr.label)"
+          :selectionIndex="xScatterGraphAttributeIdx"
+          @newSelectionIndex="(idx) => xScatterGraphAttributeIdx = idx"
+        />
+        <OptionDropdown
+          :optionLabels="scatterGraphAttributes.map(attr => attr.label)"
+          :selectionIndex="yScatterGraphAttributeIdx"
+          @newSelectionIndex="(idx) => yScatterGraphAttributeIdx = idx"
+        />
         <OptionGroup
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
           :selectionIndex="scatterGraphRoundIdx"

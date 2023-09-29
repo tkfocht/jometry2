@@ -110,32 +110,32 @@ const contestantData = data.contestantDataById
 }
 
 .toc-period .toc-period-header {
-    font-size: 24px;
-    padding: 0 1em;
+    font-size: 1.5rem;
+    padding: 0 1rem;
+    margin-bottom: 1rem;
     border-radius: 15px;
 }
 
 .toc-period-play-class {
-    margin: 2em 2em;
+    margin: 0 1rem 1rem 1rem;
 }
 
 .toc-period-play-class .toc-period-play-class-header {
-    font-size: 24px;
-    padding: 0 1em;
+    font-size: 1.25rem;
     border-radius: 15px;
 }
 
 .toc-period-play-class  :deep(div) {
-    padding: 0 1em;
+    padding: 0 1rem;
 }
 
 .toc-period-play-class .toc-period-play-class-header a {
-    font-size: 0.75rem;
+    font-size: 1rem;
 }
 
 .toc-period .toc-period-header a {
-    font-size: 0.75rem;
-    margin-left: 1em;
+    font-size: 1rem;
+    margin-left: 1rem;
 }
 
 </style>
