@@ -9,6 +9,7 @@ import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import CumulativeLineChart from './components/util/CumulativeLineChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
+import OptionDropdown from './components/util/OptionDropdown.vue'
 import OptionGroup from './components/util/OptionGroup.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import SortableTable from './components/util/SortableTable.vue'
@@ -597,11 +598,11 @@ const histogramSpecification = computed(() => {
     <div class="section">
       <h2>Game Progress</h2>
       <div class="option-groups">
-        <select v-model="byClueLineChartAttributeIdx">
-          <option v-for="(graphAttribute, idx) in cumulativeDataAttributesList" :value="idx">
-            {{ graphAttribute.label }}
-          </option>
-        </select>
+        <OptionDropdown
+          :optionLabels="cumulativeDataAttributesList.map(attr => attr.label)"
+          :selectionIndex="byClueLineChartAttributeIdx"
+          @newSelectionIndex="(idx) => byClueLineChartAttributeIdx = idx"
+        />
       </div>
       <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById"
         :data="byClueLineChartData"
@@ -614,11 +615,6 @@ const histogramSpecification = computed(() => {
         :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
       />
     </div>
-    <!--
-    <div class="section">
-      <h2>Lead Ratio</h2>
-      <ReactiveChart :chart="leadRatioChartData"/>
-    </div>-->
     <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
       <h2>Attempts</h2>
       <StackValueBarChart 

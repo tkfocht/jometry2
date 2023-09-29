@@ -24,7 +24,7 @@ const contestantData = data.contestantDataById
   <div class="component-body">
     <div v-if="gameData && contestantData">
       <div v-for="tocPeriod in ['2024']" class="toc-period section">
-        <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period<br/>
+        <div class="toc-period-header bg-primary text-white">{{ tocPeriod }} Tournament of Champions Period<br/>
           <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod">Summary</a>
           <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
           <a :href="'/period.html?data_source=standard&toc_period=2021,2022&play_classification=regular&contestants=267,164,542,492,318,186,458,348,437,144,473,371,290,638,284,621,588,306,570,461,374,359,330,212,602,632,650'">S37 SCC Players Summary</a>
@@ -32,55 +32,55 @@ const contestantData = data.contestantDataById
         </div>
         <div v-for="season in gameData.get(tocPeriod).keys()">
           <div v-for="playClassification in gameData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
-            <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <div class="toc-period-play-class-header bg-secondary">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
               <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
             <ToggleableGameListing :contestantData="contestantData" :gameData="gameData.get(tocPeriod).get(season).get(playClassification)"/>
           </div>
         </div>
       </div>
       <div v-for="tocPeriod in ['M2023']" class="toc-period">
-        <div class="toc-period-header">{{ tocPeriod.substring(1) }} Masters
+        <div class="toc-period-header bg-primary text-white">{{ tocPeriod.substring(1) }} Masters
         </div>
         <div v-for="season in gameData.get(tocPeriod).keys()">
           <div v-for="playClassification in gameData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
-            <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <div class="toc-period-play-class-header bg-secondary">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
               <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
             <ToggleableGameListing :contestantData="contestantData" :gameData="gameData.get(tocPeriod).get(season).get(playClassification)"/>
           </div>
         </div>
       </div>
       <div v-for="tocPeriod in ['2022', '2021', '2019']" class="toc-period">
-        <div class="toc-period-header">{{ tocPeriod }} Tournament of Champions Period
+        <div class="toc-period-header bg-primary text-white">{{ tocPeriod }} Tournament of Champions Period
           <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod">Summary</a>
           <a :href="'/period.html?data_source=standard&toc_period=' + tocPeriod + '&play_classification=regular'">Regular Play Summary</a>
         </div>
         <div v-for="season in gameData.get(tocPeriod).keys()">
           <div v-for="playClassification in gameData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
-            <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <div class="toc-period-play-class-header bg-secondary">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
               <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
             <ToggleableGameListing :contestantData="contestantData" :gameData="gameData.get(tocPeriod).get(season).get(playClassification)"/>
           </div>
         </div>
       </div>
       <div v-for="tocPeriod in ['T2019','T2018']" class="toc-period">
-        <div class="toc-period-header">{{ tocPeriod.substring(1) }} Teen Tournament
+        <div class="toc-period-header bg-primary text-white">{{ tocPeriod.substring(1) }} Teen Tournament
           <a :href="'/period.html?toc_period=' + tocPeriod">Summary</a>
         </div>
         <div v-for="season in gameData.get(tocPeriod).keys()">
           <div v-for="playClassification in gameData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
-            <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <div class="toc-period-play-class-header bg-secondary">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
               <a :href="'/period.html?toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
             <ToggleableGameListing :contestantData="contestantData" :gameData="gameData.get(tocPeriod).get(season).get(playClassification)"/>
           </div>
         </div>
       </div>
       <div v-for="tocPeriod in ['C2022']" class="toc-period">
-        <div class="toc-period-header">2022-23 Primetime Celebrity Tournament
+        <div class="toc-period-header bg-primary text-white">2022-23 Primetime Celebrity Tournament
           <a :href="'/period.html?data_source=celebrity&toc_period=' + tocPeriod">Summary</a>
         </div>
         <div v-for="season in gameData.get(tocPeriod).keys()">
           <div v-for="playClassification in gameData.get(tocPeriod).get(season).keys()" class="toc-period-play-class">
-            <div class="toc-period-play-class-header">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
+            <div class="toc-period-play-class-header bg-secondary">Season {{ season }}, {{ playClassificationName(playClassification, season) }}
               <a :href="'/period.html?data_source=celebrity&toc_period=' + tocPeriod + '&season=' + season + '&play_classification=' + playClassification">Summary</a></div>
             <ToggleableGameListing :contestantData="contestantData" :gameData="gameData.get(tocPeriod).get(season).get(playClassification)"/>
           </div>
@@ -99,8 +99,6 @@ const contestantData = data.contestantDataById
 
 .toc-period .toc-period-header {
     font-size: 24px;
-    background-color: var(--color-jometry-primary);
-    color: var(--color-text-on-jometry-primary);
     padding: 0 1em;
     border-radius: 15px;
 }
@@ -111,8 +109,6 @@ const contestantData = data.contestantDataById
 
 .toc-period-play-class .toc-period-play-class-header {
     font-size: 24px;
-    background-color: var(--color-jometry-secondary);
-    color: var(--color-text-on-jometry-secondary);
     padding: 0 1em;
     border-radius: 15px;
 }
@@ -122,10 +118,11 @@ const contestantData = data.contestantDataById
 }
 
 .toc-period-play-class .toc-period-play-class-header a {
-    font-size: 13px;
+    font-size: 0.75rem;
 }
+
 .toc-period .toc-period-header a {
-    font-size: 13px;
+    font-size: 0.75rem;
     margin-left: 1em;
 }
 

@@ -33,10 +33,10 @@ function setSortColumn(newSortColumn) {
 <template>
     <div class="table-container">
         <table v-if="props.columns && sortedRows">
-            <thead>
+            <thead class="bg-secondary">
                 <tr>
                     <th v-for="column, colIdx in columns">
-                        <div class="column-header-container tooltip" @click="setSortColumn(colIdx)">
+                        <div class="column-header-container has-tooltip" @click="setSortColumn(colIdx)">
                             <div class="column-label">
                                 {{ column.label }}
                             </div>
@@ -125,10 +125,6 @@ table th:hover {
     background-color: #AAAAAA;
 }
 
-table thead tr th {
-    background: var(--color-jometry-secondary);
-}
-
 table tbody tr:nth-child(even) td {
     background: #EEEEEE;
 }
@@ -172,12 +168,12 @@ table th.sort-control {
     cursor: pointer;
 }
 
-.column-header-container.tooltip {
+.column-header-container.has-tooltip {
     position: relative;
     overflow-y: visible;
 }
 
-.column-header-container.tooltip span.tooltiptext {
+.column-header-container.has-tooltip span.tooltiptext {
   visibility: hidden;
   background-color: black;
   color: #fff;

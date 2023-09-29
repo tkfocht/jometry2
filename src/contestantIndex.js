@@ -1,8 +1,7 @@
 import { createApp } from 'vue'
 import ContestantIndex from './ContestantIndex.vue'
 
-import 'bootstrap/dist/css/bootstrap.css'
-import './assets/main.css'
+import './assets/main.scss'
 
 createApp(ContestantIndex).mount('#app')
 

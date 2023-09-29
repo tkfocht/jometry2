@@ -1,8 +1,7 @@
 import { createApp } from 'vue'
 import Contestant from './Contestant.vue'
 
-import 'bootstrap/dist/css/bootstrap.css'
-import './assets/main.css'
+import './assets/main.scss'
 
 createApp(Contestant).mount('#app')
 

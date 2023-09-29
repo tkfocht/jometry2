@@ -1,8 +1,7 @@
 import { createApp } from 'vue'
 import Glossary from './Glossary.vue'
 
-import 'bootstrap/dist/css/bootstrap.css'
-import './assets/main.css'
+import './assets/main.scss'
 
 createApp(Glossary).mount('#app')
 

@@ -16,11 +16,11 @@ function toggleGames() {
 </script>
 
 <template>
-    <div class="toc-period-play-class-controls">
+    <div class="toc-period-play-class-controls small">
         <span v-if="showGames" class="toc-period-play-class-control" @click="toggleGames">Hide Games</span>
         <span v-else class="toc-period-play-class-control" @click="toggleGames">Show Games</span>
     </div>
-    <div v-if="showGames" class="toc-period-play-game-list">
+    <div v-if="showGames" class="toc-period-play-game-list small">
         <table class="game-list">
             <tbody>
                 <tr v-for="game in gameData">
@@ -37,6 +37,14 @@ function toggleGames() {
 
 span.toc-period-play-class-control {
     cursor: pointer;
+}
+
+table.game-list td {
+    padding: 0.05rem 0.35rem;
+}
+
+table.game-list td:first-child {
+    padding-left: 0;
 }
 
 </style>

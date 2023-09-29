@@ -11,6 +11,7 @@ import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import LineChart from './components/util/LineChart.vue'
+import OptionDropdown from './components/util/OptionDropdown.vue'
 import OptionGroup from './components/util/OptionGroup.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import SortableTable from './components/util/SortableTable.vue'
@@ -366,7 +367,10 @@ const totalAttemptsChartSpecification = data.computedIfRefHasValues(
   })
 
 const rollingAverageGraphAttributeIdx = ref(0)
-const rollingAverageRollCount = ref(5)
+const rollingAverageRollCountOptions = [5, 10, 20]
+const rollingAverageRollCountLabels = rollingAverageRollCountOptions.map(c => c + ' games')
+const rollingAverageRollCountIdx = ref(0)
+const rollingAverageRollCount = computed(() => rollingAverageRollCountOptions[rollingAverageRollCountIdx.value])
 const rollingGameStatAttributes = gsAttributes.all_attributes
 const rollingAverageGraphAttribute = computed(() => rollingGameStatAttributes[rollingAverageGraphAttributeIdx.value])
 const rollingChartSpecification = data.computedIfRefHasValues(
@@ -550,16 +554,13 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
     <div class="section">
       <h2>Rolling Averages</h2>
       <div class="option-groups">
-        <select v-model="rollingAverageRollCount">
-          <option :value="5">5 games</option>
-          <option :value="10">10 games</option>
-          <option :value="20">20 games</option>
-        </select>
-        <select v-model="rollingAverageGraphAttributeIdx">
-          <option v-for="(attr, idx) in rollingGameStatAttributes" :value="idx">
-            {{ attr.short_label }}
-          </option>
-        </select>
+        <OptionGroup :optionLabels="rollingAverageRollCountLabels" :selectionIndex="rollingAverageRollCountIdx"
+          @newSelectionIndex="(idx) => rollingAverageRollCountIdx = idx" />
+        <OptionDropdown
+          :optionLabels="rollingGameStatAttributes.map(attr => attr.short_label)"
+          :selectionIndex="rollingAverageGraphAttributeIdx"
+          @newSelectionIndex="(idx) => rollingAverageGraphAttributeIdx = idx"
+        />
       </div>
       <LineChart v-bind="rollingChartSpecification" />
     </div>
@@ -572,12 +573,6 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
           </option>
         </select>
       </div>
-      <!--<select v-model="boxWhiskerGraphRoundIdx">
-        <option :value="0">Full Game</option>
-        <option :value="1">J! Round</option>
-        <option :value="2">DJ! Round</option>
-        <option v-if="displayRounds >= 3" :value="3">TJ! Round</option>
-      </select>--><br/>
       <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
     <div class="section">
