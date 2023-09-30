@@ -30,7 +30,6 @@ watch(() => props.chart, (newValue, oldValue) => {
 @import 'bootstrap/scss/mixins';
 
 div.graph {
-    width: min(95vw, 900px);
     --bs-aspect-ratio: 100%;
     @include media-breakpoint-up(sm) {
         --bs-aspect-ratio: calc(9 / 16 * 100%);
