@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import * as _ from 'lodash'
 import * as d3 from 'd3'
 
 const props = defineProps({
@@ -10,12 +11,20 @@ const props = defineProps({
   initialSortDescending: Boolean
 })
 
+const nilsLast = (a, b) => {
+    if (_.isNil(a) && _.isNil(b)) return NaN
+    if (_.isNil(a)) return 1
+    if (_.isNil(b)) return -1
+    return NaN
+}
+
 const sortColumn = ref(props.initialSortColumnIndex ? props.initialSortColumnIndex : 0)
 const sortDirectionDescending = ref(props.initialSortDescending ? props.initialSortDescending : false)
 const sortedRows = computed(() => {
     var sortedData = props.rows.slice()
     var sortDirection = sortDirectionDescending.value ? d3.descending : d3.ascending
-    sortedData.sort((a,b) => sortDirection(a[sortColumn.value].sortValue, b[sortColumn.value].sortValue))
+    sortedData.sort((a,b) => nilsLast(a[sortColumn.value].sortValue, b[sortColumn.value].sortValue) || 
+        sortDirection(a[sortColumn.value].sortValue, b[sortColumn.value].sortValue))
     return sortedData
 })
 
