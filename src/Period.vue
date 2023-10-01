@@ -37,7 +37,7 @@ const displayContestantIdParameters = ref(urlParams.get('contestants') ? urlPara
 const displayRounds = ref(2)
 
 const queryString = computed(() => {
-  var queryStr = '?foo=bar'
+  var queryStr = ''
   if (seasonSearchParameters.value.length > 0) {
     queryStr += '&season=' + seasonSearchParameters.value.join(',')
   }
@@ -59,7 +59,8 @@ const queryString = computed(() => {
   if (displayContestantIdParameters.value.length > 0) {
     queryStr += '&contestants=' + displayContestantIdParameters.value.join(',')
   }
-  return queryStr
+  if (queryStr === '') return queryStr
+  return '?' + queryStr.substring(1)
 })
 
 onMounted(() => {
