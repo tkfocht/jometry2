@@ -34,8 +34,6 @@ const winLimitString = ref(urlParams.get('win_limit'))
 const graphDisplayLimitString = ref(urlParams.get('graph_display_limit'))
 const displayContestantIdParameters = ref(urlParams.get('contestants') ? urlParams.get('contestants').split(',') : [])
 
-const displayRounds = ref(2)
-
 const queryString = computed(() => {
   var queryStr = ''
   if (seasonSearchParameters.value.length > 0) {
@@ -84,6 +82,11 @@ const gameFilter = computed(() => {
   return d => satisfiesSeason(d) && satisfiesTocPeriod(d) && satisfiesPlayClassification(d)
 })
 const gameData = data.computedIfRefHasValue(data.gameData, gData => gData.filter(gameFilter.value))
+
+const displayRounds = data.computedIfRefHasValue(gameData,
+  gData => gData.every(g => g.play_classification === 'celebrity') ? 3 : 2)
+
+
 const gameDataById = data.computedIfRefHasValue(gameData, gData => d3.index(gData, g => g.game_id))
 const gameIds = data.computedIfRefHasValue(gameData, gData => gData.map(g => g.game_id))
 const contestantDataById = data.contestantDataById
@@ -171,7 +174,7 @@ function contestantLink (contestant_id, contestant_name) {
 }
 
 //Tables
-const roundOptionLabels = ref(['Full Game', 'J Round', 'DJ Round'])
+const roundOptionLabels = data.computedIfRefHasValue(displayRounds, dr => ['Full Game', 'J! Round', 'DJ! Round'].concat(dr >= 3 ? ['TJ! Round'] : []))
 const selectedRoundIndex = ref(0)
 const aggregationOptionLabels = ref(['Game Average', 'Total', 'Game Max', 'Game Median', 'Game Min'])
 const selectedAggregationIndex = ref(0)
