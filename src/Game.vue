@@ -775,6 +775,7 @@ div#view-boards > div {
   border-collapse: collapse;
   font-size: 0.6rem;
   align-self: left;
+  width: 100%;
   @include media-breakpoint-up(sm) {
     font-size: 0.8rem;
   }
