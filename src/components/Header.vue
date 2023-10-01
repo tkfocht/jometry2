@@ -23,5 +23,9 @@ a:link, a:visited, a:hover {
   text-decoration: none;
 }
 
+.navbar {
+    margin-bottom: 1rem;
+}
+
 </style>
 
