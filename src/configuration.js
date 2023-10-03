@@ -9,6 +9,7 @@ var playClassificationName = function(playClassification, season) {
     if (playClassification === 'celebrity') return 'Primetime Celebrity Tournament'
     if (playClassification === 'hsreunion') return 'High School Reunion Tournament'
     if (playClassification === 'masters') return 'Masters'
+    if (playClassification === 'wildcard') return 'Champions Wildcard'
     if (playClassification === 'college') {
         if (season === 'NCC2022') return 'National College Championship'
         return 'College Tournament'
