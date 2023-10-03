@@ -95,7 +95,7 @@ const contention = {
     short_label: 'Contention',
     label: 'Contention',
     description: 'Contention',
-    generatingFunction: (gs, gcs) => gs.contention,
+    generatingFunction: (gs, gcs) => gs.att_total > 0 ? gs.contention : undefined,
     valueDisplayFormat: v => formatNumber(v, 2),
     averageDisplayFormat: v => formatNumber(v, 2, false)
 }

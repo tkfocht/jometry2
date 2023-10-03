@@ -6,7 +6,6 @@ import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as data from '@/data'
 import * as gsAttributes from '@/gameStatAttributes'
-import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import SortableTable from './components/util/SortableTable.vue'
@@ -28,8 +27,6 @@ const winThresholdString = ref(urlParams.get('win_threshold'))
 const winLimitString = ref(urlParams.get('win_limit'))
 const graphDisplayLimitString = ref(urlParams.get('graph_display_limit'))
 const displayContestantIdParameters = ref(urlParams.get('contestants') ? urlParams.get('contestants').split(',') : [])
-
-const displayRounds = ref(2)
 
 const queryString = computed(() => {
   var queryStr = ''
@@ -82,72 +79,22 @@ const gameData = data.computedIfRefHasValue(data.gameData, gData => gData.filter
 const gameDataById = data.computedIfRefHasValue(gameData, gData => d3.index(gData, g => g.game_id))
 const gameIds = data.computedIfRefHasValue(gameData, gData => gData.map(g => g.game_id))
 const contestantDataById = data.contestantDataById
-const contestantIds = data.computedIfRefHasValue(gameData, gData => [...new Set(gData.flatMap(g => [g.podium_1_contestant_id, g.podium_2_contestant_id, g.podium_3_contestant_id]))])
 const gameStatData = data.computedIfRefHasValues([data.gameStatData, gameIds], (gsData, gIds) => gsData.filter(gs => gIds.includes(gs.game_id)))
 const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.index(gsData, gs => gs.game_id))
-const gameContestantStatData = data.computedIfRefHasValues([data.gameContestantStatData, gameIds], (gcsData, gIds) => gcsData.filter(gs => gIds.includes(gs.game_id)))
-const gameContestantStatDataByGameId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.game_id))
-const gameContestantStatDataByContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.contestant_id))
-const gameContestantStatDataByGameIdAndContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id, gcs => gcs.contestant_id))
-const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasValues(
-    [data.gameRoundContestantStatData, gameIds],
-    (gcsData, gIds) => d3.group(gcsData.filter(gr => gIds.includes(gr.game_id)), r => r.round_of_game, r => r.contestant_id))
-
-const contestantWins = data.computedIfRefHasValue(gameData, gData => d3.rollup(gData, v => v.length, g => g.winning_contestant_id))
-const contestantWinnings = data.computedIfRefHasValues([gameData, gameContestantStatDataByGameIdAndContestantId], (gData, gcsData) => {
-  const aggregateWinnings = function(games) {
-    return games.map(g => gcsData.get(g.game_id).get(g.winning_contestant_id).score).reduce((a, b) => a + b, 0)
-  }
-  return d3.rollup(gData, aggregateWinnings, g => g.winning_contestant_id)
-})
-const contestantTotalScores = data.computedIfRefHasValue(gameContestantStatData, gcsData => {
-  return d3.rollup(gcsData, v => v.map(gcs => gcs.score).reduce((a, b) => a + b, 0), g => g.contestant_id)
-})
-const contestantSort = data.computedIfRefHasValues(
-  [contestantWins, contestantWinnings, contestantTotalScores],
-  (wins, winnings, totalScores) => (
-    (a, b) =>
-      d3.descending(_.defaultTo(wins.get(a), 0), _.defaultTo(wins.get(b), 0)) ||
-      d3.descending(_.defaultTo(winnings.get(a), 0), _.defaultTo(winnings.get(b), 0)) ||
-      d3.descending(_.defaultTo(totalScores.get(a), 0), _.defaultTo(totalScores.get(b), 0))))
-const displayContestantIds = data.computedIfRefHasValues(
-  [displayContestantIdParameters, contestantIds, contestantSort, contestantWins],
-  (dcIdParameters, cids, cSort, wins) => {
-    if (dcIdParameters.length > 0) {
-      return dcIdParameters.map(v => +v)
-    }
-    cids.sort(cSort)
-    if (cids.length <= 10) {
-      return cids
-    }
-    var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min((wins.get(cids[9]) ? wins.get(cids[9]) : 0), 4), cids.length > 21 ? 1 + (wins.get(cids[20]) ? wins.get(cids[20]) : 0) : 0)
-    //Okay fine, if anyone ever wins 10001 games this will be a bug,
-    //but truthy values are weird when winLimit=0 is a primary case
-    var winLimit = winLimitString.value ? +winLimitString.value : 10000
-    return cids.filter(i => {
-      var cwin = wins.get(i)
-      if (cwin === undefined) cwin = 0
-      return cwin >= winThreshold && cwin <= winLimit
-    })
-  })
-const displayContestantGameContestantStatData = data.computedIfRefHasValues(
-  [displayContestantIds, gameContestantStatData],
-  (dCids, gcsData) => gcsData.filter(gcs => dCids.includes(gcs.contestant_id))
-)
-const winnerContestantGameContestantStatData = data.computedIfRefHasValues(
-  [gameDataById, gameContestantStatData],
-  (gData, gcsData) => gcsData.filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id)
-)
-const graphDisplayLimit = ref(graphDisplayLimitString.value ? +graphDisplayLimitString.value : undefined)
-
-
 
 
 //Tables
 const tableSpec = data.computedIfRefHasValues(
-  [gameData, contestantDataById],
-  (gData, cData) => {
-    const columns = [
+  [gameData, contestantDataById, gameStatDataById],
+  (gData, cData, gsDataById) => {
+    const statAttrs = [
+      gsAttributes.att_value_total,
+      gsAttributes.coryat_score_total,
+      gsAttributes.coryat_positive_score_total,
+      gsAttributes.contention
+    ]
+
+    var columns = [
       {
         label: 'Game/Date'
       },
@@ -164,8 +111,14 @@ const tableSpec = data.computedIfRefHasValues(
         label: 'Play Class'
       }
     ]
+    columns = columns.concat(statAttrs.map(attr => ({
+      label: attr.short_label,
+      description: attr.description
+    })))
 
     const rows = gData.map(g => {
+      const gsData = gsDataById.get(g.game_id)
+
       var row = [
         {
           value: '<a href="/game.html?game_id=' + g.game_id + '">' + g.season_id + '-' + g.game_in_season + '</a> ' + dateFormat(g.airdate),
@@ -188,6 +141,12 @@ const tableSpec = data.computedIfRefHasValues(
           sortValue:  playClassificationName(g.play_classification, g.season_id)
         }
       ]
+
+      row = row.concat(statAttrs.map(attr => ({
+        value: attr.valueDisplayFormat(attr.generatingFunction(gsData)),
+        sortValue: attr.generatingFunction(gsData)
+      })))
+
       return row
     })
 
