@@ -19,6 +19,7 @@ export default defineConfig({
         game: resolve(__dirname, 'game.html'),
         contestant: resolve(__dirname, 'contestant.html'),
         period: resolve(__dirname, 'period.html'),
+        period_games: resolve(__dirname, 'period_games.html'),
         contestantIndex: resolve(__dirname, 'contestant_index.html'),
         about: resolve(__dirname, 'about.html'),
         glossary: resolve(__dirname, 'glossary.html'),

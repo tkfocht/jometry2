@@ -91,8 +91,9 @@ async function fetchJschemaClueData() {
 }
 fetchJschemaClueData()
 const jschemaClueByRoundRowColumn = computed(() => {
-  if (!jschemaClueData.value) return null
-  return d3.index(jschemaClueData.value, c => c.round_of_game, c => c.row, c => c.column)
+  if (!jschemaClueData.value || !gameRounds.value) return null
+  const clueData = jschemaClueData.value.filter(c => c.round_of_game <= gameRounds.value)
+  return d3.index(clueData, c => c.round_of_game, c => c.row, c => c.column)
 })
 
 const jschemaResponseData = ref(null)
