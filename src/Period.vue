@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { movingAverageOfLast, dateFormat, transformValues, threeColorSet } from '@/util'
+import { movingAverageOfLast, dateFormat, transformValues, urlDateParse } from '@/util'
 import { playClassificationName } from '@/configuration'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
@@ -34,6 +34,9 @@ const winLimitString = ref(urlParams.get('win_limit'))
 const graphDisplayLimitString = ref(urlParams.get('graph_display_limit'))
 const displayContestantIdParameters = ref(urlParams.get('contestants') ? urlParams.get('contestants').split(',') : [])
 
+const minDateString = ref(urlParams.get('min_date'))
+const maxDateString = ref(urlParams.get('max_date'))
+
 const queryString = computed(() => {
   var queryStr = ''
   if (seasonSearchParameters.value.length > 0) {
@@ -57,6 +60,12 @@ const queryString = computed(() => {
   if (displayContestantIdParameters.value.length > 0) {
     queryStr += '&contestants=' + displayContestantIdParameters.value.join(',')
   }
+  if (minDateString.value !== null) {
+    queryStr += '&min_date=' + minDateString.value
+  }
+  if (maxDateString.value !== null) {
+    queryStr += '&max_date=' + maxDateString.value
+  }
   if (queryStr === '') return queryStr
   return '?' + queryStr.substring(1)
 })
@@ -79,7 +88,13 @@ const gameFilter = computed(() => {
   const satisfiesPlayClassification = playClassificationSearchParameters.value.length === 0 ? 
     d => true :
     d => playClassificationSearchParameters.value.includes(d.play_classification)
-  return d => satisfiesSeason(d) && satisfiesTocPeriod(d) && satisfiesPlayClassification(d)
+  const satisfiesMinDate = minDateString.value === null ?
+    d => true :
+    d => d.airdate >= urlDateParse(minDateString.value)
+  const satisfiesMaxDate = maxDateString.value === null ?
+    d => true :
+    d => d.airdate <= urlDateParse(maxDateString.value)
+  return d => satisfiesSeason(d) && satisfiesTocPeriod(d) && satisfiesPlayClassification(d) && satisfiesMinDate(d) && satisfiesMaxDate(d)
 })
 const gameData = data.computedIfRefHasValue(data.gameData, gData => gData.filter(gameFilter.value))
 
