@@ -8,6 +8,7 @@ const props = defineProps({
   data: Array,
   xFunction: Function,
   yFunctions: Array,
+  yDenominatorFunctions: Array,
   labels: Array,
   colors: Array,
   title: String,
@@ -20,15 +21,32 @@ const cumulativeData = computed(() => {
     x: props.xFunction(d),
     y: []
   }))
-  for (var yFunction of props.yFunctions) {
-    var yData = props.data.map(d => yFunction(d))
+  var yFunctionSets = d3.zip(props.yFunctions, props.yDenominatorFunctions)
+  for (var yFunctionSet of yFunctionSets) {
+    console.log(yFunctionSet)
+    console.log(yFunctionSet[1])
+    var yData = props.data.map(d => yFunctionSet[0](d))
+    var yDenominatorData = []
+    if (yFunctionSet[1] === undefined) {
+      yDenominatorData = new Array(yData.length)
+      yDenominatorData.fill(0)
+      yDenominatorData[0] = 1
+    } else {
+      yDenominatorData = props.data.map(d => yFunctionSet[1](d))
+    }
     var sum = 0
+    var denominatorSum = 0
     var idx = 0
-    for (var yDatum of yData) {
-      if (yDatum) {
-        sum += yDatum
+    for (var yDatumPair of d3.zip(yData, yDenominatorData)) {
+      console.log(yDatumPair)
+      if (yDatumPair[0]) {
+        sum += yDatumPair[0]
       }
-      updatedData[idx].y.push(sum)
+      if (yDatumPair[1]) {
+        denominatorSum += yDatumPair[1]
+      }
+      console.log(sum / denominatorSum)
+      updatedData[idx].y.push(sum / denominatorSum)
       idx += 1
     }
   }

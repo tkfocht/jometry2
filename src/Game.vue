@@ -240,6 +240,36 @@ const cumulativeDataAttributesList = [
     generatingFunction: c => c.buz_value
   },
   {
+    label: 'Buzz %',
+    generatingFunction: c => c.buz_value === 0 ? 0 : 1,
+    generatingDenominatorFunction: c => c.att
+  },
+  {
+    label: 'Accuracy %',
+    generatingFunction: c => c.buz_score > 0 ? 1 : 0,
+    generatingDenominatorFunction: c => c.buz_score !== 0 ? 1 : 0
+  },
+  {
+    label: 'Conversion %',
+    generatingFunction: c => c.buz_score > 0 ? 1 : 0,
+    generatingDenominatorFunction: c => c.att
+  },
+  {
+    label: 'Buzz Value %',
+    generatingFunction: c => c.buz_value,
+    generatingDenominatorFunction: c => c.att_value
+  },
+  {
+    label: 'Accuracy Value %',
+    generatingFunction: c => c.buz_score,
+    generatingDenominatorFunction: c => c.buz_value
+  },
+  {
+    label: 'Conversion Value %',
+    generatingFunction: c => c.buz_score,
+    generatingDenominatorFunction: c => c.att_value
+  },
+  {
     label: 'Timing',
     generatingFunction: c => c.timing
   },
@@ -610,6 +640,7 @@ const histogramSpecification = computed(() => {
         :data="byClueLineChartData"
         :xFunction="d => d['clue_identifier']"
         :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx])))"
+        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx])))"
         :labels="gameContestantIds.map(cid => contestantDataById.get(cid).name)"
         :colors="gameContestantIds.map(cid => color(cid))"
         :title="'Cumulative ' + byClueLineChartAttribute.label"
