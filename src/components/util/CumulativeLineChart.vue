@@ -23,8 +23,6 @@ const cumulativeData = computed(() => {
   }))
   var yFunctionSets = d3.zip(props.yFunctions, props.yDenominatorFunctions)
   for (var yFunctionSet of yFunctionSets) {
-    console.log(yFunctionSet)
-    console.log(yFunctionSet[1])
     var yData = props.data.map(d => yFunctionSet[0](d))
     var yDenominatorData = []
     if (yFunctionSet[1] === undefined) {
@@ -38,7 +36,6 @@ const cumulativeData = computed(() => {
     var denominatorSum = 0
     var idx = 0
     for (var yDatumPair of d3.zip(yData, yDenominatorData)) {
-      console.log(yDatumPair)
       if (yDatumPair[0]) {
         sum += yDatumPair[0]
       }
