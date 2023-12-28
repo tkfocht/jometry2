@@ -42,7 +42,6 @@ const cumulativeData = computed(() => {
       if (yDatumPair[1]) {
         denominatorSum += yDatumPair[1]
       }
-      console.log(sum / denominatorSum)
       updatedData[idx].y.push(sum / denominatorSum)
       idx += 1
     }

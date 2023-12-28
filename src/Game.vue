@@ -228,8 +228,18 @@ const cumulativeDataAttributesList = [
     generatingFunction: c => c.att_clue
   },
   {
+    label: 'Attempt %',
+    generatingFunction: c => c.att_clue,
+    generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : 1
+  },
+  {
     label: 'Attempt Value',
     generatingFunction: c => c.att_value
+  },
+  {
+    label: 'Attempt Value %',
+    generatingFunction: c => c.att_value,
+    generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : cl.value
   },
   {
     label: 'Buzzes',
@@ -298,17 +308,19 @@ const byClueLineChartAttributeIdx = ref(0)
 const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList[byClueLineChartAttributeIdx.value])
 
 const byClueLineChartData = data.computedIfRefHasValues(
-  [jschemaClueContestantStatData, gameContestantIds],
-  (clueCSData, cids) => {
-    var groupedData = d3.group(clueCSData, c => c.round_of_game, c => c.clue_of_round, c => c.contestant_id)
+  [jschemaClueContestantStatData, jschemaClueData, gameContestantIds],
+  (clueCSData, clueData, cids) => {
+    var groupedCSData = d3.group(clueCSData, c => c.round_of_game, c => c.clue_of_round, c => c.contestant_id)
+    var indexedClueData = d3.index(clueData, c => c.round_of_game, c => c.clue_of_round)
     var traceData = []
-    var rounds = [...groupedData.keys()].sort((a,b) => d3.ascending(a, b))
+    var rounds = [...groupedCSData.keys()].sort((a,b) => d3.ascending(a, b))
     for (var r of rounds) {
-      var clue_numbers = [...groupedData.get(r).keys()].sort((a,b) => d3.ascending(a, b))
+      var clue_numbers = [...groupedCSData.get(r).keys()].sort((a,b) => d3.ascending(a, b))
       for (var c of clue_numbers) {
         traceData.push({
           'clue_identifier': r + '-' + c,
-          'contestant_data': cids.map(cid => groupedData.get(r).get(c).get(cid)[0])
+          'contestant_data': cids.map(cid => groupedCSData.get(r).get(c).get(cid)[0]),
+          'clue_data': indexedClueData.get(r).get(c)
         })
       }
     }
@@ -639,8 +651,8 @@ const histogramSpecification = computed(() => {
       <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById"
         :data="byClueLineChartData"
         :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx])))"
-        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx])))"
+        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
         :labels="gameContestantIds.map(cid => contestantDataById.get(cid).name)"
         :colors="gameContestantIds.map(cid => color(cid))"
         :title="'Cumulative ' + byClueLineChartAttribute.label"
