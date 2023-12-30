@@ -22,7 +22,6 @@ const traces = computed(() => {
 
   for (const yFunctionIdx in props.yFunctions) {
     const yFunction = props.yFunctions[yFunctionIdx]
-    console.log(props.traceProperties)
     var traceProperties = props.traceProperties === undefined ? {} : structuredClone(props.traceProperties)
     var defaultTraceProperties = {
       x: d3.map(props.data, props.xFunction),
