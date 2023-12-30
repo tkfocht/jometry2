@@ -11,6 +11,7 @@ import CumulativeLineChart from './components/util/CumulativeLineChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import OptionDropdown from './components/util/OptionDropdown.vue'
 import OptionGroup from './components/util/OptionGroup.vue'
+import TrendLineChart from './components/util/TrendLineChart.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import SortableTable from './components/util/SortableTable.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
@@ -209,49 +210,64 @@ const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes
 const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
 
 
+function defaultUndefinedForBuzzing(clueStatValue, clueInfo, defaultValue, forceUndefinedForNonbuzz = false) {
+  if (forceUndefinedForNonbuzz) {
+    if (clueInfo.is_daily_double === 1) return undefined
+    if (clueInfo.is_final_jeopardy === 1) return undefined
+  }
+  if (clueStatValue !== undefined) return clueStatValue
+  if (clueInfo.is_daily_double === 1) return undefined
+  if (clueInfo.is_final_jeopardy === 1) return undefined
+  return defaultValue
+}
 
+const gameProgressGraphTypeList = [
+  'Cumulative',
+  'Trend'
+]
+const gameProgressGraphTypeIdx = ref(0)
 const cumulativeDataAttributesList = [
   {
     label: 'Score',
-    generatingFunction: c => c.score
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.score, cl, 0, false)
   },
   {
     label: 'Buzz Score',
-    generatingFunction: c => c.buz_score
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_score, cl, 0, true)
   },
   {
     label: 'Attempts',
-    generatingFunction: c => c.att
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att, cl, 0, true)
   },
   {
     label: 'Attempted Clues',
-    generatingFunction: c => c.att_clue
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_clue, cl, 0, true)
   },
   {
     label: 'Attempt %',
-    generatingFunction: c => c.att_clue,
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_clue, cl, 0, true),
     generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : 1
   },
   {
     label: 'Attempt Value',
-    generatingFunction: c => c.att_value
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_value, cl, 0, true)
   },
   {
     label: 'Attempt Value %',
-    generatingFunction: c => c.att_value,
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_value, cl, 0, true),
     generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : cl.value
   },
   {
     label: 'Buzzes',
-    generatingFunction: c => c.buz_value === 0 ? 0 : 1
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value === 0 ? 0 : 1, cl, 0, true)
   },
   {
     label: 'Buzz Value',
-    generatingFunction: c => c.buz_value
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value, cl, 0, true)
   },
   {
     label: 'Buzz %',
-    generatingFunction: c => c.buz_value === 0 ? 0 : 1,
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value === 0 ? 0 : 1, cl, 0, true),
     generatingDenominatorFunction: c => c.att
   },
   {
@@ -647,8 +663,13 @@ const histogramSpecification = computed(() => {
           :selectionIndex="byClueLineChartAttributeIdx"
           @newSelectionIndex="(idx) => byClueLineChartAttributeIdx = idx"
         />
+        <OptionDropdown
+          :optionLabels="gameProgressGraphTypeList"
+          :selectionIndex="gameProgressGraphTypeIdx"
+          @newSelectionIndex="(idx) => gameProgressGraphTypeIdx = idx"
+        />
       </div>
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById"
+      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
         :data="byClueLineChartData"
         :xFunction="d => d['clue_identifier']"
         :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
@@ -658,6 +679,17 @@ const histogramSpecification = computed(() => {
         :title="'Cumulative ' + byClueLineChartAttribute.label"
         :xLabel="'Clues'"
         :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
+      />
+      <TrendLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
+        :data="byClueLineChartData"
+        :xFunction="d => d['clue_identifier']"
+        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+        :labels="gameContestantIds.map(cid => contestantDataById.get(cid).name)"
+        :colors="gameContestantIds.map(cid => color(cid))"
+        :title="byClueLineChartAttribute.label + ' Trend'"
+        :xLabel="'Clues'"
+        :yLabel="byClueLineChartAttribute.label"
       />
     </div>
     <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">

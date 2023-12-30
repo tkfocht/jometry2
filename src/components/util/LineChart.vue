@@ -2,6 +2,7 @@
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import * as d3 from 'd3'
 import ReactiveChart from './ReactiveChart.vue'
+import * as _ from 'lodash'
 
 const props = defineProps({
   data: Array,
@@ -11,7 +12,8 @@ const props = defineProps({
   colors: Array,
   title: String,
   xLabel: String,
-  yLabel: String
+  yLabel: String,
+  traceProperties: Object
 })
 
 const traces = computed(() => {
@@ -20,7 +22,9 @@ const traces = computed(() => {
 
   for (const yFunctionIdx in props.yFunctions) {
     const yFunction = props.yFunctions[yFunctionIdx]
-    var t = {
+    console.log(props.traceProperties)
+    var traceProperties = props.traceProperties === undefined ? {} : structuredClone(props.traceProperties)
+    var defaultTraceProperties = {
       x: d3.map(props.data, props.xFunction),
       y: d3.map(props.data, yFunction),
       text: d3.map(props.data, yFunction),
@@ -32,6 +36,7 @@ const traces = computed(() => {
           color: props.colors[yFunctionIdx]
       }
     }
+    var t = _.defaultsDeep(traceProperties, defaultTraceProperties)
     traces.push(t)
   }
   return traces
