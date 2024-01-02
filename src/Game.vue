@@ -232,6 +232,10 @@ const cumulativeDataAttributesList = [
     generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.score, cl, 0, false)
   },
   {
+    label: 'Score (excluding FJ)',
+    generatingFunction: (c, cl) => cl.is_final_jeopardy ? undefined : c.score
+  },
+  {
     label: 'Buzz Score',
     generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_score, cl, 0, true)
   },
