@@ -23,7 +23,7 @@ const att_value = {
 
 const att_clue = {
     short_label: 'AttCl',
-    label: 'Attempt Clues',
+    label: 'Attempted Clues',
     description: 'Estimate of attempted clues',
     generatingFunction: gcs => gcs.att_clue,
     valueDisplayFormat: v => formatNumber(v, 1, false),

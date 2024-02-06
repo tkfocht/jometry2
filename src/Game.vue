@@ -732,39 +732,37 @@ const histogramSpecification = computed(() => {
     <div class="section" v-if="histogramSpecification">
       <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
-        <select v-model="histogramGraphAttributeIdx">
-          <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-            {{ graphAttribute.short_label }}
-          </option>
-        </select>
-        <select v-model="histogramGraphRoundIdx">
-          <option :value="0">Full Game</option>
-          <option :value="1">J! Round</option>
-          <option :value="2">DJ! Round</option>
-          <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
-        </select>
+        <OptionDropdown
+          :optionLabels="graphAttributesList.map(attr => attr.label)"
+          :selectionIndex="histogramGraphAttributeIdx"
+          @newSelectionIndex="(idx) => histogramGraphAttributeIdx = idx"
+        />
+        <OptionDropdown
+          :optionLabels="['Full Game', 'J! Round', 'DJ! Round'].concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
+          :selectionIndex="histogramGraphRoundIdx"
+          @newSelectionIndex="(idx) => histogramGraphRoundIdx = idx"
+        />
       </div>
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
     <div class="section" v-if="scatterSpecification">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
-        <select v-model="xScatterGraphAttributeIdx">
-          <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-            {{ graphAttribute.short_label }}
-          </option>
-        </select>
-        <select v-model="yScatterGraphAttributeIdx">
-          <option v-for="(graphAttribute, idx) in graphAttributesList" :value="idx">
-            {{ graphAttribute.short_label }}
-          </option>
-        </select>
-        <select v-model="scatterGraphRoundIdx">
-          <option :value="0">Full Game</option>
-          <option :value="1">J! Round</option>
-          <option :value="2">DJ! Round</option>
-          <option v-if="gameRounds >= 3" :value="3">TJ! Round</option>
-        </select>
+        <OptionDropdown
+          :optionLabels="graphAttributesList.map(attr => attr.label)"
+          :selectionIndex="xScatterGraphAttributeIdx"
+          @newSelectionIndex="(idx) => xScatterGraphAttributeIdx = idx"
+        />
+        <OptionDropdown
+          :optionLabels="graphAttributesList.map(attr => attr.label)"
+          :selectionIndex="yScatterGraphAttributeIdx"
+          @newSelectionIndex="(idx) => yScatterGraphAttributeIdx = idx"
+        />
+        <OptionDropdown
+          :optionLabels="['Full Game', 'J! Round', 'DJ! Round'].concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
+          :selectionIndex="histogramGraphRoundIdx"
+          @newSelectionIndex="(idx) => scatterGraphRoundIdx = idx"
+        />
       </div>
       <ScatterHistogram v-bind="scatterSpecification" />
     </div>
