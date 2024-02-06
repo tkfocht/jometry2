@@ -15,7 +15,8 @@ const props = defineProps({
   colors: Array,
   title: String,
   xLabel: String,
-  yLabel: String
+  yLabel: String,
+  blur: Number,
 })
 
 const rollingData = computed(() => {
@@ -44,7 +45,7 @@ const rollingData = computed(() => {
       yData.splice(nanIdx, 1)
       yDenominatorData.splice(nanIdx, 1)
     }
-    yData = d3.blur(yData, 2)
+    yData = d3.blur(yData, props.blur)
     yDenominatorData = d3.blur(yDenominatorData, 2)
     for (var nanIdx of nanIndices) {
       yData.splice(nanIdx, 0, NaN)

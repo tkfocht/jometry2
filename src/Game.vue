@@ -694,6 +694,7 @@ const histogramSpecification = computed(() => {
         :title="byClueLineChartAttribute.label + ' Trend'"
         :xLabel="'Clues'"
         :yLabel="byClueLineChartAttribute.label"
+        :blur="2"
       />
     </div>
     <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
