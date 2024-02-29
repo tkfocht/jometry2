@@ -760,7 +760,7 @@ const histogramSpecification = computed(() => {
         />
         <OptionDropdown
           :optionLabels="['Full Game', 'J! Round', 'DJ! Round'].concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
-          :selectionIndex="histogramGraphRoundIdx"
+          :selectionIndex="scatterGraphRoundIdx"
           @newSelectionIndex="(idx) => scatterGraphRoundIdx = idx"
         />
       </div>
