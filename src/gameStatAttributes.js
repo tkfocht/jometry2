@@ -105,6 +105,11 @@ const all_attributes = [
     coryat_score_total, coryat_positive_score_total, contention
 ]
 
-export { all_attributes, att_total, att_max, att_med, att_min, att_value_total,
+const attributes_without_att = [
+    buzc_total, buzi_total, buz_score_total,
+    coryat_score_total, coryat_positive_score_total
+]
+
+export { all_attributes, attributes_without_att, att_total, att_max, att_med, att_min, att_value_total,
     buzc_total, buzi_total, buz_score_total, coryat_score_total, coryat_positive_score_total,
     contention };
