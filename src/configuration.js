@@ -14,7 +14,7 @@ var playClassificationName = function(playClassification, season) {
         if (season === 'NCC2022') return 'National College Championship'
         return 'College Tournament'
     }
-    return 'p ' + playClassification
+    return null
 }
 
 var playClassificationNameByTocPeriod = function(playClassification, toc_period) {
@@ -33,7 +33,7 @@ var playClassificationNameByTocPeriod = function(playClassification, toc_period)
         if (toc_period === '2022') return 'National College Championship'
         return 'College Tournament'
     }
-    return 'p ' + playClassification
+    return null
 }
 
 var dataSourceAddress = function(dataSourceId) {

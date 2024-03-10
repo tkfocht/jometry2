@@ -81,18 +81,26 @@ const gameIds = data.computedIfRefHasValue(gameData, gData => gData.map(g => g.g
 const contestantDataById = data.contestantDataById
 const gameStatData = data.computedIfRefHasValues([data.gameStatData, gameIds], (gsData, gIds) => gsData.filter(gs => gIds.includes(gs.game_id)))
 const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.index(gsData, gs => gs.game_id))
+const anyGameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => {
+  return gsData.some(gs => gs.att_total > 0)
+})
 
 
 //Tables
 const tableSpec = data.computedIfRefHasValues(
-  [gameData, contestantDataById, gameStatDataById],
-  (gData, cData, gsDataById) => {
-    const statAttrs = [
+  [gameData, contestantDataById, gameStatDataById, anyGameHasAttemptData],
+  (gData, cData, gsDataById, hasAttempt) => {
+    console.log(gData)
+    const allStatAttrs = [
       gsAttributes.att_value_total,
       gsAttributes.coryat_score_total,
       gsAttributes.coryat_positive_score_total,
       gsAttributes.contention
     ]
+
+    const statAttrs = hasAttempt ?
+      allStatAttrs :
+      allStatAttrs.filter(attr => !attr.requiresAttemptData)
 
     var columns = [
       {
@@ -108,6 +116,9 @@ const tableSpec = data.computedIfRefHasValues(
         label: 'Podium 3'
       },
       {
+        label: 'ToC Period'
+      },
+      {
         label: 'Play Class'
       }
     ]
@@ -121,7 +132,7 @@ const tableSpec = data.computedIfRefHasValues(
 
       var row = [
         {
-          value: '<a href="/game.html?game_id=' + g.game_id + '">' + g.season_id + '-' + g.game_in_season + '</a> ' + dateFormat(g.airdate),
+          value: '<a href="/game.html?game_id=' + g.game_id + '">' + g.season_id + '-' + g.game_in_season + '</a> <span class="date" style="white-space: nowrap">' + dateFormat(g.airdate) + '</span>',
           sortValue: g.airdate
         },
         {
@@ -135,6 +146,10 @@ const tableSpec = data.computedIfRefHasValues(
         {
           value: cData.get(g.podium_3_contestant_id).name,
           sortValue: cData.get(g.podium_3_contestant_id).name
+        },
+        {
+          value: g.toc_period,
+          sortValue: g.toc_period
         },
         {
           value: playClassificationName(g.play_classification, g.season_id),
@@ -165,13 +180,25 @@ const tableSpec = data.computedIfRefHasValues(
 <template>
   <Header />
   <div class="component-body">
-    <SortableTable v-if="tableSpec" v-bind="tableSpec" />
+    <h1>
+      <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
+      <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
+      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationName(p, undefined)).join(", ") }}&nbsp;</span>Games
+    </h1>
+    <div>
+      <a :href="'/period.html' + queryString">Statistical Summary</a>
+    </div>
+    <div class="section">
+      <SortableTable v-if="tableSpec" v-bind="tableSpec" />
+    </div>
   </div>
   <Footer />
 </template>
 
 <style scoped>
 
-
+.component-body {
+  margin-bottom: 1em;
+}
 
 </style>

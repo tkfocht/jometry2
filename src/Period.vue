@@ -555,6 +555,9 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
       </select>
       wins
     </div>
+    <div>
+      <a :href="'/period_games.html' + queryString">Game List</a>
+    </div>
     <div class="section">
       <div class="section-header">Statistics Tables</div>
       <div class="option-groups">
