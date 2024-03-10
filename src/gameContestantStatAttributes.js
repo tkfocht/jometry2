@@ -277,9 +277,14 @@ const all_attributes = [
     time_value, time_score, solo_value, solo_score,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score, fj_start_score, fj_score, fj_final_score]
 
+const attributes_without_att = [
+    buz, buzc, acc_percent,
+    buz_value, buz_score, coryat_score, acc_value_percent,
+    dd_found, dd_plus_buzc, dd_plus_selection, dd_score, fj_start_score, fj_score, fj_final_score]
+
 export { att, att_value, att_clue, buz, buz_value, buz_percent, buz_value_percent,
     buzc, buz_score, coryat_score, acc_percent, acc_value_percent, conversion_percent, conversion_value_percent,
     time, time_value, time_score, solo, solo_value, solo_score,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score,
     fj_start_score, fj_score, fj_final_score,
-    all_attributes };
+    all_attributes, attributes_without_att };

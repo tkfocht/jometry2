@@ -34,6 +34,8 @@ const gameTocPeriod = data.computedIfRefHasValue(gameData, gData => gData.toc_pe
 const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_classification == 'celebrity' ? 3 : 2)
 const gameContestantIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 
+const gameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => gsData.att_total > 0)
+
 const allGameStatData = data.computedIfRefHasValues(
   [data.gameStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
   (gsData, playClass, tocPeriod, gData) => gsData.filter(gs => gData.get(gs.game_id).play_classification === playClass && gData.get(gs.game_id).toc_period === tocPeriod))
@@ -209,6 +211,10 @@ const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes
     gcsAttributes.solo_value, gcsAttributes.solo_score]
 const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
 
+const slimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
+    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
+const slimConversionValueScoringTableSpec = constructScoringTableSpecification(slimConversionValueScoringAttributes)
+
 
 function defaultUndefinedForBuzzing(clueStatValue, clueInfo, defaultValue, forceUndefinedForNonbuzz = false) {
   if (forceUndefinedForNonbuzz) {
@@ -226,106 +232,132 @@ const gameProgressGraphTypeList = [
   'Trend'
 ]
 const gameProgressGraphTypeIdx = ref(0)
-const cumulativeDataAttributesList = [
+const cumulativeDataAttributesFullList = [
   {
     label: 'Score',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.score, cl, 0, false)
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.score, cl, 0, false),
+    includeIfNoAttemptData: true
   },
   {
     label: 'Score (excluding FJ)',
-    generatingFunction: (c, cl) => cl.is_final_jeopardy ? undefined : c.score
+    generatingFunction: (c, cl) => cl.is_final_jeopardy ? undefined : c.score,
+    includeIfNoAttemptData: true
   },
   {
     label: 'Buzz Score',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_score, cl, 0, true)
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_score, cl, 0, true),
+    includeIfNoAttemptData: true
   },
   {
     label: 'Attempts',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att, cl, 0, true)
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att, cl, 0, true),
+    includeIfNoAttemptData: false
   },
   {
     label: 'Attempted Clues',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_clue, cl, 0, true)
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_clue, cl, 0, true),
+    includeIfNoAttemptData: false
   },
   {
     label: 'Attempt %',
     generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_clue, cl, 0, true),
-    generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : 1
+    generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : 1,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Attempt Value',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_value, cl, 0, true)
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_value, cl, 0, true),
+    includeIfNoAttemptData: false
   },
   {
     label: 'Attempt Value %',
     generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_value, cl, 0, true),
-    generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : cl.value
+    generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : cl.value,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Buzzes',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value === 0 ? 0 : 1, cl, 0, true)
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value === 0 ? 0 : 1, cl, 0, true),
+    includeIfNoAttemptData: true
   },
   {
     label: 'Buzz Value',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value, cl, 0, true)
+    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value, cl, 0, true),
+    includeIfNoAttemptData: true
   },
   {
     label: 'Buzz %',
     generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value === 0 ? 0 : 1, cl, 0, true),
-    generatingDenominatorFunction: c => c.att
+    generatingDenominatorFunction: c => c.att,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Accuracy %',
     generatingFunction: c => c.buz_score > 0 ? 1 : 0,
-    generatingDenominatorFunction: c => c.buz_score !== 0 ? 1 : 0
+    generatingDenominatorFunction: c => c.buz_score !== 0 ? 1 : 0,
+    includeIfNoAttemptData: true
   },
   {
     label: 'Conversion %',
     generatingFunction: c => c.buz_score > 0 ? 1 : 0,
-    generatingDenominatorFunction: c => c.att
+    generatingDenominatorFunction: c => c.att,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Buzz Value %',
     generatingFunction: c => c.buz_value,
-    generatingDenominatorFunction: c => c.att_value
+    generatingDenominatorFunction: c => c.att_value,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Accuracy Value %',
     generatingFunction: c => c.buz_score,
-    generatingDenominatorFunction: c => c.buz_value
+    generatingDenominatorFunction: c => c.buz_value,
+    includeIfNoAttemptData: true
   },
   {
     label: 'Conversion Value %',
     generatingFunction: c => c.buz_score,
-    generatingDenominatorFunction: c => c.att_value
+    generatingDenominatorFunction: c => c.att_value,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Timing',
-    generatingFunction: c => c.timing
+    generatingFunction: c => c.timing,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Timing Value',
-    generatingFunction: c => c.timing_value
+    generatingFunction: c => c.timing_value,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Timing Score',
-    generatingFunction: c => c.timing_score
+    generatingFunction: c => c.timing_score,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Solo',
-    generatingFunction: c => c.solo
+    generatingFunction: c => c.solo,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Solo Value',
-    generatingFunction: c => c.solo_value
+    generatingFunction: c => c.solo_value,
+    includeIfNoAttemptData: false
   },
   {
     label: 'Solo Score',
-    generatingFunction: c => c.solo_score
+    generatingFunction: c => c.solo_score,
+    includeIfNoAttemptData: false
   }
 ]
+const cumulativeDataAttributesList = data.computedIfRefHasValue(gameHasAttemptData, hasAttempt => {
+  if (hasAttempt) return cumulativeDataAttributesFullList
+  return cumulativeDataAttributesFullList.filter(attr => attr.includeIfNoAttemptData)
+})
 const byClueLineChartAttributeIdx = ref(0)
-const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList[byClueLineChartAttributeIdx.value])
+const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList.value[byClueLineChartAttributeIdx.value])
 
 const byClueLineChartData = data.computedIfRefHasValues(
   [jschemaClueContestantStatData, jschemaClueData, gameContestantIds],
@@ -380,16 +412,19 @@ const finalJeopardyMatrixCells = computed(() => {
 
 
 //Charts
-const graphAttributesList = gcsAttributes.all_attributes
+const graphAttributesList = data.computedIfRefHasValue(gameHasAttemptData, hasAttempt => hasAttempt ? gcsAttributes.all_attributes : gcsAttributes.attributes_without_att)
 
-const histogramGraphAttributeIdx = ref(0)
-const histogramGraphAttribute = computed(() => graphAttributesList[histogramGraphAttributeIdx.value])
+const histogramGraphAttributeSelectedIdx = ref(-1)
+const histogramGraphAttributeIdx = computed(() => histogramGraphAttributeSelectedIdx.value >= 0 ? histogramGraphAttributeSelectedIdx.value : 0)
+const histogramGraphAttribute = data.computedIfRefHasValues([graphAttributesList, histogramGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const histogramGraphRoundIdx = ref(0)
 
-const xScatterGraphAttributeIdx = ref(0)
-const xScatterGraphAttribute = computed(() => graphAttributesList[xScatterGraphAttributeIdx.value])
-const yScatterGraphAttributeIdx = ref(2)
-const yScatterGraphAttribute = computed(() => graphAttributesList[yScatterGraphAttributeIdx.value])
+const xScatterGraphAttributeSelectedIdx = ref(-1)
+const xScatterGraphAttributeIdx = computed(() => xScatterGraphAttributeSelectedIdx.value >= 0 ? xScatterGraphAttributeSelectedIdx.value : 0)
+const xScatterGraphAttribute = data.computedIfRefHasValues([graphAttributesList, xScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
+const yScatterGraphAttributeSelectedIdx = ref(-1)
+const yScatterGraphAttributeIdx = computed(() => yScatterGraphAttributeSelectedIdx.value >= 0 ? yScatterGraphAttributeSelectedIdx.value : 2)
+const yScatterGraphAttribute = data.computedIfRefHasValues([graphAttributesList, yScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const scatterGraphRoundIdx = ref(0)
 
 const scatterSpecification = computed(() => {
@@ -496,7 +531,7 @@ const histogramSpecification = computed(() => {
           </div>
           <div class="overview-window">
             <div class="overview-row">
-              <div class="caption-stack">
+              <div class="caption-stack" v-if="gameHasAttemptData">
                 <div class="caption">Total Attempt Value</div>
                 <div class="value" v-if="gameStatData.att_value_total > 0">${{ formatNumber(gameStatData.att_value_total, 0, true) }}</div>
                 <div class="value" v-else></div>
@@ -505,7 +540,7 @@ const histogramSpecification = computed(() => {
                 <div class="caption">Combined Positive Coryat</div>
                 <div class="value">${{ formatNumber(gameStatData.coryat_score_positive_total, 0, true) }}</div>
               </div>
-              <div class="caption-stack">
+              <div class="caption-stack" v-if="gameHasAttemptData">
                 <div class="caption">Contention</div>
                 <div class="value" v-if="gameStatData.contention > 0">{{ formatNumber(gameStatData.contention * 100, 0, true) }}%</div>
                 <div class="value" v-else></div>
@@ -525,13 +560,17 @@ const histogramSpecification = computed(() => {
         <div class="subsection-header">Standard Metrics</div>
         <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
       </div>
-      <div class="subsection">
+      <div class="subsection" v-if="gameHasAttemptData">
         <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
       </div>
-      <div class="subsection">
+      <div class="subsection" v-if="gameHasAttemptData">
         <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="!gameHasAttemptData">
+        <div class="subsection-header">Conversion Metrics</div>
+        <SortableTable v-if="slimConversionValueScoringTableSpec" v-bind="slimConversionValueScoringTableSpec" />
       </div>
     </div>
     <div class="section">
@@ -659,7 +698,7 @@ const histogramSpecification = computed(() => {
       </div>
     </div>
 
-    <div class="section">
+    <div class="section" v-if="cumulativeDataAttributesList">
       <div class="section-header">Game Progress</div>
       <div class="option-groups">
         <OptionDropdown
@@ -698,7 +737,7 @@ const histogramSpecification = computed(() => {
       />
     </div>
     <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
-      <div class="section-header">Attempts</div>
+      <div class="section-header"><span v-if="gameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
       <StackValueBarChart 
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
@@ -710,11 +749,11 @@ const histogramSpecification = computed(() => {
             cid => formatNumber(jschemaGameRoundContestantStatData.get(rid).get(cid).att, 0)
           ])"
         :colorFunction="cid => color(cid)"
-        :yLabel="'BuzC -> Buz -> Att'"
-        :title="'Attempts'"/>
+        :yLabel="gameHasAttemptData ? 'BuzC -> Buz -> Att' : 'BuzC -> Buz'"
+        :title="gameHasAttemptData ? 'Attempts' : 'Buzzes'"/>
     </div>
     <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
-      <div class="section-header">Attempt Values</div>
+      <div class="section-header"><span v-if="gameHasAttemptData">Attempt Values</span><span v-else>Buzz Values</span></div>
       <StackValueBarChart 
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
@@ -726,16 +765,16 @@ const histogramSpecification = computed(() => {
             cid => formatNumber(jschemaGameRoundContestantStatData.get(rid).get(cid).att_value, 0)
           ])"
         :colorFunction="cid => color(cid)"
-        :yLabel="'Buz$ -> BuzValue -> AttValue'"
-        :title="'Attempt Values'"/>
+        :yLabel="gameHasAttemptData ? 'Buz$ -> BuzValue -> AttValue' : 'Buz$ -> BuzValue'"
+        :title="gameHasAttemptData ? 'Attempt Values' : 'Buzz Values'"/>
     </div>
-    <div class="section" v-if="histogramSpecification">
+    <div class="section" v-if="histogramSpecification && graphAttributesList">
       <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
         <OptionDropdown
           :optionLabels="graphAttributesList.map(attr => attr.label)"
           :selectionIndex="histogramGraphAttributeIdx"
-          @newSelectionIndex="(idx) => histogramGraphAttributeIdx = idx"
+          @newSelectionIndex="(idx) => histogramGraphAttributeSelectedIdx = idx"
         />
         <OptionDropdown
           :optionLabels="['Full Game', 'J! Round', 'DJ! Round'].concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
@@ -745,18 +784,18 @@ const histogramSpecification = computed(() => {
       </div>
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
-    <div class="section" v-if="scatterSpecification">
+    <div class="section" v-if="scatterSpecification && graphAttributesList">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <OptionDropdown
           :optionLabels="graphAttributesList.map(attr => attr.label)"
           :selectionIndex="xScatterGraphAttributeIdx"
-          @newSelectionIndex="(idx) => xScatterGraphAttributeIdx = idx"
+          @newSelectionIndex="(idx) => xScatterGraphAttributeSelectedIdx = idx"
         />
         <OptionDropdown
           :optionLabels="graphAttributesList.map(attr => attr.label)"
           :selectionIndex="yScatterGraphAttributeIdx"
-          @newSelectionIndex="(idx) => yScatterGraphAttributeIdx = idx"
+          @newSelectionIndex="(idx) => yScatterGraphAttributeSelectedIdx = idx"
         />
         <OptionDropdown
           :optionLabels="['Full Game', 'J! Round', 'DJ! Round'].concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
