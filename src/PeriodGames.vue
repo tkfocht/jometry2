@@ -16,8 +16,6 @@ let urlParams = new URLSearchParams(window.location.search);
 data.loadContestantData()
 data.loadGameData()
 data.loadGameStatData()
-data.loadGameContestantStatData()
-data.loadGameRoundContestantStatData()
 
 const seasonSearchParameters = ref(urlParams.get('season') ? urlParams.get('season').split(',') : [])
 const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
@@ -90,7 +88,6 @@ const anyGameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData =>
 const tableSpec = data.computedIfRefHasValues(
   [gameData, contestantDataById, gameStatDataById, anyGameHasAttemptData],
   (gData, cData, gsDataById, hasAttempt) => {
-    console.log(gData)
     const allStatAttrs = [
       gsAttributes.att_value_total,
       gsAttributes.coryat_score_total,
@@ -136,15 +133,15 @@ const tableSpec = data.computedIfRefHasValues(
           sortValue: g.airdate
         },
         {
-          value: cData.get(g.podium_1_contestant_id).name,
+          value: '<a href="/contestant.html?contestant_id=' + g.podium_1_contestant_id + '">' + cData.get(g.podium_1_contestant_id).name + '</a>',
           sortValue: cData.get(g.podium_1_contestant_id).name
         },
         {
-          value: cData.get(g.podium_2_contestant_id).name,
+          value: '<a href="/contestant.html?contestant_id=' + g.podium_2_contestant_id + '">' + cData.get(g.podium_2_contestant_id).name + '</a>',
           sortValue: cData.get(g.podium_2_contestant_id).name
         },
         {
-          value: cData.get(g.podium_3_contestant_id).name,
+          value: '<a href="/contestant.html?contestant_id=' + g.podium_3_contestant_id + '">' + cData.get(g.podium_3_contestant_id).name + '</a>',
           sortValue: cData.get(g.podium_3_contestant_id).name
         },
         {
