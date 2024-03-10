@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import * as d3 from 'd3'
+import * as _ from 'lodash'
 import * as data from '@/data'
 import { playClassificationNameByTocPeriod } from '@/configuration'
 import { threeColorSet, roundAbbreviation } from '@/util'
@@ -54,6 +55,8 @@ const winnerGameContestantStatData = data.computedIfRefHasValues(
 const gameContestantStatDataByContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.contestant_id))
 const singleContestantGameContestantStatData = data.computedIfRefHasValue(gameContestantStatDataByContestantId, gcsData => gcsData.get(contestantId))
 const singleContestantGameContestantStatDataByGameId = data.computedIfRefHasValue(singleContestantGameContestantStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id))
+
+const anyGameHasAttemptData = data.computedIfRefHasValue(singleContestantGameContestantStatData, gcsData => gcsData.some(gData => !_.isNil(gData.att)))
 
 const roundContestantStatData = data.computedIfRefHasValues(
   [gameIds, data.gameRoundContestantStatData],
@@ -173,9 +176,13 @@ const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes
     gcsAttributes.solo_value, gcsAttributes.solo_score]
 const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
 
+const slimConversionScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
+    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
+const slimConversionScoringTableSpec = constructScoringTableSpecification(slimConversionScoringAttributes)
+
 //Stacked bars
-const buildStackedBarSpecificationLambda = function(yAttrs, title) {
-  return (rIdx, gcsData, gData, winGcsData, allGcsData, rcsData, winRcsData, allRcsData) => {
+const buildStackedBarSpecificationLambda = function(yAttrs, title, slimTitle) {
+  return (rIdx, gcsData, gData, winGcsData, allGcsData, rcsData, winRcsData, allRcsData, hasAttempt) => {
     var csData = gcsData
     var allCsData = allGcsData
     var winCsData = winGcsData
@@ -184,29 +191,35 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title) {
       allCsData = allRcsData.get(rIdx)
       winCsData = winRcsData.get(rIdx)
     }
+    var yAttrsToUse = yAttrs.slice(0,3)
+    var titleToUse = title
+    if (!hasAttempt) {
+      yAttrsToUse = yAttrs.slice(0,2)
+      titleToUse = slimTitle
+    }
     const dataSet = csData.map(cs => ({
       game_id: cs.game_id,
       airdate: gData.get(cs.game_id).airdate,
-      values: yAttrs.map(attr => attr.generatingFunction(cs)),
-      displayValues: yAttrs.map(attr => attr.valueDisplayFormat(attr.generatingFunction(cs))),
+      values: yAttrsToUse.map(attr => attr.generatingFunction(cs)),
+      displayValues: yAttrsToUse.map(attr => attr.valueDisplayFormat(attr.generatingFunction(cs))),
     }))
     const aggregateDataSet = [
       {
         label: 'Contestant avg',
-        values: yAttrs.map(attr => d3.mean(csData.map(attr.generatingFunction))),
-        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(csData.map(attr.generatingFunction)))),
+        values: yAttrsToUse.map(attr => d3.mean(csData.map(attr.generatingFunction))),
+        displayValues: yAttrsToUse.map(attr => attr.averageDisplayFormat(d3.mean(csData.map(attr.generatingFunction)))),
         color: threeColorSet[2]
       },
       {
         label: 'Winner avg',
-        values: yAttrs.map(attr => d3.mean(winCsData.map(attr.generatingFunction))),
-        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(winCsData.map(attr.generatingFunction)))),
+        values: yAttrsToUse.map(attr => d3.mean(winCsData.map(attr.generatingFunction))),
+        displayValues: yAttrsToUse.map(attr => attr.averageDisplayFormat(d3.mean(winCsData.map(attr.generatingFunction)))),
         color: threeColorSet[1]
       },
       {
         label: 'All contestant avg',
-        values: yAttrs.map(attr => d3.mean(allCsData.map(attr.generatingFunction))),
-        displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(allCsData.map(attr.generatingFunction)))),
+        values: yAttrsToUse.map(attr => d3.mean(allCsData.map(attr.generatingFunction))),
+        displayValues: yAttrsToUse.map(attr => attr.averageDisplayFormat(d3.mean(allCsData.map(attr.generatingFunction)))),
         color: 'black'
       }
     ]
@@ -215,11 +228,11 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title) {
       aggregateData: aggregateDataSet,
       xCoreLabelFunction: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
       xGroupLabels: ['Game'],
-      yFunctionGroups: [d3.range(0, yAttrs.length).map(i => (d => d.displayValues[i]))],
+      yFunctionGroups: [d3.range(0, yAttrsToUse.length).map(i => (d => d.displayValues[i]))],
       colorFunction: d => threeColorSet[0],
       sortFunction: (a, b) => d3.ascending(a.airdate, b.airdate),
-      yLabel: yAttrs.map(attr => attr.short_label).join(' -> '),
-      title: title
+      yLabel: yAttrsToUse.map(attr => attr.short_label).join(' -> '),
+      title: titleToUse
     }
   }
 }
@@ -227,20 +240,21 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title) {
 const attemptBarChartRoundIdx = ref(0)
 const attemptBarChartSpecification = data.computedIfRefHasValues(
   [attemptBarChartRoundIdx, singleContestantGameContestantStatData, data.gameDataById, winnerGameContestantStatData, gameContestantStatData,
-    singleContestantRoundContestantStatData, winnerRoundContestantStatDataByRound, roundContestantStatDataByRound],
-  buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], 'Attempts'))
+    singleContestantRoundContestantStatData, winnerRoundContestantStatDataByRound, roundContestantStatDataByRound, anyGameHasAttemptData],
+  buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], 'Attempts', 'Buzzes'))
 
 const attemptValueBarChartRoundIdx = ref(0)
 const attemptValueBarChartSpecification = data.computedIfRefHasValues(
   [attemptValueBarChartRoundIdx, singleContestantGameContestantStatData, data.gameDataById, winnerGameContestantStatData, gameContestantStatData,
-    singleContestantRoundContestantStatData, winnerRoundContestantStatDataByRound, roundContestantStatDataByRound],
-  buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], 'Attempt Values'))
+    singleContestantRoundContestantStatData, winnerRoundContestantStatDataByRound, roundContestantStatDataByRound, anyGameHasAttemptData],
+  buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], 'Attempt Values', 'Buzz Values'))
 
 
 const histogramGraphRoundIdx = ref(0)
-const histogramGraphAttributes = gcsAttributes.all_attributes
-const histogramGraphAttributeIdx = ref(0)
-const histogramGraphAttribute = computed(() => histogramGraphAttributes[histogramGraphAttributeIdx.value])
+const histogramGraphAttributes = data.computedIfRefHasValue(anyGameHasAttemptData, hasAttempt => hasAttempt ? gcsAttributes.all_attributes : gcsAttributes.attributes_without_att)
+const histogramGraphAttributeSelectedIdx = ref(-1)
+const histogramGraphAttributeIdx = computed(() => histogramGraphAttributeSelectedIdx.value >= 0 ? histogramGraphAttributeSelectedIdx.value : 0)
+const histogramGraphAttribute = data.computedIfRefHasValues([histogramGraphAttributes, histogramGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const histogramSpecification = data.computedIfRefHasValues(
   [histogramGraphRoundIdx, singleContestantGameContestantStatData, singleContestantRoundContestantStatData, gameContestantStatData, roundContestantStatDataByRound, data.gameDataById, histogramGraphAttribute],
   (rIdx, singleGCSData, singleRCSData, gcsData, rcsData, gData, attr) => {
@@ -267,11 +281,13 @@ const histogramSpecification = data.computedIfRefHasValues(
 
 
 const scatterGraphRoundIdx = ref(0)
-const scatterGraphAttributes = gcsAttributes.all_attributes
-const xScatterGraphAttributeIdx = ref(0)
-const yScatterGraphAttributeIdx = ref(2)
-const xScatterGraphAttribute = computed(() => scatterGraphAttributes[xScatterGraphAttributeIdx.value])
-const yScatterGraphAttribute = computed(() => scatterGraphAttributes[yScatterGraphAttributeIdx.value])
+const scatterGraphAttributes = data.computedIfRefHasValue(anyGameHasAttemptData, hasAttempt => hasAttempt ? gcsAttributes.all_attributes : gcsAttributes.attributes_without_att)
+const xScatterGraphAttributeSelectedIdx = ref(-1)
+const yScatterGraphAttributeSelectedIdx = ref(-1)
+const xScatterGraphAttributeIdx = data.computedIfRefHasValue(xScatterGraphAttributeSelectedIdx, idx => idx >= 0 ? idx : 0)
+const yScatterGraphAttributeIdx = data.computedIfRefHasValue(yScatterGraphAttributeSelectedIdx, idx => idx >= 0 ? idx : 2)
+const xScatterGraphAttribute = data.computedIfRefHasValues([scatterGraphAttributes, xScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
+const yScatterGraphAttribute = data.computedIfRefHasValues([scatterGraphAttributes, yScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const scatterHistogramSpecification = data.computedIfRefHasValues(
   [scatterGraphRoundIdx, singleContestantGameContestantStatData, singleContestantRoundContestantStatData, gameContestantStatData, roundContestantStatDataByRound, data.gameDataById, xScatterGraphAttribute, yScatterGraphAttribute],
   (rIdx, singleGCSData, singleRCSData, gcsData, rcsData, gData, xAttr, yAttr) => {
@@ -313,7 +329,12 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
           <OptionGroup
             :optionLabels="playClassificationPeriods.map(pcp => playClassificationNameByTocPeriod(pcp[1], pcp[0]) + ' (' + pcp[[0]] + ' TOC)')"
             :selectionIndex="playClassificationPeriodIdx"
-            @newSelectionIndex="(idx) => playClassificationPeriodIdx = idx" />
+            @newSelectionIndex="(idx) => {
+              playClassificationPeriodIdx = idx
+              histogramGraphAttributeSelectedIdx = -1
+              xScatterGraphAttributeSelectedIdx = -1
+              yScatterGraphAttributeSelectedIdx = -1
+            }" />
         </div>  
       </div>
       <div v-if="singleContestantData && singleContestantGameContestantStatData" class="subsection">
@@ -334,7 +355,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
             </div>
             <div class="overview-window">
               <div class="overview-row">
-                <div class="caption-stack">
+                <div class="caption-stack" v-if="anyGameHasAttemptData">
                   <div class="caption">Avg Attempt Value</div>
                   <div class="value">${{ gcsAttributes.att_value.averageDisplayFormat(d3.mean(singleContestantGameContestantStatData.map(gcsAttributes.att_value.generatingFunction))) }}</div>
                 </div>
@@ -362,17 +383,21 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
         <div class="subsection-header">Standard Metrics</div>
         <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
       </div>
-      <div class="subsection">
+      <div class="subsection" v-if="anyGameHasAttemptData">
         <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
       </div>
-      <div class="subsection">
+      <div class="subsection" v-if="anyGameHasAttemptData">
         <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
       </div>
+      <div class="subsection" v-if="!anyGameHasAttemptData">
+        <div class="subsection-header">Conversion Metrics</div>
+        <SortableTable v-if="slimConversionScoringTableSpec" v-bind="slimConversionScoringTableSpec" />
+      </div>
     </div>
     <div v-if="singleContestantGameContestantStatData" class="section">
-      <div class="section-header">Attempts</div>
+      <div class="section-header"><span v-if="anyGameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
       <div class="option-groups">
         <OptionGroup
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
@@ -382,7 +407,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
     <div v-if="singleContestantGameContestantStatData" class="section">
-      <div class="section-header">Attempt Value</div>
+      <div class="section-header"><span v-if="anyGameHasAttemptData">Attempt Value</span><span v-else>Buzz Value</span></div>
       <div class="option-groups">
         <OptionGroup
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
@@ -391,13 +416,13 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
       <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
-    <div class="section">
+    <div class="section" v-if="histogramGraphAttributes">
       <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
         <OptionDropdown
           :optionLabels="histogramGraphAttributes.map(attr => attr.label)"
           :selectionIndex="histogramGraphAttributeIdx"
-          @newSelectionIndex="(idx) => histogramGraphAttributeIdx = idx"
+          @newSelectionIndex="(idx) => histogramGraphAttributeSelectedIdx = idx"
         />
         <OptionGroup
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
@@ -406,18 +431,18 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
-    <div class="section">
+    <div class="section" v-if="scatterGraphAttributes">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <OptionDropdown
           :optionLabels="scatterGraphAttributes.map(attr => attr.label)"
           :selectionIndex="xScatterGraphAttributeIdx"
-          @newSelectionIndex="(idx) => xScatterGraphAttributeIdx = idx"
+          @newSelectionIndex="(idx) => xScatterGraphAttributeSelectedIdx = idx"
         />
         <OptionDropdown
           :optionLabels="scatterGraphAttributes.map(attr => attr.label)"
           :selectionIndex="yScatterGraphAttributeIdx"
-          @newSelectionIndex="(idx) => yScatterGraphAttributeIdx = idx"
+          @newSelectionIndex="(idx) => yScatterGraphAttributeSelectedIdx = idx"
         />
         <OptionGroup
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
