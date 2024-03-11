@@ -99,7 +99,7 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Syndicated Seasons
         </div>
-        <div v-for="season_id_set in [['40','40A'],['39'],['38'],['37'],['36'],['35']]" class="toc-period-play-class"
+        <div v-for="season_id_set in [['40','40A'],['39'],['38'],['37'],['36'],['35'],['34']]" class="toc-period-play-class"
             :set1="seasonGames = gameDataSorted.filter(g => season_id_set.includes(g.season_id))"
             :set2="seasonGamesByPlayClassification = d3.group(seasonGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
