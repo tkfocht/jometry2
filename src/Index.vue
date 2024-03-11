@@ -104,16 +104,16 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
             :set2="seasonGamesByPlayClassification = d3.group(seasonGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
             Season {{ season_id_set[0] }}&nbsp;
-            <a :href="'/period_games.html?season_id=' + season_id_set.join(',')">{{ seasonGames.length }} game{{ seasonGames.length === 1 ? '' : 's' }}</a>&nbsp;
-            <a :href="'/period.html?season_id=' + season_id_set.join(',')">Statistical Summary</a>
+            <a :href="'/period_games.html?season=' + season_id_set.join(',')">{{ seasonGames.length }} game{{ seasonGames.length === 1 ? '' : 's' }}</a>&nbsp;
+            <a :href="'/period.html?season=' + season_id_set.join(',')">Statistical Summary</a>
           </div>
           <div>
             <table class="play-classification-list">
               <tbody> 
                 <tr v-for="playClassification in seasonGamesByPlayClassification.keys()">
                   <td>{{ playClassificationName(playClassification, season_id_set[0]) }}</td>
-                  <td><a :href="'/period_games.html?season_id=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></td>
-                  <td><a :href="'/period.html?season_id=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></td>
+                  <td><a :href="'/period_games.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></td>
+                  <td><a :href="'/period.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></td>
                 </tr>
               </tbody>
             </table>
@@ -128,16 +128,16 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
             :set2="seasonGamesByPlayClassification = d3.group(seasonGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
             Season {{ season_id_set[0] }}&nbsp;
-            <a :href="'/period_games.html?season_id=' + season_id_set.join(',')">{{ seasonGames.length }} game{{ seasonGames.length === 1 ? '' : 's' }}</a>&nbsp;
-            <a :href="'/period.html?season_id=' + season_id_set.join(',')">Statistical Summary</a>
+            <a :href="'/period_games.html?season=' + season_id_set.join(',')">{{ seasonGames.length }} game{{ seasonGames.length === 1 ? '' : 's' }}</a>&nbsp;
+            <a :href="'/period.html?season=' + season_id_set.join(',')">Statistical Summary</a>
           </div>
           <div>
             <table class="play-classification-list">
               <tbody> 
                 <tr v-for="playClassification in seasonGamesByPlayClassification.keys()">
                   <td>{{ playClassificationName(playClassification, season_id_set[0]) }}</td>
-                  <td><a :href="'/period_games.html?season_id=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></td>
-                  <td><a :href="'/period.html?season_id=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></td>
+                  <td><a :href="'/period_games.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></td>
+                  <td><a :href="'/period.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></td>
                 </tr>
               </tbody>
             </table>
