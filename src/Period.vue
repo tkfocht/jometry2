@@ -163,6 +163,12 @@ const anyGameHasAttemptData = data.computedIfRefHasValue(
     return dcgcsData.some(gcsData => !_.isNil(gcsData.att))
   }
 )
+const everyGameHasAttemptData = data.computedIfRefHasValue(
+  displayContestantGameContestantStatData,
+  (dcgcsData) => {
+    return dcgcsData.every(gcsData => !_.isNil(gcsData.att))
+  }
+)
 const winnerContestantGameContestantStatData = data.computedIfRefHasValues(
   [gameDataById, gameContestantStatData],
   (gData, gcsData) => gcsData.filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id)
@@ -426,8 +432,13 @@ const rollingChartSpecification = data.computedIfRefHasValues(
   })
 
 const boxWhiskerGraphAttributeSelectedIdx = ref(-1)
-const boxWhiskerGraphAttributeIdx = data.computedIfRefHasValue(boxWhiskerGraphAttributeSelectedIdx, idx => idx >= 0 ? idx : 0)
 const boxWhiskerGraphAttributes = data.computedIfRefHasValue(anyGameHasAttemptData, hasAttempt => hasAttempt ? gcsAttributes.all_attributes : gcsAttributes.attributes_without_att)
+const boxWhiskerGraphAttributeDefaultIdx = data.computedIfRefHasValues(
+  [boxWhiskerGraphAttributes, everyGameHasAttemptData],
+  (attrList, allHaveAttempt) => allHaveAttempt ? attrList.indexOf(gcsAttributes.att_value) : attrList.indexOf(gcsAttributes.buz_value))
+const boxWhiskerGraphAttributeIdx = data.computedIfRefHasValues(
+  [boxWhiskerGraphAttributeSelectedIdx, boxWhiskerGraphAttributeDefaultIdx],
+  (selectedIdx, defaultIdx) => selectedIdx >= 0 ? selectedIdx : defaultIdx)
 const boxWhiskerGraphAttribute = data.computedIfRefHasValues([boxWhiskerGraphAttributes, boxWhiskerGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const boxWhiskerGraphRoundIdx = ref(0)
 const boxWhiskerGraphSpecification = data.computedIfRefHasValues(
@@ -466,9 +477,19 @@ const boxWhiskerGraphSpecification = data.computedIfRefHasValues(
 const scatterGraphRoundIdx = ref(0)
 const scatterGraphAttributes = data.computedIfRefHasValue(anyGameHasAttemptData, hasAttempt => hasAttempt ? gcsAttributes.all_attributes : gcsAttributes.attributes_without_att)
 const xScatterGraphAttributeSelectedIdx = ref(-1)
-const xScatterGraphAttributeIdx = data.computedIfRefHasValue(xScatterGraphAttributeSelectedIdx, idx => idx >= 0 ? idx : 0)
+const xScatterGraphAttributeDefaultIdx = data.computedIfRefHasValues(
+  [scatterGraphAttributes, everyGameHasAttemptData],
+  (attrList, allHaveAttempt) => allHaveAttempt ? attrList.indexOf(gcsAttributes.att_value) : attrList.indexOf(gcsAttributes.buz_value))
+const xScatterGraphAttributeIdx = data.computedIfRefHasValues(
+  [xScatterGraphAttributeSelectedIdx, xScatterGraphAttributeDefaultIdx],
+  (selectedIdx, defaultIdx) => selectedIdx >= 0 ? selectedIdx : defaultIdx)
 const yScatterGraphAttributeSelectedIdx = ref(-1)
-const yScatterGraphAttributeIdx = data.computedIfRefHasValue(yScatterGraphAttributeSelectedIdx, idx => idx >= 0 ? idx : 2)
+const yScatterGraphAttributeDefaultIdx = data.computedIfRefHasValues(
+  [scatterGraphAttributes, everyGameHasAttemptData],
+  (attrList, allHaveAttempt) => allHaveAttempt ? attrList.indexOf(gcsAttributes.conversion_value_percent) : attrList.indexOf(gcsAttributes.acc_value_percent))
+const yScatterGraphAttributeIdx = data.computedIfRefHasValues(
+  [yScatterGraphAttributeSelectedIdx, yScatterGraphAttributeDefaultIdx],
+  (selectedIdx, defaultIdx) => selectedIdx >= 0 ? selectedIdx : defaultIdx)
 const xScatterGraphAttribute = data.computedIfRefHasValues([scatterGraphAttributes, xScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const yScatterGraphAttribute = data.computedIfRefHasValues([scatterGraphAttributes, yScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const scatterGraphSpecification = data.computedIfRefHasValues(

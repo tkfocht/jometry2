@@ -51,7 +51,7 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Tournament of Champions Periods
         </div>
-        <div v-for="tocPeriod in ['2024B','2024','2022','2021','2019']" class="toc-period-play-class"
+        <div v-for="tocPeriod in ['2025','2024','2022','2021','2019']" class="toc-period-play-class"
             :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
             :set2="tocPeriodGamesByPlayClassification = d3.group(tocPeriodGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
