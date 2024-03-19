@@ -49,6 +49,18 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
         </div>
       </div>
       <div class="toc-period section">
+        <div class="toc-period-header bg-primary text-white">2024 JIT Contestants
+        </div>
+        <div class="contestant-listing">
+          <div v-for="contestant_id in [3449, 834, 819, 3357, 3776, 1084, 502, 3446, 505, 877, 508]" class="contestant-listing-item">
+            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
+          </div>
+        </div>
+        <div>
+          <i>Only contestants with past data on the site are listed. (Data currently starts with Season 33.)</i>
+        </div>
+      </div>
+      <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Tournament of Champions Periods
         </div>
         <div v-for="tocPeriod in ['2025','2024','2022','2021','2019']" class="toc-period-play-class"
@@ -201,6 +213,14 @@ table.game-list, table.play-classification-list {
       text-align: left;
     }
   }
+}
+
+.contestant-listing {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 0.25em 1em;
+  margin-bottom: 1em;
 }
 
 </style>
