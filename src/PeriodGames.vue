@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { movingAverageOfLast, dateFormat, transformValues, threeColorSet } from '@/util'
-import { playClassificationName } from '@/configuration'
+import { playClassificationName, playClassificationGenericName } from '@/configuration'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as data from '@/data'
@@ -150,7 +150,7 @@ const tableSpec = data.computedIfRefHasValues(
         },
         {
           value: playClassificationName(g.play_classification, g.season_id),
-          sortValue:  playClassificationName(g.play_classification, g.season_id)
+          sortValue: playClassificationName(g.play_classification, g.season_id)
         }
       ]
 
@@ -180,7 +180,7 @@ const tableSpec = data.computedIfRefHasValues(
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
-      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationName(p, undefined)).join(", ") }}&nbsp;</span>Games
+      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Games
     </h1>
     <div>
       <a :href="'/period.html' + queryString">Statistical Summary</a>

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { movingAverageOfLast, dateFormat, transformValues, urlDateParse } from '@/util'
-import { playClassificationName } from '@/configuration'
+import { playClassificationName, playClassificationGenericName } from '@/configuration'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as data from '@/data'
@@ -551,7 +551,7 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
-      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationName(p, undefined)).join(", ") }}&nbsp;</span>Summary
+      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Summary
     </h1>
     <div v-if="displayContestantIdParameters.length > 0">
       Displaying specified contestants

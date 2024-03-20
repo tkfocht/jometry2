@@ -1,3 +1,19 @@
+var playClassificationGenericName = function(playClassification) {
+    if (playClassification === 'regular') return 'Regular Play'
+    if (playClassification === 'champions') return 'Tournament of Champions'
+    if (playClassification === 'exhibition') return 'Exhibition'
+    if (playClassification === 'secondchance') return 'Second Chance'
+    if (playClassification === 'professors') return 'Professors'
+    if (playClassification === 'teachers') return 'Teachers'
+    if (playClassification === 'teen') return 'Teen'
+    if (playClassification === 'celebrity') return 'Celebrity'
+    if (playClassification === 'hsreunion') return 'High School Reunion'
+    if (playClassification === 'masters') return 'Masters'
+    if (playClassification === 'wildcard') return 'Champions Wildcard'
+    if (playClassification === 'college') return 'College'
+    return null
+}
+
 var playClassificationName = function(playClassification, season) {
     if (playClassification === 'regular') return 'Regular Play'
     if (playClassification === 'champions') return 'Tournament of Champions'
@@ -46,4 +62,4 @@ var dataSourceAddress = function(dataSourceId) {
     }
 }
 
-export { playClassificationName, playClassificationNameByTocPeriod, dataSourceAddress };
+export { playClassificationName, playClassificationGenericName, playClassificationNameByTocPeriod, dataSourceAddress };
