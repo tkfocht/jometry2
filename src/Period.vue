@@ -119,7 +119,10 @@ const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasVa
 const contestantWins = data.computedIfRefHasValue(gameData, gData => d3.rollup(gData, v => v.length, g => g.winning_contestant_id))
 const contestantWinnings = data.computedIfRefHasValues([gameData, gameContestantStatDataByGameIdAndContestantId], (gData, gcsData) => {
   const aggregateWinnings = function(games) {
-    return games.map(g => gcsData.get(g.game_id).get(g.winning_contestant_id).score).reduce((a, b) => a + b, 0)
+    return games
+      .filter(g => !_.isNil(g.winning_contestant_id))
+      .map(g => gcsData.get(g.game_id).get(g.winning_contestant_id).score)
+      .reduce((a, b) => a + b, 0)
   }
   return d3.rollup(gData, aggregateWinnings, g => g.winning_contestant_id)
 })
