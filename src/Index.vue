@@ -52,18 +52,18 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
         <div class="toc-period-header bg-primary text-white">2024 JIT Contestants
         </div>
         <div class="contestant-listing">
-          <div v-for="contestant_id in [3449, 834, 819, 3357, 3776, 1084, 502, 3446, 505, 877, 508]" class="contestant-listing-item">
+          <div v-for="contestant_id in [3449, 7333, 834, 819, 3357, 3776, 1084, 502, 3446, 505, 7230, 877, 508]" class="contestant-listing-item">
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
           </div>
         </div>
-        <div>
-          <i>Only contestants with past data on the site are listed. (Data currently starts with Season 33.)</i>
+        <div style="text-align: center;">
+          <i>Only contestants with past data on the site are listed. (Data currently starts with Season 32.)</i>
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">Tournament of Champions Periods
+        <div class="toc-period-header bg-primary text-white">Masters Periods
         </div>
-        <div v-for="tocPeriod in ['2025','2024','2022','2021','2019']" class="toc-period-play-class"
+        <div v-for="tocPeriod in ['M2024','M2023']" class="toc-period-play-class"
             :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
             :set2="tocPeriodGamesByPlayClassification = d3.group(tocPeriodGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
@@ -85,9 +85,9 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">Masters Periods
+        <div class="toc-period-header bg-primary text-white">Tournament of Champions Periods
         </div>
-        <div v-for="tocPeriod in ['M2023']" class="toc-period-play-class"
+        <div v-for="tocPeriod in ['2025','2024','2022','2021','2019','2017']" class="toc-period-play-class"
             :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
             :set2="tocPeriodGamesByPlayClassification = d3.group(tocPeriodGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
@@ -111,7 +111,7 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Syndicated Seasons
         </div>
-        <div v-for="season_id_set in [['40','40A'],['39'],['38'],['37'],['36'],['35'],['34'],['33']]" class="toc-period-play-class"
+        <div v-for="season_id_set in [['40','40A'],['39'],['38'],['37'],['36'],['35'],['34'],['33'],['32']]" class="toc-period-play-class"
             :set1="seasonGames = gameDataSorted.filter(g => season_id_set.includes(g.season_id))"
             :set2="seasonGamesByPlayClassification = d3.group(seasonGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
