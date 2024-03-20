@@ -71,16 +71,12 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
             <a :href="'/period_games.html?toc_period=' + tocPeriod">{{ tocPeriodGames.length }} game{{ tocPeriodGames.length === 1 ? '' : 's' }}</a>&nbsp;
             <a :href="'/period.html?toc_period=' + tocPeriod">Statistical Summary</a>
           </div>
-          <div>
-            <table class="play-classification-list">
-              <tbody> 
-                <tr v-for="playClassification in tocPeriodGamesByPlayClassification.keys()">
-                  <td>{{ playClassificationNameByTocPeriod(playClassification, tocPeriod) }}</td>
-                  <td><a :href="'/period_games.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">{{ tocPeriodGamesByPlayClassification.get(playClassification).length }} game{{ tocPeriodGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></td>
-                  <td><a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">Statistical Summary</a></td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="play-classification-list">
+            <div v-for="playClassification in tocPeriodGamesByPlayClassification.keys()">
+              <div>{{ playClassificationNameByTocPeriod(playClassification, tocPeriod) }}</div>
+              <div><a :href="'/period_games.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">{{ tocPeriodGamesByPlayClassification.get(playClassification).length }} game{{ tocPeriodGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
+              <div><a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">Statistical Summary</a></div>
+            </div>
           </div>
         </div>
       </div>
@@ -95,16 +91,12 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
             <a :href="'/period_games.html?toc_period=' + tocPeriod">{{ tocPeriodGames.length }} game{{ tocPeriodGames.length === 1 ? '' : 's' }}</a>&nbsp;
             <a :href="'/period.html?toc_period=' + tocPeriod">Statistical Summary</a>
           </div>
-          <div>
-            <table class="play-classification-list">
-              <tbody> 
-                <tr v-for="playClassification in tocPeriodGamesByPlayClassification.keys()">
-                  <td>{{ playClassificationNameByTocPeriod(playClassification, tocPeriod) }}</td>
-                  <td><a :href="'/period_games.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">{{ tocPeriodGamesByPlayClassification.get(playClassification).length }} game{{ tocPeriodGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></td>
-                  <td><a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">Statistical Summary</a></td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="play-classification-list">
+            <div v-for="playClassification in tocPeriodGamesByPlayClassification.keys()">
+                <div>{{ playClassificationNameByTocPeriod(playClassification, tocPeriod) }}</div>
+                <div><a :href="'/period_games.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">{{ tocPeriodGamesByPlayClassification.get(playClassification).length }} game{{ tocPeriodGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
+                <div><a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">Statistical Summary</a></div>
+            </div>
           </div>
         </div>
       </div>
@@ -119,16 +111,12 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
             <a :href="'/period_games.html?season=' + season_id_set.join(',')">{{ seasonGames.length }} game{{ seasonGames.length === 1 ? '' : 's' }}</a>&nbsp;
             <a :href="'/period.html?season=' + season_id_set.join(',')">Statistical Summary</a>
           </div>
-          <div>
-            <table class="play-classification-list">
-              <tbody> 
-                <tr v-for="playClassification in seasonGamesByPlayClassification.keys()">
-                  <td>{{ playClassificationName(playClassification, season_id_set[0]) }}</td>
-                  <td><a :href="'/period_games.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></td>
-                  <td><a :href="'/period.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="play-classification-list">
+            <div v-for="playClassification in seasonGamesByPlayClassification.keys()">
+              <div>{{ playClassificationName(playClassification, season_id_set[0]) }}</div>
+              <div><a :href="'/period_games.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
+              <div><a :href="'/period.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></div>
+            </div>
           </div>
         </div>
       </div>
@@ -143,16 +131,12 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
             <a :href="'/period_games.html?season=' + season_id_set.join(',')">{{ seasonGames.length }} game{{ seasonGames.length === 1 ? '' : 's' }}</a>&nbsp;
             <a :href="'/period.html?season=' + season_id_set.join(',')">Statistical Summary</a>
           </div>
-          <div>
-            <table class="play-classification-list">
-              <tbody> 
-                <tr v-for="playClassification in seasonGamesByPlayClassification.keys()">
-                  <td>{{ playClassificationName(playClassification, season_id_set[0]) }}</td>
-                  <td><a :href="'/period_games.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></td>
-                  <td><a :href="'/period.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="play-classification-list">
+            <div v-for="playClassification in seasonGamesByPlayClassification.keys()">
+              <div>{{ playClassificationName(playClassification, season_id_set[0]) }}</div>
+              <div><a :href="'/period_games.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
+              <div><a :href="'/period.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></div>
+            </div>
           </div>
         </div>
       </div>
@@ -200,6 +184,24 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
     font-size: 1rem;
     margin-left: 1rem;
     display: inline-block;
+}
+
+.play-classification-list {
+  width: 100%;
+
+  > div {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+
+    > div:first-child {
+      flex-grow: 1;
+    }
+
+    > div {
+      flex-grow: 0;
+    }
+  }
 }
 
 table.game-list, table.play-classification-list {
