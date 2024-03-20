@@ -1,6 +1,7 @@
 var playClassificationGenericName = function(playClassification) {
     if (playClassification === 'regular') return 'Regular Play'
     if (playClassification === 'champions') return 'Tournament of Champions'
+    if (playClassification === 'invitational') return 'Invitational'
     if (playClassification === 'exhibition') return 'Exhibition'
     if (playClassification === 'secondchance') return 'Second Chance'
     if (playClassification === 'professors') return 'Professors'
@@ -17,6 +18,7 @@ var playClassificationGenericName = function(playClassification) {
 var playClassificationName = function(playClassification, season) {
     if (playClassification === 'regular') return 'Regular Play'
     if (playClassification === 'champions') return 'Tournament of Champions'
+    if (playClassification === 'invitational') return 'Invitational Tournament'
     if (playClassification === 'exhibition') return 'Exhibition'
     if (playClassification === 'secondchance') return 'Second Chance'
     if (playClassification === 'professors') return 'Professors Tournament'
@@ -37,6 +39,7 @@ var playClassificationName = function(playClassification, season) {
 var playClassificationNameByTocPeriod = function(playClassification, toc_period) {
     if (playClassification === 'regular') return 'Regular Play'
     if (playClassification === 'champions') return 'Tournament of Champions'
+    if (playClassification === 'invitational') return 'Invitational Tournament'
     if (playClassification === 'exhibition') return 'Exhibition'
     if (playClassification === 'secondchance') return 'Second Chance'
     if (playClassification === 'professors') return 'Professors Tournament'
