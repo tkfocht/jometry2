@@ -327,7 +327,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <div class="subsection" v-if="playClassificationPeriods">
         <div class="option-groups">
           <OptionGroup
-            :optionLabels="playClassificationPeriods.map(pcp => playClassificationNameByTocPeriod(pcp[1], pcp[0]) + ' (' + pcp[[0]] + ' TOC)')"
+            :optionLabels="playClassificationPeriods.map(pcp => playClassificationNameByTocPeriod(pcp[1], pcp[0]) + ' (' + pcp[[0]] + (pcp[[0]][0] == '2' ? ' TOC' : '') + ')')"
             :selectionIndex="playClassificationPeriodIdx"
             @newSelectionIndex="(idx) => {
               playClassificationPeriodIdx = idx
