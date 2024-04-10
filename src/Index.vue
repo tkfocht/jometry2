@@ -49,21 +49,9 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2024 JIT Contestants
+        <div class="toc-period-header bg-primary text-white">Current Qualification Period and Season
         </div>
-        <div class="contestant-listing">
-          <div v-for="contestant_id in [3449, 7333, 834, 819, 3357, 3776, 1084, 502, 3446, 505, 7230, 877, 508]" class="contestant-listing-item">
-            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-        </div>
-        <div style="text-align: center;">
-          <i>Only contestants with past data on the site are listed. (Data currently starts with Season 32.)</i>
-        </div>
-      </div>
-      <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">Masters Periods
-        </div>
-        <div v-for="tocPeriod in ['M2024','M2023']" class="toc-period-play-class"
+        <div v-for="tocPeriod in ['2025']" class="toc-period-play-class"
             :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
             :set2="tocPeriodGamesByPlayClassification = d3.group(tocPeriodGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
@@ -73,15 +61,40 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
           </div>
           <div class="play-classification-list">
             <div v-for="playClassification in tocPeriodGamesByPlayClassification.keys()">
-              <div>{{ playClassificationNameByTocPeriod(playClassification, tocPeriod) }}</div>
-              <div><a :href="'/period_games.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">{{ tocPeriodGamesByPlayClassification.get(playClassification).length }} game{{ tocPeriodGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
-              <div><a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">Statistical Summary</a></div>
+                <div>{{ playClassificationNameByTocPeriod(playClassification, tocPeriod) }}</div>
+                <div><a :href="'/period_games.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">{{ tocPeriodGamesByPlayClassification.get(playClassification).length }} game{{ tocPeriodGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
+                <div><a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">Statistical Summary</a></div>
+            </div>
+          </div>
+        </div>
+        <div v-for="season_id_set in [['40']]" class="toc-period-play-class"
+            :set1="seasonGames = gameDataSorted.filter(g => season_id_set.includes(g.season_id))"
+            :set2="seasonGamesByPlayClassification = d3.group(seasonGames, g => g.play_classification)">
+          <div class="toc-period-play-class-header bg-secondary">
+            Season {{ season_id_set[0] }}&nbsp;
+            <a :href="'/period_games.html?season=' + season_id_set.join(',')">{{ seasonGames.length }} game{{ seasonGames.length === 1 ? '' : 's' }}</a>&nbsp;
+            <a :href="'/period.html?season=' + season_id_set.join(',')">Statistical Summary</a>
+          </div>
+          <div class="play-classification-list">
+            <div v-for="playClassification in seasonGamesByPlayClassification.keys()">
+              <div>{{ playClassificationName(playClassification, season_id_set[0]) }}</div>
+              <div><a :href="'/period_games.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">{{ seasonGamesByPlayClassification.get(playClassification).length }} game{{ seasonGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
+              <div><a :href="'/period.html?season=' + season_id_set.join(',') + '&play_classification=' + playClassification">Statistical Summary</a></div>
             </div>
           </div>
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">Tournament of Champions Periods
+        <div class="toc-period-header bg-primary text-white">2024 Masters Qualifiers
+        </div>
+        <div class="contestant-listing">
+          <div v-for="contestant_id in [2487, 639, 4281, 7912, 4842]" class="contestant-listing-item">
+            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
+          </div>
+        </div>
+      </div>
+      <div class="toc-period section">
+        <div class="toc-period-header bg-primary text-white">Tournament of Champions Qualification Periods
         </div>
         <div v-for="tocPeriod in ['2025','2024','2022','2021','2019','2017']" class="toc-period-play-class"
             :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
@@ -96,6 +109,26 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
                 <div>{{ playClassificationNameByTocPeriod(playClassification, tocPeriod) }}</div>
                 <div><a :href="'/period_games.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">{{ tocPeriodGamesByPlayClassification.get(playClassification).length }} game{{ tocPeriodGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
                 <div><a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">Statistical Summary</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="toc-period section">
+        <div class="toc-period-header bg-primary text-white">Masters Qualification Periods
+        </div>
+        <div v-for="tocPeriod in ['M2024','M2023']" class="toc-period-play-class"
+            :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
+            :set2="tocPeriodGamesByPlayClassification = d3.group(tocPeriodGames, g => g.play_classification)">
+          <div class="toc-period-play-class-header bg-secondary">
+            {{ tocPeriod }} Period&nbsp;
+            <a :href="'/period_games.html?toc_period=' + tocPeriod">{{ tocPeriodGames.length }} game{{ tocPeriodGames.length === 1 ? '' : 's' }}</a>&nbsp;
+            <a :href="'/period.html?toc_period=' + tocPeriod">Statistical Summary</a>
+          </div>
+          <div class="play-classification-list">
+            <div v-for="playClassification in tocPeriodGamesByPlayClassification.keys()">
+              <div>{{ playClassificationNameByTocPeriod(playClassification, tocPeriod) }}</div>
+              <div><a :href="'/period_games.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">{{ tocPeriodGamesByPlayClassification.get(playClassification).length }} game{{ tocPeriodGamesByPlayClassification.get(playClassification).length === 1 ? '' : 's' }}</a></div>
+              <div><a :href="'/period.html?toc_period=' + tocPeriod + '&play_classification=' + playClassification">Statistical Summary</a></div>
             </div>
           </div>
         </div>
