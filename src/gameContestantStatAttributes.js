@@ -242,9 +242,9 @@ const dd_score = {
 }
 
 const fj_start_score = {
-    short_label: 'Clue$',
-    label: 'Clue Score',
-    description: 'Score from clues: Buz$ + DD$',
+    short_label: 'PreFJ$',
+    label: 'Pre-FJ Score',
+    description: 'Score at start of FJ: Buz$ + DD$',
     generatingFunction: gcs => gcs.score - gcs.fj_score,
     valueDisplayFormat: v => formatNumber(v, 0, false),
     averageDisplayFormat: v => formatNumber(v, 0, false),
@@ -262,9 +262,9 @@ const fj_score = {
 }
 
 const fj_final_score = {
-    short_label: 'Total$',
-    label: 'Total Score',
-    description: 'Total Score',
+    short_label: 'End$',
+    label: 'End Score',
+    description: 'End Score',
     generatingFunction: gcs => gcs.score,
     valueDisplayFormat: v => formatNumber(v, 0, false),
     averageDisplayFormat: v => formatNumber(v, 0, false),
