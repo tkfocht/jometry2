@@ -8,7 +8,7 @@ import { threeColorSet, roundAbbreviation } from '@/util'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
-import HighlightHistogram from './components/util/HighlightHistogram.vue'
+import HighlightHistogramHorizontal from './components/util/HighlightHistogramHorizontal.vue'
 import OptionDropdown from './components/util/OptionDropdown.vue'
 import OptionGroup from './components/util/OptionGroup.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
@@ -268,13 +268,14 @@ const histogramSpecification = data.computedIfRefHasValues(
     csData = csData.filter(cs => attr.generatingFunction(cs) !== undefined)
     return {
       histogramData: csData,
-      scatterData: singleCSData,
-      scatterLabelFunction: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
-      scatterColorFunction: d => threeColorSet[0],
+      trendData: singleCSData,
+      trendColor: threeColorSet[0],
+      trendHoverTemplate: 'Episode %{text}: %{y}<extra></extra>',
+      trendLabelFunction: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
       title: attr.label,
-      xLabel: attr.short_label,
-      xFunction: attr.generatingFunction,
-      xBins: attr.bins
+      yLabel: attr.short_label,
+      yFunction: attr.generatingFunction,
+      yBins: attr.bins
     }
   }
 )
@@ -429,7 +430,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
           :selectionIndex="histogramGraphRoundIdx"
           @newSelectionIndex="(idx) => histogramGraphRoundIdx = idx" />
       </div>
-      <HighlightHistogram v-bind="histogramSpecification" />
+      <HighlightHistogramHorizontal v-bind="histogramSpecification" />
     </div>
     <div class="section" v-if="scatterGraphAttributes">
       <div class="section-header">Selectable Scatter Plots</div>

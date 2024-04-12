@@ -467,9 +467,9 @@ const histogramSpecification = computed(() => {
   scatterData = d3.filter(scatterData, r => xAttr.generatingFunction(r) !== undefined)
   return {
     histogramData: histogramData,
-    scatterData: scatterData,
-    scatterLabelFunction: d => contestantDataById.value.get(d.contestant_id).name,
-    scatterColorFunction: d => color.value(d.contestant_id),
+    lineData: scatterData,
+    lineLabelFunction: d => contestantDataById.value.get(d.contestant_id).name,
+    lineColorFunction: d => color.value(d.contestant_id),
     title: xAttr['label'],
     xLabel: xAttr['label'],
     xFunction: xAttr.generatingFunction,
