@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { movingAverageOfLast, dateFormat, transformValues, urlDateParse } from '@/util'
+import { movingAverageOfLast, dateFormat, transformValues, urlDateParse, roundAbbreviation } from '@/util'
 import { playClassificationName, playClassificationGenericName } from '@/configuration'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
@@ -13,6 +13,7 @@ import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import LineChart from './components/util/LineChart.vue'
 import OptionDropdown from './components/util/OptionDropdown.vue'
 import OptionGroup from './components/util/OptionGroup.vue'
+import ReactiveChart from './components/util/ReactiveChart.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import SortableTable from './components/util/SortableTable.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
@@ -24,6 +25,7 @@ data.loadGameData()
 data.loadGameStatData()
 data.loadGameContestantStatData()
 data.loadGameRoundContestantStatData()
+data.loadGameDailyDoubleData()
 
 const seasonSearchParameters = ref(urlParams.get('season') ? urlParams.get('season').split(',') : [])
 const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
@@ -115,6 +117,12 @@ const gameContestantStatDataByGameIdAndContestantId = data.computedIfRefHasValue
 const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasValues(
     [data.gameRoundContestantStatData, gameIds],
     (gcsData, gIds) => d3.group(gcsData.filter(gr => gIds.includes(gr.game_id)), r => r.round_of_game, r => r.contestant_id))
+const gameDailyDoubleData = data.computedIfRefHasValues(
+    [data.gameDailyDoubleData, gameIds],
+    (gddData, gIds) => {
+      return gddData.filter(gdd => gIds.includes(gdd.game_id))
+    }
+)
 
 const contestantWins = data.computedIfRefHasValue(gameData, gData => d3.rollup(gData, v => v.length, g => g.winning_contestant_id))
 const contestantWinnings = data.computedIfRefHasValues([gameData, gameContestantStatDataByGameIdAndContestantId], (gData, gcsData) => {
@@ -540,6 +548,96 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
   }
 )
 
+const dailyDoubleAbsoluteLocationHeatmapChartSpecs = data.computedIfRefHasValues(
+  [displayRounds, gameDailyDoubleData],
+  (dr, gddData) => {
+    var heatmapTraces = []
+    for (var r of d3.range(1, dr + 1, 1)) {
+      const xValues = d3.range(1, 7, 1)
+      const yValues = d3.range(5, 0, -1)
+      const zValues = d3.map(yValues, y => d3.map(xValues, x => {
+        return d3.filter(gddData, gdd => gdd.round_of_game === r && gdd.row === y && gdd.column === x).length
+      }))
+      heatmapTraces.push({
+        x: d3.map(xValues, x => 'Column ' + x),
+        y: d3.map(yValues, y => 'Row ' + y),
+        z: zValues,
+        type: 'heatmap',
+        round: r
+      })
+    }
+    
+    return d3.map(heatmapTraces, t => ({
+      traces: [t],
+      layout: {
+        title: roundAbbreviation(t.round) + ' Round',
+        xaxis: {
+          ticks: '',
+          side: 'top',
+          fixedrange: true
+        },
+        yaxis: {
+          ticks: '',
+          fixedrange: true
+        }
+      }
+    }))
+  }
+)
+
+const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues(
+  [displayRounds, gameDailyDoubleData],
+  (dr, gddData) => {
+    const gameDailyDoubleRoundGameData = d3.group(gddData, gdd => gdd.round_of_game, gdd => gdd.game_id)
+    var heatmapTraces = []
+    for (var r of d3.range(1, dr + 1, 1)) {
+      const gameDailyDoubleGameData = gameDailyDoubleRoundGameData.get(r)
+      var coordinateCounter = {}
+      for (const [gameId, dds] of gameDailyDoubleGameData.entries()) {
+        if (dds.length < 2) continue
+        for (var i = 0; i < dds.length; ++i) {
+          for (var j = i + 1; j < dds.length; ++j) {
+            const rightwardPair = [dds[j].column - dds[i].column, dds[j].row - dds[i].row]
+            const leftwardPair = [dds[i].column - dds[j].column, dds[i].row - dds[j].row]
+            if (!_.has(coordinateCounter, rightwardPair[0])) coordinateCounter[rightwardPair[0]] = {}
+            if (!_.has(coordinateCounter[rightwardPair[0]], rightwardPair[1])) coordinateCounter[rightwardPair[0]][rightwardPair[1]] = 0
+            coordinateCounter[rightwardPair[0]][rightwardPair[1]] += 1
+            if (!_.has(coordinateCounter, leftwardPair[0])) coordinateCounter[leftwardPair[0]] = {}
+            if (!_.has(coordinateCounter[leftwardPair[0]], leftwardPair[1])) coordinateCounter[leftwardPair[0]][leftwardPair[1]] = 0
+            coordinateCounter[leftwardPair[0]][leftwardPair[1]] += 1
+          }
+        }
+      }
+      const xValues = d3.range(-5, 6, 1)
+      const yValues = d3.range(4, -5, -1)
+      const zValues = d3.map(yValues, y => d3.map(xValues, x => {
+        if (!_.has(coordinateCounter, x)) return 0
+        if (!_.has(coordinateCounter[x], y)) return 0
+        return coordinateCounter[x][y]
+      }))
+      heatmapTraces.push({
+        x: d3.map(xValues, x => 'Row ' + x),
+        y: d3.map(yValues, y => 'Row ' + y),
+        z: zValues,
+        type: 'heatmap'
+      })
+    }
+    
+    return d3.map(heatmapTraces, t => ({
+      traces: [t],
+      layout: {
+        xaxis: {
+          ticks: '',
+          side: 'top'
+        },
+        yaxis: {
+          ticks: ''
+        },
+        showlegend: false
+      }
+    }))
+  }
+)
 
 
 
@@ -631,6 +729,12 @@ const averageScatterGraphSpecification = data.computedIfRefHasValues(
         />
       </div>
       <LineChart v-bind="rollingChartSpecification" />
+    </div>
+    <div class="section">
+      <div class="section-header">Daily Double Heatmaps</div>
+      <div v-for="(dailyDoubleAbsoluteLocationHeatmapChartSpec, index) in dailyDoubleAbsoluteLocationHeatmapChartSpecs">
+        <ReactiveChart :chart="dailyDoubleAbsoluteLocationHeatmapChartSpec"/>
+      </div>
     </div>
     <div class="section" v-if="boxWhiskerGraphSpecification">
       <div class="section-header">Selectable Box and Whisker Plots</div>

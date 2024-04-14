@@ -62,11 +62,20 @@ const gameRoundContestantStatDataByGameIdRoundIdContestantId = computedIfRefHasV
     gameRoundContestantStatData,
     gcsData => d3.index(gcsData, r => r.game_id, r => r.round_of_game, r => r.contestant_id))
 
+//Daily Double summary data
+const gameDailyDoubleData = ref(null)
+function loadGameDailyDoubleData() {
+    loadDataReference(gameDailyDoubleData, 'https://j-ometry.com/csvs/jschema_dd_summary.csv')
+}
+const gameDailyDoubleDataByGameId = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id))
+const gameDailyDoubleDataByGameIdRound = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id, r => r.round_of_game))
+
 
 export { computedIfRefHasValue, computedIfRefHasValues,
     loadContestantData, contestantData, contestantDataById,
     loadGameData, gameData, gameDataById,
     loadGameStatData, gameStatData, gameStatDataById,
     loadGameContestantStatData, gameContestantStatData, gameContestantStatDataByGameId, gameContestantStatDataByContestantId, gameContestantStatDataByGameIdContestantId,
-    loadGameRoundContestantStatData, gameRoundContestantStatData, gameRoundContestantStatDataByGameIdRoundIdContestantId
+    loadGameRoundContestantStatData, gameRoundContestantStatData, gameRoundContestantStatDataByGameIdRoundIdContestantId,
+    loadGameDailyDoubleData, gameDailyDoubleData, gameDailyDoubleDataByGameId, gameDailyDoubleDataByGameIdRound
 };
