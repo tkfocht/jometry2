@@ -567,21 +567,47 @@ const dailyDoubleAbsoluteLocationHeatmapChartSpecs = data.computedIfRefHasValues
       })
     }
     
-    return d3.map(heatmapTraces, t => ({
-      traces: [t],
-      layout: {
-        title: roundAbbreviation(t.round) + ' Round',
-        xaxis: {
-          ticks: '',
-          side: 'top',
-          fixedrange: true
-        },
-        yaxis: {
-          ticks: '',
-          fixedrange: true
+    return d3.map(heatmapTraces, t => {
+      var annotations = []
+      for (var i = 0; i < t.y.length; ++i) {
+        for (var j = 0; j < t.x.length; ++j) {
+          var v = t.z[i][j]
+          var result = {
+            xref: 'x1',
+            yref: 'y1',
+            x: t.x[j],
+            y: t.y[i],
+            text: v,
+            font: {
+              family: 'Arial',
+              size: 12,
+              color: 'rgb(50, 171, 96)'
+            },
+            showarrow: false,
+            font: {
+              color: 'white'
+            }
+          };
+          annotations.push(result)
         }
       }
-    }))
+      return {
+        traces: [t],
+        layout: {
+          title: roundAbbreviation(t.round) + ' Round',
+          annotations: annotations,
+          xaxis: {
+            ticks: '',
+            side: 'top',
+            fixedrange: true
+          },
+          yaxis: {
+            ticks: '',
+            fixedrange: true
+          }
+        }
+      }
+    })
   }
 )
 
