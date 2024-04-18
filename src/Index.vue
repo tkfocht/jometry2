@@ -85,10 +85,10 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2024 Masters Qualifiers
+        <div class="toc-period-header bg-primary text-white">2024 Masters Contestants
         </div>
         <div class="contestant-listing">
-          <div v-for="contestant_id in [2487, 639, 4281, 7912, 4842]" class="contestant-listing-item">
+          <div v-for="contestant_id in [834, 2487, 639, 4281, 7912, 4842]" class="contestant-listing-item">
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
           </div>
         </div>
