@@ -21,6 +21,8 @@ def get_content_type_for_path(path: Path) -> str:
         return 'text/plain'
     elif path.suffix == '.webmanifest':
         return 'application/manifest+json'
+    elif path.suffix == '.xml':
+        return 'text/xml'
     else:
         raise BaseException('Unknown suffix ' + path.suffix)
 
