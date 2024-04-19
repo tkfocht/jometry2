@@ -1,0 +1,6 @@
+User-agent: *
+
+Disallow: /csvs/
+Disallow: /assets/
+
+Sitemap: https://j-ometry.com/sitemap.xml
