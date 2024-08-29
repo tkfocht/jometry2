@@ -167,7 +167,7 @@ const standardScoringTableSpec = constructScoringTableSpecification(standardScor
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
     gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
-    gcsAttributes.time, gcsAttributes.solo]
+    gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
 const conversionScoringTableSpec = constructScoringTableSpecification(conversionScoringAttributes)
 
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,

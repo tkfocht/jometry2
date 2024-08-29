@@ -126,9 +126,18 @@ import Header from './components/Header.vue'
           </div>
       </div>
       <div class="entry">
+          <div class="term">Timing Rating (Time%): An estimated probability of winning a buzz</div>
+          <div class="definition">
+              An estimate of a player's probability of winning an individual buzz during a game or round. This
+              estimate models the percentage of buzzes the player would win if all three players were attempting
+              on the same clue. Average is 33.3 as a result. This is calculated through a loss-minimization
+              calculation over each buzz opportunity in the game or round.
+          </div>
+      </div>
+      <div class="entry">
           <div class="term">Timing Score (Time$): Score created through buzzer timing</div>
           <div class="definition">
-              An estimate of how score a player gains through good timing, or
+              An estimate of how much score a player gains through good timing, or
               gains through opponents' lack of timing. This statistic is a little weird sometimes, as bad timing
               results in no score. A high positive score indicates a player with good timing and accuracy. A negative
               score indicates a player with good timing and bad accuracy.
