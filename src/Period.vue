@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { movingAverageOfLast, dateFormat, transformValues, urlDateParse, roundAbbreviation } from '@/util'
-import { playClassificationName, playClassificationGenericName } from '@/configuration'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
+import * as configuration from '@/configuration'
 import * as data from '@/data'
 import * as gsAttributes from '@/gameStatAttributes'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
@@ -12,9 +12,9 @@ import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
 import LineChart from './components/util/LineChart.vue'
 import OptionDropdown from './components/util/OptionDropdown.vue'
-import OptionGroup from './components/util/OptionGroup.vue'
 import ReactiveChart from './components/util/ReactiveChart.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
+import SearchFilterDropdown from './components/util/SearchFilterDropdown.vue'
 import SortableTable from './components/util/SortableTable.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
 
@@ -27,7 +27,18 @@ data.loadGameContestantStatData()
 data.loadGameRoundContestantStatData()
 data.loadGameDailyDoubleData()
 
-const seasonSearchParameters = ref(urlParams.get('season') ? urlParams.get('season').split(',') : [])
+const seasonSearchSelectedIndices = ref(
+  urlParams.get('season') ?
+  urlParams.get('season').split(',')
+    .map(sid => configuration.seasonIds.indexOf(sid))
+    .filter(s_idx => s_idx >= 0)
+    .sort(d3.ascending) :
+  []
+)
+const seasonSearchParameters = data.computedIfRefHasValue(
+  seasonSearchSelectedIndices,
+  idxs => idxs.map(idx => configuration.seasonIds[idx])
+)
 const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
 const playClassificationSearchParameters = ref(urlParams.get('play_classification') ? urlParams.get('play_classification').split(',') : [])
 
@@ -675,8 +686,25 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
-      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Summary
+      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => configuration.playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Summary
     </h1>
+    <div>
+      <SearchFilterDropdown
+        :optionLabels="configuration.seasonIds"
+        :selectedIndices="seasonSearchSelectedIndices"
+        :label="'Seasons'"
+        @removeSelectionIndex="(idx) => {
+          const i_idx = seasonSearchSelectedIndices.indexOf(idx)
+          if (i_idx >= 0) {
+            seasonSearchSelectedIndices.splice(i_idx, 1)
+          }
+        }"
+        @addSelectionIndex="(idx) => {
+          seasonSearchSelectedIndices.push(idx)
+          seasonSearchSelectedIndices.sort(d3.ascending)
+        }"
+      />
+    </div>
     <div v-if="displayContestantIdParameters.length > 0">
       Displaying specified contestants
     </div>

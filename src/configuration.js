@@ -56,6 +56,18 @@ var playClassificationNameByTocPeriod = function(playClassification, toc_period)
     return null
 }
 
+var seasonIds = [
+    '32', '33', '34', '35', '36', '37', '38', '39', '40', '40A',
+    'M2023', 'M2024', 'PCJ1', 'PCJ2'
+]
+
+var tocPeriodIds = ['2017', '2019', '2021', '2022', '2024', '2025']
+
+var playClassifications = [
+    'regular', 'champions', 'invitational', 'exhibition', 'secondchance', 'professors', 'teachers', 'teen',
+    'celebrity', 'hsreunion', 'masters', 'wildcard', 'college'
+]
+
 var dataSourceAddress = function(dataSourceId) {
     if (dataSourceId === 'celebrity') {
         return '/csvs/PCJ2023_full.csv'
@@ -65,4 +77,7 @@ var dataSourceAddress = function(dataSourceId) {
     }
 }
 
-export { playClassificationName, playClassificationGenericName, playClassificationNameByTocPeriod, dataSourceAddress };
+export { playClassificationName, playClassificationGenericName,
+    playClassificationNameByTocPeriod,
+    seasonIds, tocPeriodIds, playClassifications,
+    dataSourceAddress };
