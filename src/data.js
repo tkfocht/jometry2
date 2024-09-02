@@ -24,7 +24,7 @@ function computedIfRefHasValues(references, lambdaFunction) {
 //Contestant data
 const contestantData = ref(null)
 function loadContestantData() {
-    loadDataReference(contestantData, 'https://j-ometry.com/csvs/jschema_contestant.csv')
+    loadDataReference(contestantData, '/csvs/jschema_contestant.csv')
 }
 const contestantDataById = computedIfRefHasValue(contestantData, cData => d3.index(cData, c => c.contestant_id))
 
@@ -32,7 +32,7 @@ const contestantDataById = computedIfRefHasValue(contestantData, cData => d3.ind
 //Game data
 const gameData = ref(null)
 function loadGameData() {
-    loadDataReference(gameData, 'https://j-ometry.com/csvs/jschema_game.csv')
+    loadDataReference(gameData, '/csvs/jschema_game.csv')
 }
 const gameDataById = computedIfRefHasValue(gameData, gData => d3.index(gData, g => g.game_id))
 
@@ -40,14 +40,14 @@ const gameDataById = computedIfRefHasValue(gameData, gData => d3.index(gData, g 
 //Game stat data
 const gameStatData = ref(null)
 function loadGameStatData() {
-    loadDataReference(gameStatData, 'https://j-ometry.com/csvs/jschema_stat_game.csv')
+    loadDataReference(gameStatData, '/csvs/jschema_stat_game.csv')
 }
 const gameStatDataById = computedIfRefHasValue(gameStatData, gData => d3.index(gData, g => g.game_id))
 
 //Game contestant stat data
 const gameContestantStatData = ref(null)
 function loadGameContestantStatData() {
-    loadDataReference(gameContestantStatData, 'https://j-ometry.com/csvs/jschema_stat_game_contestant.csv')
+    loadDataReference(gameContestantStatData, '/csvs/jschema_stat_game_contestant.csv')
 }
 const gameContestantStatDataByGameId = computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, r => r.game_id))
 const gameContestantStatDataByContestantId = computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, r => r.contestant_id))
@@ -56,7 +56,7 @@ const gameContestantStatDataByGameIdContestantId = computedIfRefHasValue(gameCon
 //Game/round contestant stat data
 const gameRoundContestantStatData = ref(null)
 function loadGameRoundContestantStatData() {
-    loadDataReference(gameRoundContestantStatData, 'https://j-ometry.com/csvs/jschema_stat_round_contestant.csv')
+    loadDataReference(gameRoundContestantStatData, '/csvs/jschema_stat_round_contestant.csv')
 }
 const gameRoundContestantStatDataByGameIdRoundIdContestantId = computedIfRefHasValue(
     gameRoundContestantStatData,
@@ -65,7 +65,7 @@ const gameRoundContestantStatDataByGameIdRoundIdContestantId = computedIfRefHasV
 //Daily Double summary data
 const gameDailyDoubleData = ref(null)
 function loadGameDailyDoubleData() {
-    loadDataReference(gameDailyDoubleData, 'https://j-ometry.com/csvs/jschema_dd_summary.csv')
+    loadDataReference(gameDailyDoubleData, '/csvs/jschema_dd_summary.csv')
 }
 const gameDailyDoubleDataByGameId = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id))
 const gameDailyDoubleDataByGameIdRound = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id, r => r.round_of_game))

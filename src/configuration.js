@@ -58,10 +58,10 @@ var playClassificationNameByTocPeriod = function(playClassification, toc_period)
 
 var dataSourceAddress = function(dataSourceId) {
     if (dataSourceId === 'celebrity') {
-        return 'https://j-ometry.com/csvs/PCJ2023_full.csv'
+        return '/csvs/PCJ2023_full.csv'
     }
     if (dataSourceId === 'standard') {
-        return 'https://j-ometry.com/csvs/all_standard.csv'
+        return '/csvs/all_standard.csv'
     }
 }
 

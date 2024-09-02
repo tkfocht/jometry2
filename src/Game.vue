@@ -80,7 +80,7 @@ const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasVa
 
 const jschemaClueContestantStatData = ref(null)
 async function fetchJschemaClueContestantStatData() {
-  const res = await d3.csv('https://j-ometry.com/csvs/jschema_stat_clue_contestant/' + gameId + '.csv', jschemaCsvDataAccessor)
+  const res = await d3.csv('/csvs/jschema_stat_clue_contestant/' + gameId + '.csv', jschemaCsvDataAccessor)
   jschemaClueContestantStatData.value = res
 }
 fetchJschemaClueContestantStatData()
@@ -89,7 +89,7 @@ const jschemaClueContestantStatDataByRoundClueAndContestantId = data.computedIfR
 
 const jschemaClueData = ref(null)
 async function fetchJschemaClueData() {
-  const res = await d3.csv('https://j-ometry.com/csvs/jschema_clue/' + gameId + '.csv', jschemaCsvDataAccessor)
+  const res = await d3.csv('/csvs/jschema_clue/' + gameId + '.csv', jschemaCsvDataAccessor)
   jschemaClueData.value = res
 }
 fetchJschemaClueData()
@@ -101,7 +101,7 @@ const jschemaClueByRoundRowColumn = computed(() => {
 
 const jschemaResponseData = ref(null)
 async function fetchJschemaResponseData() {
-  const res = await d3.csv('https://j-ometry.com/csvs/jschema_response/' + gameId + '.csv', jschemaCsvDataAccessor)
+  const res = await d3.csv('/csvs/jschema_response/' + gameId + '.csv', jschemaCsvDataAccessor)
   jschemaResponseData.value = res
 }
 fetchJschemaResponseData()

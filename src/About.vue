@@ -11,7 +11,7 @@ import Header from './components/Header.vue'
       <div class="about-text">
         <p>
           J!ometry is built and maintained by 2021 4-day champion and 2022 TOC semifinalist
-          <a href="https://j-ometry.com/contestant.html?contestant_id=287">John Focht</a>. The origin
+          <a href="/contestant.html?contestant_id=287">John Focht</a>. The origin
           story is that I realized that the published box score PNGs would be difficult to work with in the long run,
           and so I wanted to make sure there was a spreadsheet or CSV or something that research could be done with, once
           there was enough data. Then it turned out that I wanted to do some of that research and talk about it. It became
@@ -25,7 +25,7 @@ import Header from './components/Header.vue'
       <div class="about-text">
         <p>
           Although things have grown beyond that now, the original intent was just to compile and make
-          the box score data available. A CSV containing data from all box score games is <a href="https://j-ometry.com/csvs/box.csv">available</a>
+          the box score data available. A CSV containing data from all box score games is <a href="/csvs/box.csv">available</a>
           for your own research purposes. This contains only the data from Jeopardy! itself, plus
           some identifiers to link with J!ometry and J!Archive. It does not contain longest streak
           data from the box scores, as I've never collected that.
