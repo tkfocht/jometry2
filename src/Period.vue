@@ -709,9 +709,9 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
     <div class="section">
       <div class="section-header">Statistics Tables</div>
       <div class="option-groups">
-        <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
+        <OptionDropdown :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
           @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
-        <OptionGroup :optionLabels="aggregationOptionLabels" :selectionIndex="selectedAggregationIndex"
+        <OptionDropdown :optionLabels="aggregationOptionLabels" :selectionIndex="selectedAggregationIndex"
           @newSelectionIndex="(idx) => selectedAggregationIndex = idx" />
       </div>
       <div class="subsection">
@@ -746,7 +746,7 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
     <div class="section" v-if="rollingAverageGraphAttribute">
       <div class="section-header">Rolling Averages</div>
       <div class="option-groups">
-        <OptionGroup :optionLabels="rollingAverageRollCountLabels" :selectionIndex="rollingAverageRollCountIdx"
+        <OptionDropdown :optionLabels="rollingAverageRollCountLabels" :selectionIndex="rollingAverageRollCountIdx"
           @newSelectionIndex="(idx) => rollingAverageRollCountIdx = idx" />
         <OptionDropdown
           :optionLabels="rollingGameStatAttributes.map(attr => attr.label)"

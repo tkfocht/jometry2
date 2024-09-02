@@ -10,7 +10,7 @@ const props = defineProps({
 
 <template>
     <div class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" v-if="optionLabels">
         {{ optionLabels[selectionIndex] }}
     </button>
     <ul class="dropdown-menu">

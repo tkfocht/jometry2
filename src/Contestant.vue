@@ -327,7 +327,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
     <div id="contestant-overview" class="section">
       <div class="subsection" v-if="playClassificationPeriods">
         <div class="option-groups">
-          <OptionGroup
+          <OptionDropdown
             :optionLabels="playClassificationPeriods.map(pcp => playClassificationNameByTocPeriod(pcp[1], pcp[0]) + ' (' + pcp[[0]] + (pcp[[0]][0] == '2' ? ' TOC' : '') + ')')"
             :selectionIndex="playClassificationPeriodIdx"
             @newSelectionIndex="(idx) => {
@@ -377,7 +377,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
     <div class="section" v-if="standardScoringTableSpec && conversionScoringTableSpec && conversionValueScoringTableSpec">
       <div class="section-header">Game Statistic Tables</div>
       <div class="option-groups">
-        <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
+        <OptionDropdown :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
           @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
       </div>
       <div class="subsection">
@@ -400,7 +400,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
     <div v-if="singleContestantGameContestantStatData" class="section">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
       <div class="option-groups">
-        <OptionGroup
+        <OptionDropdown
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
           :selectionIndex="attemptBarChartRoundIdx"
           @newSelectionIndex="(idx) => attemptBarChartRoundIdx = idx" />
@@ -410,7 +410,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
     <div v-if="singleContestantGameContestantStatData" class="section">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempt Value</span><span v-else>Buzz Value</span></div>
       <div class="option-groups">
-        <OptionGroup
+        <OptionDropdown
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
           :selectionIndex="attemptValueBarChartRoundIdx"
           @newSelectionIndex="(idx) => attemptValueBarChartRoundIdx = idx" />
@@ -425,7 +425,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
           :selectionIndex="histogramGraphAttributeIdx"
           @newSelectionIndex="(idx) => histogramGraphAttributeSelectedIdx = idx"
         />
-        <OptionGroup
+        <OptionDropdown
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
           :selectionIndex="histogramGraphRoundIdx"
           @newSelectionIndex="(idx) => histogramGraphRoundIdx = idx" />
@@ -445,7 +445,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
           :selectionIndex="yScatterGraphAttributeIdx"
           @newSelectionIndex="(idx) => yScatterGraphAttributeSelectedIdx = idx"
         />
-        <OptionGroup
+        <OptionDropdown
           :optionLabels="['Full Game'].concat(d3.range(1, displayRounds + 1).map(i => roundAbbreviation(i) + ' Round'))"
           :selectionIndex="scatterGraphRoundIdx"
           @newSelectionIndex="(idx) => scatterGraphRoundIdx = idx" />
