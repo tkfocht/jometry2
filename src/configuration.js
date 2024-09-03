@@ -61,7 +61,10 @@ var seasonIds = [
     'M2023', 'M2024', 'PCJ1', 'PCJ2'
 ]
 
-var tocPeriodIds = ['2017', '2019', '2021', '2022', '2024', '2025']
+var tocPeriodIds = [
+    '2017', '2019', '2021', '2022', '2024', '2025',
+    'M2023', 'M2024'
+]
 
 var playClassifications = [
     'regular', 'champions', 'invitational', 'exhibition', 'secondchance', 'professors', 'teachers', 'teen',

@@ -1,13 +1,14 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { movingAverageOfLast, dateFormat, transformValues, threeColorSet } from '@/util'
-import { playClassificationName, playClassificationGenericName } from '@/configuration'
+import * as configuration from '@/configuration'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as data from '@/data'
 import * as gsAttributes from '@/gameStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
+import SearchFilterDropdown from './components/util/SearchFilterDropdown.vue'
 import SortableTable from './components/util/SortableTable.vue'
 import { formatDate } from 'plotly.js-dist'
 
@@ -17,9 +18,42 @@ data.loadContestantData()
 data.loadGameData()
 data.loadGameStatData()
 
-const seasonSearchParameters = ref(urlParams.get('season') ? urlParams.get('season').split(',') : [])
-const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
-const playClassificationSearchParameters = ref(urlParams.get('play_classification') ? urlParams.get('play_classification').split(',') : [])
+const seasonSearchSelectedIndices = ref(
+  urlParams.get('season') ?
+  urlParams.get('season').split(',')
+    .map(sid => configuration.seasonIds.indexOf(sid))
+    .filter(s_idx => s_idx >= 0)
+    .sort(d3.ascending) :
+  []
+)
+const seasonSearchParameters = data.computedIfRefHasValue(
+  seasonSearchSelectedIndices,
+  idxs => idxs.map(idx => configuration.seasonIds[idx])
+)
+const tocPeriodSelectedIndices = ref(
+  urlParams.get('toc_period') ?
+  urlParams.get('toc_period').split(',')
+    .map(tid => configuration.tocPeriodIds.indexOf(tid))
+    .filter(t_idx => t_idx >= 0)
+    .sort(d3.ascending) :
+  []
+)
+const tocPeriodSearchParameters = data.computedIfRefHasValue(
+  tocPeriodSelectedIndices,
+  idxs => idxs.map(idx => configuration.tocPeriodIds[idx])
+)
+const playClassificationSelectedIndices = ref(
+  urlParams.get('play_classification') ?
+  urlParams.get('play_classification').split(',')
+    .map(tid => configuration.playClassifications.indexOf(tid))
+    .filter(t_idx => t_idx >= 0)
+    .sort(d3.ascending) :
+  []
+)
+const playClassificationSearchParameters = data.computedIfRefHasValue(
+  playClassificationSelectedIndices,
+  idxs => idxs.map(idx => configuration.playClassifications[idx])
+)
 
 const winThresholdString = ref(urlParams.get('win_threshold'))
 const winLimitString = ref(urlParams.get('win_limit'))
@@ -149,8 +183,8 @@ const tableSpec = data.computedIfRefHasValues(
           sortValue: g.toc_period
         },
         {
-          value: playClassificationName(g.play_classification, g.season_id),
-          sortValue: playClassificationName(g.play_classification, g.season_id)
+          value: configuration.playClassificationName(g.play_classification, g.season_id),
+          sortValue: configuration.playClassificationName(g.play_classification, g.season_id)
         }
       ]
 
@@ -180,8 +214,28 @@ const tableSpec = data.computedIfRefHasValues(
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
-      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Games
+      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => configuration.playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Games
     </h1>
+    <div id="search-filters">
+      <SearchFilterDropdown
+        :optionLabels="configuration.seasonIds"
+        :selectedIndices="seasonSearchSelectedIndices"
+        :label="'Seasons'"
+        @updateSelectionIndices="(idxs) => seasonSearchSelectedIndices = idxs"
+      />
+      <SearchFilterDropdown
+        :optionLabels="configuration.tocPeriodIds"
+        :selectedIndices="tocPeriodSelectedIndices"
+        :label="'TOC Periods'"
+        @updateSelectionIndices="(idxs) => tocPeriodSelectedIndices = idxs"
+      />
+      <SearchFilterDropdown
+        :optionLabels="configuration.playClassifications.map(configuration.playClassificationGenericName)"
+        :selectedIndices="playClassificationSelectedIndices"
+        :label="'Play Classifications'"
+        @updateSelectionIndices="(idxs) => playClassificationSelectedIndices = idxs"
+      />
+    </div>
     <div>
       <a :href="'/period.html' + queryString">Statistical Summary</a>
     </div>
@@ -192,10 +246,21 @@ const tableSpec = data.computedIfRefHasValues(
   <Footer />
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+
+.section :deep(table) {
+  width: 100%;
+}
 
 .component-body {
   margin-bottom: 1em;
+}
+
+#search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  margin-bottom: 0.5em;
 }
 
 </style>

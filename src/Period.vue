@@ -39,8 +39,30 @@ const seasonSearchParameters = data.computedIfRefHasValue(
   seasonSearchSelectedIndices,
   idxs => idxs.map(idx => configuration.seasonIds[idx])
 )
-const tocPeriodSearchParameters = ref(urlParams.get('toc_period') ? urlParams.get('toc_period').split(',') : [])
-const playClassificationSearchParameters = ref(urlParams.get('play_classification') ? urlParams.get('play_classification').split(',') : [])
+const tocPeriodSelectedIndices = ref(
+  urlParams.get('toc_period') ?
+  urlParams.get('toc_period').split(',')
+    .map(tid => configuration.tocPeriodIds.indexOf(tid))
+    .filter(t_idx => t_idx >= 0)
+    .sort(d3.ascending) :
+  []
+)
+const tocPeriodSearchParameters = data.computedIfRefHasValue(
+  tocPeriodSelectedIndices,
+  idxs => idxs.map(idx => configuration.tocPeriodIds[idx])
+)
+const playClassificationSelectedIndices = ref(
+  urlParams.get('play_classification') ?
+  urlParams.get('play_classification').split(',')
+    .map(tid => configuration.playClassifications.indexOf(tid))
+    .filter(t_idx => t_idx >= 0)
+    .sort(d3.ascending) :
+  []
+)
+const playClassificationSearchParameters = data.computedIfRefHasValue(
+  playClassificationSelectedIndices,
+  idxs => idxs.map(idx => configuration.playClassifications[idx])
+)
 
 const winThresholdString = ref(urlParams.get('win_threshold'))
 const winLimitString = ref(urlParams.get('win_limit'))
@@ -686,23 +708,26 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
-      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => configuration.playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Summary
+      <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => configuration.playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Statistical Summary
     </h1>
-    <div>
+    <div id="search-filters">
       <SearchFilterDropdown
         :optionLabels="configuration.seasonIds"
         :selectedIndices="seasonSearchSelectedIndices"
         :label="'Seasons'"
-        @removeSelectionIndex="(idx) => {
-          const i_idx = seasonSearchSelectedIndices.indexOf(idx)
-          if (i_idx >= 0) {
-            seasonSearchSelectedIndices.splice(i_idx, 1)
-          }
-        }"
-        @addSelectionIndex="(idx) => {
-          seasonSearchSelectedIndices.push(idx)
-          seasonSearchSelectedIndices.sort(d3.ascending)
-        }"
+        @updateSelectionIndices="(idxs) => seasonSearchSelectedIndices = idxs"
+      />
+      <SearchFilterDropdown
+        :optionLabels="configuration.tocPeriodIds"
+        :selectedIndices="tocPeriodSelectedIndices"
+        :label="'TOC Periods'"
+        @updateSelectionIndices="(idxs) => tocPeriodSelectedIndices = idxs"
+      />
+      <SearchFilterDropdown
+        :optionLabels="configuration.playClassifications.map(configuration.playClassificationGenericName)"
+        :selectedIndices="playClassificationSelectedIndices"
+        :label="'Play Classifications'"
+        @updateSelectionIndices="(idxs) => playClassificationSelectedIndices = idxs"
       />
     </div>
     <div v-if="displayContestantIdParameters.length > 0">
@@ -828,11 +853,18 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
   <Footer />
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 
 
 .section :deep(table) {
   width: 100%;
+}
+
+#search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  margin-bottom: 0.5em;
 }
 
 </style>
