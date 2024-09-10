@@ -57,7 +57,7 @@ var playClassificationNameByTocPeriod = function(playClassification, toc_period)
 }
 
 var seasonIds = [
-    '32', '33', '34', '35', '36', '37', '38', '39', '40', '40A',
+    '32', '33', '34', '35', '36', '37', '38', '39', '40', '40A', '41',
     'M2023', 'M2024', 'PCJ1', 'PCJ2'
 ]
 

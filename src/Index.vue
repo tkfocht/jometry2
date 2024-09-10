@@ -6,7 +6,6 @@ import { dateFormat } from '@/util'
 import * as d3 from 'd3'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
-import ToggleableGameListing from './components/index/ToggleableGameListing.vue'
 
 data.loadContestantData()
 data.loadGameData()
@@ -67,7 +66,7 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
             </div>
           </div>
         </div>
-        <div v-for="season_id_set in [['40']]" class="toc-period-play-class"
+        <div v-for="season_id_set in [['41']]" class="toc-period-play-class"
             :set1="seasonGames = gameDataSorted.filter(g => season_id_set.includes(g.season_id))"
             :set2="seasonGamesByPlayClassification = d3.group(seasonGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
