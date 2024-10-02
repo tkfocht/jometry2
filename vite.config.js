@@ -27,6 +27,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        error404: resolve(__dirname, '404.html'),
         game: resolve(__dirname, 'game.html'),
         contestant: resolve(__dirname, 'contestant.html'),
         period: resolve(__dirname, 'period.html'),
