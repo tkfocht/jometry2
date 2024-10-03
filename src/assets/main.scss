@@ -2,6 +2,18 @@
 
 @import 'bootstrap/scss/functions';
 @import 'bootstrap/scss/variables';
+
+$custom-colors: (
+    "syndicated-primary": #0072B2,
+    "syndicated-secondary": #C4E0F9,
+    "celebrity-primary": #FFC90E,
+    "celebrity-secondary": tint-color(#FFC90E, 50%),
+    "popculture-primary": #342DD5,
+    "popculture-secondary": #5D38F7,
+);
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
 @import 'bootstrap/scss/mixins';
 @import 'bootstrap/scss/bootstrap';
 

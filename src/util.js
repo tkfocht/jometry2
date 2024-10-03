@@ -1,6 +1,31 @@
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 
+var subdomainIdentifier = function() {
+    const hostname = window.location.hostname
+    var countback = 2
+    if (hostname === 'localhost' || hostname.endsWith('.localhost')) {
+        countback = 1
+    }
+    const subdomain = hostname.split('.').slice(0, -countback).join('.')
+    if (['celebrity','masters','popculture'].includes(subdomain)) {
+        return subdomain
+    }
+    return 'syndicated'
+}
+
+const SUBDOMAIN_TITLES = {
+    'syndicated': '',
+    'celebrity': 'Celebrity',
+    'popculture': 'Pop Culture',
+    'masters': 'Masters',
+}
+
+var subdomainTitle = function() {
+    const subdomain = subdomainIdentifier()
+    return SUBDOMAIN_TITLES[subdomain]
+}
+
 var csvDateParse = d3.timeParse("%m/%d/%Y");
 var ymdDateParse = d3.timeParse("%Y-%m-%d");
 var urlDateParse = d3.timeParse("%m-%d-%Y");
@@ -246,6 +271,6 @@ var filterValues = function(map, lambda) {
 
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
 
-export { averageData, rollupData, 
+export { subdomainIdentifier, subdomainTitle, averageData, rollupData, 
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat, urlDateParse,
     clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues, filterValues, threeColorSet };

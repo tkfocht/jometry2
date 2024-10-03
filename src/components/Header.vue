@@ -1,6 +1,10 @@
+<script setup>
+import { subdomainIdentifier, subdomainTitle } from '@/util'
+</script>
+
 <template>
-    <div class="navbar navbar-dark navbar-expand-md text-bg-primary navbar-primary">
-        <div id="site-mast" class="navbar-brand text-bg-primary ms-3"><a href="/">J!ometry</a></div>
+    <div class="navbar navbar-dark navbar-expand-md text-bg-primary navbar-primary bg-primary']">
+        <div id="site-mast" :class="['navbar-brand',  'text-bg-' + subdomainIdentifier() + '-primary',  'ms-3']"><a href="/">{{ ( subdomainTitle() + ' J!ometry').trim() }}</a></div>
         <button class="navbar-toggler me-3" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" area-expanded="false" area-label="Toggle navigation">
