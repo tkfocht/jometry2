@@ -11,6 +11,8 @@ data.loadContestantData()
 data.loadGameData()
 data.loadGameStatData()
 
+const scc2025Cids = [7976, 8040, 8049, 8073, 8079, 8085, 8088, 8091, 8094, 8138, 8159, 8190, 8207, 8210, 8222, 8235, 8250, 8289]
+
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
   gData.sort((a,b) => d3.descending(a['airdate'], b['airdate']) || d3.descending(a['game_in_season'], b['game_in_season']))
@@ -45,6 +47,16 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+      <div class="toc-period section">
+        <div class="toc-period-header bg-primary text-white">2024-25 Second Chance Competition Contestants
+        </div>
+        <div class="competition-summary-links"><a :href="'/period.html?toc_period=2025&play_classification=regular&contestants=' + scc2025Cids.join(',')">Competitor Statistical Summary</a></div>
+        <div class="competition-contestant-links">
+          <div class="competition-contestant-link" v-for="contestant_id in scc2025Cids">
+            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
+          </div>
         </div>
       </div>
       <div class="toc-period section">
@@ -160,7 +172,15 @@ table.game-list, table.play-classification-list {
   }
 }
 
-.contestant-listing {
+.competition-summary-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 0.25em 1em;
+  margin-bottom: 1em;
+}
+
+.competition-contestant-links {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
