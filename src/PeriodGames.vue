@@ -163,7 +163,7 @@ const tableSpec = data.computedIfRefHasValues(
 
       var row = [
         {
-          value: '<a href="/game.html?game_id=' + g.game_id + '">' + g.season_id + '-' + g.game_in_season + '</a> <span class="date" style="white-space: nowrap">' + dateFormat(g.airdate) + '</span>',
+          value: '<a href="/game.html?game_id=' + g.game_id + '">' + configuration.seasonDisplayId(g.season_id) + '-' + g.game_in_season + '</a> <span class="date" style="white-space: nowrap">' + dateFormat(g.airdate) + '</span>',
           sortValue: g.airdate
         },
         {
@@ -213,12 +213,12 @@ const tableSpec = data.computedIfRefHasValues(
   <div class="component-body">
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
-      <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
+      <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.map(configuration.seasonDisplayId).join(', ') }}&nbsp;</span>
       <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => configuration.playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Games
     </h1>
     <div id="search-filters">
       <SearchFilterDropdown
-        :optionLabels="configuration.seasonIds"
+        :optionLabels="configuration.seasonIds.map(configuration.seasonDisplayId)"
         :selectedIndices="seasonSearchSelectedIndices"
         :label="'Seasons'"
         @updateSelectionIndices="(idxs) => seasonSearchSelectedIndices = idxs"

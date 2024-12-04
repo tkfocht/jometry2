@@ -707,12 +707,12 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
   <div class="component-body">
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
-      <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.join(', ') }}&nbsp;</span>
+      <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.map(s => configuration.seasonDisplayId(s)).join(', ') }}&nbsp;</span>
       <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => configuration.playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Statistical Summary
     </h1>
     <div id="search-filters">
       <SearchFilterDropdown
-        :optionLabels="configuration.seasonIds"
+        :optionLabels="configuration.seasonIds.map(s => configuration.seasonDisplayId(s))"
         :selectedIndices="seasonSearchSelectedIndices"
         :label="'Seasons'"
         @updateSelectionIndices="(idxs) => seasonSearchSelectedIndices = idxs"

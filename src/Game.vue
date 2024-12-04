@@ -2,7 +2,7 @@
 import * as d3 from 'd3'
 import { ref, computed } from 'vue'
 import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor, roundAbbreviation } from '@/util'
-import { playClassificationName } from '@/configuration'
+import { playClassificationName, seasonDisplayId } from '@/configuration'
 import * as data from '@/data'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
@@ -491,7 +491,7 @@ const histogramSpecification = computed(() => {
           </div>
           <div class="caption-stack">
             <div class="caption">Season</div>
-            <div class="value">{{ gameData.season_id }}</div>
+            <div class="value">{{ seasonDisplayId(gameData.season_id) }}</div>
           </div>
           <div class="caption-stack">
             <div class="caption">Game</div>
