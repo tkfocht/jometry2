@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as data from '@/data'
-import { playClassificationNameByTocPeriod } from '@/configuration'
+import { playClassificationNameByTocPeriod, seasonDisplayId } from '@/configuration'
 import { threeColorSet, roundAbbreviation } from '@/util'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
@@ -78,7 +78,7 @@ const singleContestantRoundContestantStatDataByRoundAndGameId = data.computedIfR
 function gameLink(game_id, season_id, game_of_season) {
   return '<a href="/game.html?game_id=' + 
     game_id + 
-    '">' + season_id + '-' + game_of_season + '</a>'
+    '">' + seasonDisplayId(season_id) + '-' + game_of_season + '</a>'
 }
 
 const roundOptionLabels = ref(['Full Game', 'J Round', 'DJ Round'])
@@ -226,7 +226,7 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title, slimTitle) {
     return {
       data: dataSet,
       aggregateData: aggregateDataSet,
-      xCoreLabelFunction: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+      xCoreLabelFunction: d => seasonDisplayId(gData.get(d.game_id).season_id) + '-' + gData.get(d.game_id).game_in_season,
       xGroupLabels: ['Game'],
       yFunctionGroups: [d3.range(0, yAttrsToUse.length).map(i => (d => d.displayValues[i]))],
       colorFunction: d => threeColorSet[0],
@@ -271,7 +271,7 @@ const histogramSpecification = data.computedIfRefHasValues(
       trendData: singleCSData,
       trendColor: threeColorSet[0],
       trendHoverTemplate: 'Episode %{text}: %{y}<extra></extra>',
-      trendLabelFunction: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+      trendLabelFunction: d => seasonDisplayId(gData.get(d.game_id).season_id) + '-' + gData.get(d.game_id).game_in_season,
       title: attr.label,
       yLabel: attr.short_label,
       yFunction: attr.generatingFunction,
@@ -305,7 +305,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
     return {
       histogramData: csData,
       scatterData: singleCSData,
-      scatterLabelFunction: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+      scatterLabelFunction: d => seasonDisplayId(gData.get(d.game_id).season_id) + '-' + gData.get(d.game_id).game_in_season,
       scatterColorFunction: d => threeColorSet[0],
       title: xAttr.label + ' vs ' + yAttr.label,
       xLabel: xAttr.short_label,

@@ -61,6 +61,14 @@ var seasonIds = [
     'M2023', 'M2024', 'PCJ1', 'PCJ2'
 ]
 
+var seasonDisplayId = function(seasonId) {
+    if (seasonId === 'PCJ1') return 'Celeb 1'
+    if (seasonId === 'PCJ2') return 'Celeb 2'
+    if (seasonId === 'M2023') return 'Masters 1'
+    if (seasonId === 'M2024') return 'Masters 2'
+    return seasonId
+}
+
 var tocPeriodIds = [
     '2017', '2019', '2021', '2022', '2024', '2025',
     'M2023', 'M2024'
@@ -81,6 +89,6 @@ var dataSourceAddress = function(dataSourceId) {
 }
 
 export { playClassificationName, playClassificationGenericName,
-    playClassificationNameByTocPeriod,
+    playClassificationNameByTocPeriod, seasonDisplayId,
     seasonIds, tocPeriodIds, playClassifications,
     dataSourceAddress };
