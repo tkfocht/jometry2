@@ -33,6 +33,12 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
 <template>
   <Header />
   <div class="component-body">
+    <div class="alert alert-primary" role="alert">
+      As of the game on December 6, 2024, the site has rolled over to treat the 2026 TOC as the current qualification period.
+      The game on December 5 is currently being treated as part of the 2025 period so that Stevie Ruiz's statistics
+      are fully within that period while the 2025 postseason completes, but will be placed in the 2026
+      period later to put all of Dave Bond's victories within one qualification period.
+    </div>
     <div v-if="gameData && contestantData">
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Recent Games
@@ -90,7 +96,7 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Current Qualification Period and Season
         </div>
-        <div v-for="tocPeriod in ['2025']" class="toc-period-play-class"
+        <div v-for="tocPeriod in ['2026']" class="toc-period-play-class"
             :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
             :set2="tocPeriodGamesByPlayClassification = d3.group(tocPeriodGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">

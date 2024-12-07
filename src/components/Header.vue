@@ -9,7 +9,7 @@
         <div id="navbarSupportedContent" class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0 ms-2">
                 <li class="nav-item ms-md-3"><a href="/">Home</a></li>
-                <li class="nav-item ms-md-3"><a href="/period.html?toc_period=2025">Stat Summary</a></li>
+                <li class="nav-item ms-md-3"><a href="/period.html?toc_period=2026">Stat Summary</a></li>
                 <li class="nav-item ms-md-3"><a href="/period_games.html?season=41">Game List</a></li>
                 <li class="nav-item ms-md-3"><a href="/contestant_index.html">Contestant&nbsp;List</a></li>
                 <li class="nav-item ms-md-3"><a href="/glossary.html">Glossary</a></li>
