@@ -1,7 +1,7 @@
 <script setup>
 import * as d3 from 'd3'
 import { ref, computed } from 'vue'
-import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor, roundAbbreviation } from '@/util'
+import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor, roundAbbreviation, subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
 import { playClassificationName, seasonDisplayId } from '@/configuration'
 import * as data from '@/data'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
@@ -25,16 +25,23 @@ data.loadGameData()
 data.loadGameStatData()
 data.loadGameContestantStatData()
 data.loadGameRoundContestantStatData()
+if (isPopCulture()) {
+  data.loadTeamData()
+  data.loadGameTeamStatData()
+  data.loadGameRoundTeamStatData()
+}
 
 const contestantDataById = data.contestantDataById
+const teamDataById = data.teamDataById
 const gameData = data.computedIfRefHasValue(data.gameDataById, gData => gData.get(gameId))
 const gameStatData = data.computedIfRefHasValue(data.gameStatDataById, gsData => gsData.get(gameId))
 const gamePlayClassification = data.computedIfRefHasValue(gameData, gData => gData.play_classification)
 const gameTocPeriod = data.computedIfRefHasValue(gameData, gData => gData.toc_period)
 const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_classification == 'celebrity' ? 3 : 2)
 const gameContestantIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
+const gameTeamIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_team_id, gData.podium_2_team_id, gData.podium_3_team_id])
 
-const gameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => gsData.att_total > 0)
+const gameHasAttemptData = isSyndicated() && data.computedIfRefHasValue(gameStatData, gsData => gsData.att_total > 0)
 
 const allGameStatData = data.computedIfRefHasValues(
   [data.gameStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
@@ -46,6 +53,18 @@ const gameContestantStatDataByContestantId = data.computedIfRefHasValue(data.gam
 const gameContestantStatData = computed(() => {
   if (data.gameContestantStatDataByGameIdContestantId.value && gameContestantIds.value) {
     return d3.map(gameContestantIds.value, cid => data.gameContestantStatDataByGameIdContestantId.value.get(gameId).get(cid))
+  } else {
+    return null
+  }
+})
+
+const allGameTeamStatData = data.computedIfRefHasValues(
+  [data.gameTeamStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
+  (gcsData, playClass, tocPeriod, gData) => gcsData.filter(gcs => gData.get(gcs.game_id).play_classification === playClass && gData.get(gcs.game_id).toc_period === tocPeriod))
+const gameTeamStatDataByTeamId = data.computedIfRefHasValue(data.gameTeamStatDataByGameIdTeamId, gcsData => gcsData.get(gameId))
+const gameTeamStatData = computed(() => {
+  if (data.gameTeamStatDataByGameIdTeamId.value && gameTeamIds.value) {
+    return d3.map(gameTeamIds.value, cid => data.gameTeamStatDataByGameIdTeamId.value.get(gameId).get(cid))
   } else {
     return null
   }
@@ -116,11 +135,23 @@ const color = computed(() => {
   if (gameContestantIds.value) return d3.scaleOrdinal().domain(gameContestantIds.value).range(threeColorSet)
   else return null
 })
+const teamColor = computed(() => {
+  if (gameTeamIds.value) return d3.scaleOrdinal().domain(gameTeamIds.value).range(threeColorSet)
+  else return null
+})
 
 function contestantLink (contestant_id, contestant_name) {
   return '<span style="color: ' + 
     color.value(contestant_id) + 
     '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
+    contestant_id + 
+    '">' + contestant_name + '</a>'
+}
+
+function teamLink (contestant_id, contestant_name) {
+  return '<span style="color: ' + 
+    color.value(contestant_id) + 
+    '">&#9632;</span>&nbsp;<a href="/team.html?team_id=' + 
     contestant_id + 
     '">' + contestant_name + '</a>'
 }
@@ -157,7 +188,7 @@ const baseScoringTableRows = data.computedIfRefHasValues([gameContestantIds], (c
 
 const constructScoringTableSpecification = function(attrSpecs) {
   return data.computedIfRefHasValues(
-    [baseScoringTableRows, contestantDataById, baseScoringTableData],
+    [baseScoringTableRows, isPopCulture() ? teamDataById : contestantDataById, baseScoringTableData],
     (baseRows, cData, gcsData) => {
       var columns = [
         {
@@ -481,7 +512,7 @@ const histogramSpecification = computed(() => {
 
 <template>
   <Header />
-  <div class="component-body">
+  <div class="component-body" :data-bs-theme="subdomainIdentifier()">
     <div v-if="gameData && gameStatData" class="section">
       <div class="overview">
         <div class="overview-row">
@@ -518,9 +549,18 @@ const histogramSpecification = computed(() => {
                   <th>Total$</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody v-if="isSyndicated()">
                 <tr v-for="gcs in gameContestantStatData" :class="gcs.contestant_id === gameData.winning_contestant_id ? 'winner' : ''">
                   <td v-html="contestantLink(gcs.contestant_id, contestantDataById.get(gcs.contestant_id).name)"></td>
+                  <td>{{ gcsAttributes.buz_score.generatingFunction(gcs) }}</td>
+                  <td>{{ gcsAttributes.dd_score.generatingFunction(gcs) }}</td>
+                  <td>{{ gcsAttributes.fj_score.generatingFunction(gcs) }}</td>
+                  <td>{{ gcsAttributes.fj_final_score.generatingFunction(gcs) }}</td>
+                </tr>
+              </tbody>
+              <tbody v-if="isPopCulture()">
+                <tr v-for="gcs in gameTeamStatData" :class="gcs.team_id === gameData.winning_team_id ? 'winner' : ''">
+                  <td v-html="teamLink(gcs.team_id, teamDataById.get(gcs.team_id).name)"></td>
                   <td>{{ gcsAttributes.buz_score.generatingFunction(gcs) }}</td>
                   <td>{{ gcsAttributes.dd_score.generatingFunction(gcs) }}</td>
                   <td>{{ gcsAttributes.fj_score.generatingFunction(gcs) }}</td>
@@ -550,7 +590,7 @@ const histogramSpecification = computed(() => {
         </div>
       </div>
     </div>
-    <div v-if="gameData" class="section player-statistics">
+    <div v-if="gameData && isSyndicated()" class="section player-statistics">
       <div class="section-header">Player Statistics</div>
       <div class="option-groups">
         <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
@@ -573,7 +613,7 @@ const histogramSpecification = computed(() => {
         <SortableTable v-if="slimConversionValueScoringTableSpec" v-bind="slimConversionValueScoringTableSpec" />
       </div>
     </div>
-    <div class="section">
+    <div class="section" v-if="isSyndicated()">
       <div class="section-header">Correct Responses</div>
       <div id="view-boards">
         <div v-for="round in d3.range(1, gameRounds + 1)">
@@ -605,7 +645,7 @@ const histogramSpecification = computed(() => {
         </div>
       </div>
     </div>
-    <div class="section" v-if="jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
+    <div class="section" v-if="isSyndicated() && jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
       <div class="section-header">Daily Doubles</div>
       <div class="game-stat-listing">
         <table>
@@ -638,7 +678,7 @@ const histogramSpecification = computed(() => {
         </table>
       </div>
     </div>
-    <div class="section">
+    <div class="section" v-if="isSyndicated()">
       <div class="section-header">Final Jeopardy! Win Matrix</div>
       <div id="fj-matrix-container">
         <div class="game-stat-listing">
@@ -698,7 +738,7 @@ const histogramSpecification = computed(() => {
       </div>
     </div>
 
-    <div class="section" v-if="cumulativeDataAttributesList">
+    <div class="section" v-if="isSyndicated() && cumulativeDataAttributesList">
       <div class="section-header">Game Progress</div>
       <div class="option-groups">
         <OptionDropdown
@@ -736,7 +776,7 @@ const histogramSpecification = computed(() => {
         :blur="2"
       />
     </div>
-    <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
+    <div class="section" v-if="isSyndicated() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
       <div class="section-header"><span v-if="gameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
       <StackValueBarChart 
         :data="gameContestantIds"
@@ -752,7 +792,7 @@ const histogramSpecification = computed(() => {
         :yLabel="gameHasAttemptData ? 'BuzC -> Buz -> Att' : 'BuzC -> Buz'"
         :title="gameHasAttemptData ? 'Attempts' : 'Buzzes'"/>
     </div>
-    <div class="section" v-if="gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
+    <div class="section" v-if="isSyndicated() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
       <div class="section-header"><span v-if="gameHasAttemptData">Attempt Values</span><span v-else>Buzz Values</span></div>
       <StackValueBarChart 
         :data="gameContestantIds"
@@ -768,7 +808,7 @@ const histogramSpecification = computed(() => {
         :yLabel="gameHasAttemptData ? 'Buz$ -> BuzValue -> AttValue' : 'Buz$ -> BuzValue'"
         :title="gameHasAttemptData ? 'Attempt Values' : 'Buzz Values'"/>
     </div>
-    <div class="section" v-if="histogramSpecification && graphAttributesList">
+    <div class="section" v-if="isSyndicated() && histogramSpecification && graphAttributesList">
       <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
         <OptionDropdown
@@ -784,7 +824,7 @@ const histogramSpecification = computed(() => {
       </div>
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
-    <div class="section" v-if="scatterSpecification && graphAttributesList">
+    <div class="section" v-if="isSyndicated() && scatterSpecification && graphAttributesList">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <OptionDropdown

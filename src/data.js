@@ -54,14 +54,14 @@ const gameDataById = computedIfRefHasValue(gameData, gData => d3.index(gData, g 
 //Game stat data
 const gameStatData = ref(null)
 function loadGameStatData() {
-    loadDataReference(gameStatData, '/csvs/jschema_stat_game.csv')
+    loadDataReference(gameStatData, `/csvs/${ dataPrefix() }jschema_stat_game.csv`)
 }
 const gameStatDataById = computedIfRefHasValue(gameStatData, gData => d3.index(gData, g => g.game_id))
 
 //Game contestant stat data
 const gameContestantStatData = ref(null)
 function loadGameContestantStatData() {
-    loadDataReference(gameContestantStatData, '/csvs/jschema_stat_game_contestant.csv')
+    loadDataReference(gameContestantStatData, `/csvs/${ dataPrefix() }jschema_stat_game_contestant.csv`)
 }
 const gameContestantStatDataByGameId = computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, r => r.game_id))
 const gameContestantStatDataByContestantId = computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, r => r.contestant_id))
@@ -70,16 +70,35 @@ const gameContestantStatDataByGameIdContestantId = computedIfRefHasValue(gameCon
 //Game/round contestant stat data
 const gameRoundContestantStatData = ref(null)
 function loadGameRoundContestantStatData() {
-    loadDataReference(gameRoundContestantStatData, '/csvs/jschema_stat_round_contestant.csv')
+    loadDataReference(gameRoundContestantStatData, `/csvs/${ dataPrefix() }jschema_stat_round_contestant.csv`)
 }
 const gameRoundContestantStatDataByGameIdRoundIdContestantId = computedIfRefHasValue(
     gameRoundContestantStatData,
     gcsData => d3.index(gcsData, r => r.game_id, r => r.round_of_game, r => r.contestant_id))
 
+//Game contestant stat data
+const gameTeamStatData = ref(null)
+function loadGameTeamStatData() {
+    loadDataReference(gameTeamStatData, `/csvs/${ dataPrefix() }jschema_stat_game_team.csv`)
+}
+const gameTeamStatDataByGameId = computedIfRefHasValue(gameTeamStatData, gcsData => d3.group(gcsData, r => r.game_id))
+const gameTeamStatDataByTeamId = computedIfRefHasValue(gameTeamStatData, gcsData => d3.group(gcsData, r => r.team_id))
+const gameTeamStatDataByGameIdTeamId = computedIfRefHasValue(gameTeamStatData, gcsData => d3.index(gcsData, r => r.game_id, r => r.team_id))
+
+//Game/round contestant stat data
+const gameRoundTeamStatData = ref(null)
+function loadGameRoundTeamStatData() {
+    loadDataReference(gameRoundTeamStatData, `/csvs/${ dataPrefix() }jschema_stat_round_team.csv`)
+}
+const gameRoundTeamStatDataByGameIdRoundIdTeamId = computedIfRefHasValue(
+    gameRoundTeamStatData,
+    gcsData => d3.index(gcsData, r => r.game_id, r => r.round_of_game, r => r.team_id))
+
+    
 //Daily Double summary data
 const gameDailyDoubleData = ref(null)
 function loadGameDailyDoubleData() {
-    loadDataReference(gameDailyDoubleData, '/csvs/jschema_dd_summary.csv')
+    loadDataReference(gameDailyDoubleData, `/csvs/${ dataPrefix() }jschema_dd_summary.csv`)
 }
 const gameDailyDoubleDataByGameId = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id))
 const gameDailyDoubleDataByGameIdRound = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id, r => r.round_of_game))
@@ -92,5 +111,7 @@ export { computedIfRefHasValue, computedIfRefHasValues,
     loadGameStatData, gameStatData, gameStatDataById,
     loadGameContestantStatData, gameContestantStatData, gameContestantStatDataByGameId, gameContestantStatDataByContestantId, gameContestantStatDataByGameIdContestantId,
     loadGameRoundContestantStatData, gameRoundContestantStatData, gameRoundContestantStatDataByGameIdRoundIdContestantId,
+    loadGameTeamStatData, gameTeamStatData, gameTeamStatDataByGameId, gameTeamStatDataByTeamId, gameTeamStatDataByGameIdTeamId,
+    loadGameRoundTeamStatData, gameRoundTeamStatData, gameRoundTeamStatDataByGameIdRoundIdTeamId,
     loadGameDailyDoubleData, gameDailyDoubleData, gameDailyDoubleDataByGameId, gameDailyDoubleDataByGameIdRound
 };

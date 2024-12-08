@@ -6,7 +6,9 @@
 @import 'bootstrap/scss/bootstrap';
 
 [data-bs-theme="popculture"] {
+  --bs-primary: #{$colorPopCulturePrimary};
   --bs-primary-rgb: #{to-rgb($colorPopCulturePrimary)};
+  --bs-secondary: #{$colorPopCultureSecondary};
   --bs-secondary-rgb: #{to-rgb($colorPopCultureSecondary)};
 }
 
@@ -75,7 +77,7 @@ a:link, a:visited, a:hover {
 
 .overview {
   text-align: center;
-  background-color: #{$colorJometryPrimary};
+  background-color: var(--bs-primary);
   color: white;
   border-radius: 15px;
 }

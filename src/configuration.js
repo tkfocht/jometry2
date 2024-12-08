@@ -1,5 +1,6 @@
 var playClassificationGenericName = function(playClassification) {
     if (playClassification === 'regular') return 'Regular Play'
+    if (playClassification === 'popculture') return 'Pop Culture'
     if (playClassification === 'champions') return 'Tournament of Champions'
     if (playClassification === 'invitational') return 'Invitational'
     if (playClassification === 'exhibition') return 'Exhibition'
@@ -17,6 +18,7 @@ var playClassificationGenericName = function(playClassification) {
 
 var playClassificationName = function(playClassification, season) {
     if (playClassification === 'regular') return 'Regular Play'
+    if (playClassification === 'popculture') return 'Pop Culture'
     if (playClassification === 'champions') return 'Tournament of Champions'
     if (playClassification === 'invitational') return 'Invitational Tournament'
     if (playClassification === 'exhibition') return 'Exhibition'
@@ -38,6 +40,7 @@ var playClassificationName = function(playClassification, season) {
 
 var playClassificationNameByTocPeriod = function(playClassification, toc_period) {
     if (playClassification === 'regular') return 'Regular Play'
+    if (playClassification === 'popculture') return 'Pop Culture'
     if (playClassification === 'champions') return 'Tournament of Champions'
     if (playClassification === 'invitational') return 'Invitational Tournament'
     if (playClassification === 'exhibition') return 'Exhibition'
