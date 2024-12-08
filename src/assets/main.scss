@@ -5,6 +5,11 @@
 @import 'bootstrap/scss/mixins';
 @import 'bootstrap/scss/bootstrap';
 
+[data-bs-theme="popculture"] {
+  --bs-primary-rgb: #{to-rgb($colorPopCulturePrimary)};
+  --bs-secondary-rgb: #{to-rgb($colorPopCultureSecondary)};
+}
+
 a:link, a:visited, a:hover {
   color: inherit;
   text-decoration-style: dashed;

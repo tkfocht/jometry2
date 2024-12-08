@@ -1,7 +1,14 @@
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import { ref, computed } from 'vue'
-import { jschemaCsvDataAccessor } from '@/util'
+import { jschemaCsvDataAccessor, subdomainIdentifier } from '@/util'
+
+function dataPrefix() {
+    if (subdomainIdentifier() == 'popculture') {
+        return 'popculture/'
+    }
+    return ''
+}
 
 function loadDataReference(reference, csvUrl) {
     async function fetchData() {
@@ -24,15 +31,22 @@ function computedIfRefHasValues(references, lambdaFunction) {
 //Contestant data
 const contestantData = ref(null)
 function loadContestantData() {
-    loadDataReference(contestantData, '/csvs/jschema_contestant.csv')
+    loadDataReference(contestantData, `/csvs/${ dataPrefix() }jschema_contestant.csv`)
 }
 const contestantDataById = computedIfRefHasValue(contestantData, cData => d3.index(cData, c => c.contestant_id))
+
+//Contestant data
+const teamData = ref(null)
+function loadTeamData() {
+    loadDataReference(teamData, `/csvs/${ dataPrefix() }jschema_team.csv`)
+}
+const teamDataById = computedIfRefHasValue(teamData, cData => d3.index(cData, c => c.team_id))
 
 
 //Game data
 const gameData = ref(null)
 function loadGameData() {
-    loadDataReference(gameData, '/csvs/jschema_game.csv')
+    loadDataReference(gameData, `/csvs/${ dataPrefix() }jschema_game.csv`)
 }
 const gameDataById = computedIfRefHasValue(gameData, gData => d3.index(gData, g => g.game_id))
 
@@ -73,6 +87,7 @@ const gameDailyDoubleDataByGameIdRound = computedIfRefHasValue(gameDailyDoubleDa
 
 export { computedIfRefHasValue, computedIfRefHasValues,
     loadContestantData, contestantData, contestantDataById,
+    loadTeamData, teamData, teamDataById,
     loadGameData, gameData, gameDataById,
     loadGameStatData, gameStatData, gameStatDataById,
     loadGameContestantStatData, gameContestantStatData, gameContestantStatDataByGameId, gameContestantStatDataByContestantId, gameContestantStatDataByGameIdContestantId,

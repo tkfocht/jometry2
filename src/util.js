@@ -16,7 +16,7 @@ var subdomainIdentifier = function() {
     if (['celebrity','masters','popculture'].includes(subdomain)) {
         return subdomain
     }
-    return 'popculture'
+    return 'syndicated'
 }
     
 const SUBDOMAIN_TITLES = {
@@ -29,6 +29,14 @@ const SUBDOMAIN_TITLES = {
 var subdomainTitle = function() {
     const subdomain = subdomainIdentifier()
     return SUBDOMAIN_TITLES[subdomain]
+}
+
+var isSyndicated = function() {
+    return subdomainIdentifier() === 'syndicated'
+}
+
+var isPopCulture = function() {
+    return subdomainIdentifier() === 'popculture'
 }
 
 var getContestantNameFromData = function(data, contestantId) {
@@ -271,6 +279,7 @@ var filterValues = function(map, lambda) {
 
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
 
-export { subdomainIdentifier, subdomainTitle, averageData, rollupData, 
+export { subdomainIdentifier, subdomainTitle, isSyndicated, isPopCulture,
+    averageData, rollupData, 
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat, urlDateParse,
     clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues, filterValues, threeColorSet };

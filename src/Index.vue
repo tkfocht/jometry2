@@ -1,15 +1,19 @@
 <script setup>
 import * as data from '@/data'
 import { playClassificationName, playClassificationNameByTocPeriod } from '@/configuration'
-import { dateFormat } from '@/util'
+import { dateFormat, subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
 
 import * as d3 from 'd3'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 
+const subdomain = subdomainIdentifier()
+
 data.loadContestantData()
 data.loadGameData()
-data.loadGameStatData()
+if (subdomain == 'popculture') {
+  data.loadTeamData()
+}
 
 const scc2025Cids = [7976, 8040, 8049, 8073, 8079, 8085, 8088, 8091, 8094, 8138, 8159, 8190, 8207, 8210, 8222, 8235, 8250, 8289]
 const cwc2025Cids = [8144, 7956, 8163, 8175, 8187, 8195, 8243, 8306, 8312, 8318, 8328, 8334, 8355]
@@ -25,21 +29,21 @@ const gameData = data.computedIfRefHasValue(gameDataRaw, gData => {
   return d3.group(gData, d => d['toc_period'], d => d['season_id'], d => d['play_classification'])
 })
 const contestantData = data.contestantDataById
-const gameStatData = data.gameStatData
-const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.index(gsData, gs => gs.game_id))
+const teamData = data.teamDataById
 
 </script>
 
 <template>
   <Header />
-  <div class="component-body">
-    <div class="alert alert-primary" role="alert">
+  <div class="component-body" :data-bs-theme="subdomain">
+    <div class="alert alert-primary" role="alert" v-if="isSyndicated()">
       As of the game on December 6, 2024, the site has rolled over to treat the 2026 TOC as the current qualification period.
       The game on December 5 is currently being treated as part of the 2025 period so that Stevie Ruiz's statistics
       are fully within that period while the 2025 postseason completes, but will be placed in the 2026
       period later to put all of Dave Bond's victories within one qualification period.
     </div>
-    <div v-if="gameData && contestantData">
+
+    <div v-if="isSyndicated() && gameData && contestantData">
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Recent Games
         </div>
@@ -130,6 +134,27 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
         </div>
       </div>
     </div>
+
+    <div v-if="isPopCulture() && gameData && teamData">
+      <div class="toc-period section">
+        <div class="toc-period-header bg-primary text-white">Recent Games
+        </div>
+        <div>
+          <table class="game-list">
+            <tbody>
+              <tr v-for="game in gameDataSorted.slice(0, 10)">
+                <td><a :href="'game.html?game_id=' + game.game_id">Season {{ game.season_id }} Game {{ game.game_in_season }}</a></td>
+                <td>{{ dateFormat(game.airdate) }}</td>
+                <td v-for="team_id in [game.podium_1_team_id, game.podium_2_team_id, game.podium_3_team_id]">
+                  <a :href="'/team.html?team_id=' + team_id">{{ teamData.get(team_id).name }}</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
   <Footer />
 </template>
