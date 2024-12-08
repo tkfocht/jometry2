@@ -1,3 +1,5 @@
+import { isPopCulture } from '@/util'
+
 var playClassificationGenericName = function(playClassification) {
     if (playClassification === 'regular') return 'Regular Play'
     if (playClassification === 'popculture') return 'Pop Culture'
@@ -69,6 +71,7 @@ var seasonDisplayId = function(seasonId) {
     if (seasonId === 'PCJ2') return 'Celeb 2'
     if (seasonId === 'M2023') return 'Masters 1'
     if (seasonId === 'M2024') return 'Masters 2'
+    if (seasonId.startsWith('POP') && isPopCulture()) return seasonId.substring(3)
     return seasonId
 }
 
@@ -80,6 +83,18 @@ var tocPeriodIds = [
 var playClassifications = [
     'regular', 'champions', 'invitational', 'exhibition', 'secondchance', 'professors', 'teachers', 'teen',
     'celebrity', 'hsreunion', 'masters', 'wildcard', 'college'
+]
+
+var popCultureSeasonIds = [
+    'POP1'
+]
+
+var popCultureTocPeriodIds = [
+    'POP1'
+]
+
+var popCulturePlayClassifications = [
+    'popculture'
 ]
 
 var dataSourceAddress = function(dataSourceId) {
@@ -94,4 +109,5 @@ var dataSourceAddress = function(dataSourceId) {
 export { playClassificationName, playClassificationGenericName,
     playClassificationNameByTocPeriod, seasonDisplayId,
     seasonIds, tocPeriodIds, playClassifications,
+    popCultureSeasonIds, popCultureTocPeriodIds, popCulturePlayClassifications,
     dataSourceAddress };

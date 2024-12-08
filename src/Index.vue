@@ -1,6 +1,6 @@
 <script setup>
 import * as data from '@/data'
-import { playClassificationName, playClassificationNameByTocPeriod } from '@/configuration'
+import { playClassificationName, playClassificationNameByTocPeriod, seasonDisplayId } from '@/configuration'
 import { dateFormat, subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
 
 import * as d3 from 'd3'
@@ -51,7 +51,7 @@ const teamData = data.teamDataById
           <table class="game-list">
             <tbody>
               <tr v-for="game in gameDataSorted.slice(0, 10)">
-                <td><a :href="'game.html?game_id=' + game.game_id">Season {{ game.season_id }} Game {{ game.game_in_season }}</a></td>
+                <td><a :href="'game.html?game_id=' + game.game_id">Season {{ seasonDisplayId(game.season_id) }} Game {{ game.game_in_season }}</a></td>
                 <td>{{ dateFormat(game.airdate) }}</td>
                 <td v-for="contestant_id in [game.podium_1_contestant_id, game.podium_2_contestant_id, game.podium_3_contestant_id]">
                   <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
@@ -143,7 +143,7 @@ const teamData = data.teamDataById
           <table class="game-list">
             <tbody>
               <tr v-for="game in gameDataSorted.slice(0, 10)">
-                <td><a :href="'game.html?game_id=' + game.game_id">Season {{ game.season_id }} Game {{ game.game_in_season }}</a></td>
+                <td><a :href="'game.html?game_id=' + game.game_id">Season {{ seasonDisplayId(game.season_id) }} Game {{ game.game_in_season }}</a></td>
                 <td>{{ dateFormat(game.airdate) }}</td>
                 <td v-for="team_id in [game.podium_1_team_id, game.podium_2_team_id, game.podium_3_team_id]">
                   <a :href="'/team.html?team_id=' + team_id">{{ teamData.get(team_id).name }}</a>

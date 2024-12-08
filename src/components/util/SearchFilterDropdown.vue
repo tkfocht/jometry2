@@ -1,5 +1,6 @@
 <script setup>
 import * as d3 from 'd3'
+import { subdomainIdentifier } from '@/util'
 
 const props = defineProps({
   optionLabels: Array,
@@ -26,7 +27,7 @@ function addSelectionIndex(idxs, s_idx) {
 </script>
 
 <template>
-    <div class="dropdown">
+    <div class="dropdown" :data-bs-theme="subdomainIdentifier()">
         <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" v-if="optionLabels">
             {{ label }}: {{ selectedIndices.length > 0 ? selectedIndices.length + ' selected' : 'Any' }}
         </button>

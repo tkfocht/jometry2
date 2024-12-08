@@ -1,6 +1,7 @@
 <script setup>
 import * as _ from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
+import { subdomainIdentifier } from '@/util'
 
 const props = defineProps({
   optionLabels: Array,
@@ -13,7 +14,7 @@ const componentId = uuidv4()
 </script>
 
 <template>
-    <div class="btn-group" role="group" aria-label="Select full game/round">
+    <div class="btn-group" role="group" aria-label="Select full game/round" :data-bs-theme="subdomainIdentifier()">
         <template v-for="(optionLabel, index) in props.optionLabels">
             <input 
                 type="radio" class="btn-check" :name="'btnradio' + componentId"

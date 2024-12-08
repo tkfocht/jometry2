@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { movingAverageOfLast, dateFormat, transformValues, threeColorSet } from '@/util'
+import { dateFormat, subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
 import * as configuration from '@/configuration'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
@@ -15,44 +15,51 @@ import { formatDate } from 'plotly.js-dist'
 let urlParams = new URLSearchParams(window.location.search);
 
 data.loadContestantData()
+if (isPopCulture()) {
+  data.loadTeamData()
+}
 data.loadGameData()
 data.loadGameStatData()
+
+const searchSeasonIds = isPopCulture() ? configuration.popCultureSeasonIds : configuration.seasonIds
+const searchTocPeriodIds = isPopCulture() ? configuration.popCultureTocPeriodIds : configuration.tocPeriodIds
+const searchPlayClassifications = isPopCulture() ? configuration.popCulturePlayClassifications : configuration.playClassifications
 
 const seasonSearchSelectedIndices = ref(
   urlParams.get('season') ?
   urlParams.get('season').split(',')
-    .map(sid => configuration.seasonIds.indexOf(sid))
+    .map(sid => searchSeasonIds.indexOf(sid))
     .filter(s_idx => s_idx >= 0)
     .sort(d3.ascending) :
   []
 )
 const seasonSearchParameters = data.computedIfRefHasValue(
   seasonSearchSelectedIndices,
-  idxs => idxs.map(idx => configuration.seasonIds[idx])
+  idxs => idxs.map(idx => searchSeasonIds[idx])
 )
 const tocPeriodSelectedIndices = ref(
   urlParams.get('toc_period') ?
   urlParams.get('toc_period').split(',')
-    .map(tid => configuration.tocPeriodIds.indexOf(tid))
+    .map(tid => searchTocPeriodIds.indexOf(tid))
     .filter(t_idx => t_idx >= 0)
     .sort(d3.ascending) :
   []
 )
 const tocPeriodSearchParameters = data.computedIfRefHasValue(
   tocPeriodSelectedIndices,
-  idxs => idxs.map(idx => configuration.tocPeriodIds[idx])
+  idxs => idxs.map(idx => searchTocPeriodIds[idx])
 )
 const playClassificationSelectedIndices = ref(
   urlParams.get('play_classification') ?
   urlParams.get('play_classification').split(',')
-    .map(tid => configuration.playClassifications.indexOf(tid))
+    .map(tid => searchPlayClassifications.indexOf(tid))
     .filter(t_idx => t_idx >= 0)
     .sort(d3.ascending) :
   []
 )
 const playClassificationSearchParameters = data.computedIfRefHasValue(
   playClassificationSelectedIndices,
-  idxs => idxs.map(idx => configuration.playClassifications[idx])
+  idxs => idxs.map(idx => searchPlayClassifications[idx])
 )
 
 const winThresholdString = ref(urlParams.get('win_threshold'))
@@ -111,6 +118,7 @@ const gameData = data.computedIfRefHasValue(data.gameData, gData => gData.filter
 const gameDataById = data.computedIfRefHasValue(gameData, gData => d3.index(gData, g => g.game_id))
 const gameIds = data.computedIfRefHasValue(gameData, gData => gData.map(g => g.game_id))
 const contestantDataById = data.contestantDataById
+const teamDataById = data.teamDataById
 const gameStatData = data.computedIfRefHasValues([data.gameStatData, gameIds], (gsData, gIds) => gsData.filter(gs => gIds.includes(gs.game_id)))
 const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.index(gsData, gs => gs.game_id))
 const anyGameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => {
@@ -120,7 +128,7 @@ const anyGameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData =>
 
 //Tables
 const tableSpec = data.computedIfRefHasValues(
-  [gameData, contestantDataById, gameStatDataById, anyGameHasAttemptData],
+  [gameData, isPopCulture() ? teamDataById : contestantDataById, gameStatDataById, anyGameHasAttemptData],
   (gData, cData, gsDataById, hasAttempt) => {
     const allStatAttrs = [
       gsAttributes.att_value_total,
@@ -161,7 +169,7 @@ const tableSpec = data.computedIfRefHasValues(
     const rows = gData.map(g => {
       const gsData = gsDataById.get(g.game_id)
 
-      var row = [
+      var row = isSyndicated() ? [
         {
           value: '<a href="/game.html?game_id=' + g.game_id + '">' + configuration.seasonDisplayId(g.season_id) + '-' + g.game_in_season + '</a> <span class="date" style="white-space: nowrap">' + dateFormat(g.airdate) + '</span>',
           sortValue: g.airdate
@@ -177,6 +185,31 @@ const tableSpec = data.computedIfRefHasValues(
         {
           value: '<a href="/contestant.html?contestant_id=' + g.podium_3_contestant_id + '">' + cData.get(g.podium_3_contestant_id).name + '</a>',
           sortValue: cData.get(g.podium_3_contestant_id).name
+        },
+        {
+          value: g.toc_period,
+          sortValue: g.toc_period
+        },
+        {
+          value: configuration.playClassificationName(g.play_classification, g.season_id),
+          sortValue: configuration.playClassificationName(g.play_classification, g.season_id)
+        }
+      ] : [
+        {
+          value: '<a href="/game.html?game_id=' + g.game_id + '">' + configuration.seasonDisplayId(g.season_id) + '-' + g.game_in_season + '</a> <span class="date" style="white-space: nowrap">' + dateFormat(g.airdate) + '</span>',
+          sortValue: g.airdate
+        },
+        {
+          value: '<a href="/team.html?team_id=' + g.podium_1_team_id + '">' + cData.get(g.podium_1_team_id).name + '</a>',
+          sortValue: cData.get(g.podium_1_team_id).name
+        },
+        {
+          value: '<a href="/team.html?team_id=' + g.podium_2_team_id + '">' + cData.get(g.podium_2_team_id).name + '</a>',
+          sortValue: cData.get(g.podium_2_team_id).name
+        },
+        {
+          value: '<a href="/team.html?team_id=' + g.podium_3_team_id + '">' + cData.get(g.podium_3_team_id).name + '</a>',
+          sortValue: cData.get(g.podium_3_team_id).name
         },
         {
           value: g.toc_period,
@@ -210,7 +243,7 @@ const tableSpec = data.computedIfRefHasValues(
 
 <template>
   <Header />
-  <div class="component-body">
+  <div class="component-body" :data-bs-theme="subdomainIdentifier()">
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.map(configuration.seasonDisplayId).join(', ') }}&nbsp;</span>
@@ -218,19 +251,19 @@ const tableSpec = data.computedIfRefHasValues(
     </h1>
     <div id="search-filters">
       <SearchFilterDropdown
-        :optionLabels="configuration.seasonIds.map(configuration.seasonDisplayId)"
+        :optionLabels="searchSeasonIds.map(configuration.seasonDisplayId)"
         :selectedIndices="seasonSearchSelectedIndices"
         :label="'Seasons'"
         @updateSelectionIndices="(idxs) => seasonSearchSelectedIndices = idxs"
       />
       <SearchFilterDropdown
-        :optionLabels="configuration.tocPeriodIds"
+        :optionLabels="searchTocPeriodIds"
         :selectedIndices="tocPeriodSelectedIndices"
         :label="'TOC Periods'"
         @updateSelectionIndices="(idxs) => tocPeriodSelectedIndices = idxs"
       />
       <SearchFilterDropdown
-        :optionLabels="configuration.playClassifications.map(configuration.playClassificationGenericName)"
+        :optionLabels="searchPlayClassifications.map(configuration.playClassificationGenericName)"
         :selectedIndices="playClassificationSelectedIndices"
         :label="'Play Classifications'"
         @updateSelectionIndices="(idxs) => playClassificationSelectedIndices = idxs"

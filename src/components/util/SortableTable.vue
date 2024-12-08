@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import * as _ from 'lodash'
 import * as d3 from 'd3'
+import { subdomainIdentifier } from '@/util'
 
 const props = defineProps({
   columns: Array,
@@ -40,7 +41,7 @@ function setSortColumn(newSortColumn) {
 </script>
 
 <template>
-    <div class="table-container">
+    <div class="table-container" :data-bs-theme="subdomainIdentifier()">
         <table v-if="props.columns && sortedRows">
             <thead>
                 <tr>
@@ -133,7 +134,7 @@ table tr:last-child th, table tr:last-child td {
 }
 
 table th {
-    background-color: $secondary;
+    background-color: var(--bs-secondary);
 }
 
 table th:hover {
