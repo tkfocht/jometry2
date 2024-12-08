@@ -136,7 +136,10 @@ const color = computed(() => {
   else return null
 })
 const teamColor = computed(() => {
-  if (gameTeamIds.value) return d3.scaleOrdinal().domain(gameTeamIds.value).range(threeColorSet)
+  if (gameTeamIds.value) {
+    console.log(gameTeamIds.value)
+    return d3.scaleOrdinal().domain(gameTeamIds.value).range(threeColorSet)
+  }
   else return null
 })
 
@@ -150,7 +153,7 @@ function contestantLink (contestant_id, contestant_name) {
 
 function teamLink (contestant_id, contestant_name) {
   return '<span style="color: ' + 
-    color.value(contestant_id) + 
+    teamColor.value(contestant_id) + 
     '">&#9632;</span>&nbsp;<a href="/team.html?team_id=' + 
     contestant_id + 
     '">' + contestant_name + '</a>'
