@@ -1,11 +1,12 @@
 <script setup>
+import { subdomainIdentifier } from '@/util'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 </script>
 
 <template>
   <Header />
-  <div class="component-body">
+  <div class="component-body" :data-bs-theme="subdomainIdentifier()">
     <div class="section">
       <div class="section-header">Statistics</div>
       <div class="entry">

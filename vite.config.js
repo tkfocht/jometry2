@@ -30,9 +30,11 @@ export default defineConfig({
         error404: resolve(__dirname, '404.html'),
         game: resolve(__dirname, 'game.html'),
         contestant: resolve(__dirname, 'contestant.html'),
+        team: resolve(__dirname, 'team.html'),
         period: resolve(__dirname, 'period.html'),
         period_games: resolve(__dirname, 'period_games.html'),
         contestantIndex: resolve(__dirname, 'contestant_index.html'),
+        teamIndex: resolve(__dirname, 'team_index.html'),
         about: resolve(__dirname, 'about.html'),
         glossary: resolve(__dirname, 'glossary.html'),
         blog: resolve(__dirname, 'blog.html')
