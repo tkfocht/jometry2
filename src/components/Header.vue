@@ -1,5 +1,12 @@
+<script setup>
+import { subdomainIdentifier } from '@/util'
+
+const subdomain = subdomainIdentifier()
+</script>
+
 <template>
-    <div class="navbar navbar-dark navbar-expand-md text-bg-primary navbar-primary">
+    <div :data-bs-theme="subdomain">
+    <div class="navbar navbar-dark navbar-expand-md text-bg-primary navbar-primary" :data-bs-theme="subdomain">
         <div id="site-mast" class="navbar-brand text-bg-primary ms-3"><a href="/">J!ometry</a></div>
         <button class="navbar-toggler me-3" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent"
@@ -17,6 +24,7 @@
                 <li class="nav-item ms-md-3"><a href="/about.html">About</a></li>
             </ul>
         </div>
+    </div>
     </div>
 </template>
 

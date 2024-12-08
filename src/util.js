@@ -6,6 +6,31 @@ var ymdDateParse = d3.timeParse("%Y-%m-%d");
 var urlDateParse = d3.timeParse("%m-%d-%Y");
 var dateFormat = d3.timeFormat("%m-%d-%Y");
 
+var subdomainIdentifier = function() {
+    const hostname = window.location.hostname
+    var countback = 2
+    if (hostname === 'localhost' || hostname.endsWith('.localhost')) {
+        countback = 1
+    }
+    const subdomain = hostname.split('.').slice(0, -countback).join('.')
+    if (['celebrity','masters','popculture'].includes(subdomain)) {
+        return subdomain
+    }
+    return 'popculture'
+}
+    
+const SUBDOMAIN_TITLES = {
+    'syndicated': '',
+    'celebrity': 'Celebrity',
+    'popculture': 'Pop Culture',
+    'masters': 'Masters',
+}
+
+var subdomainTitle = function() {
+    const subdomain = subdomainIdentifier()
+    return SUBDOMAIN_TITLES[subdomain]
+}
+
 var getContestantNameFromData = function(data, contestantId) {
     if (d3.map(data, cd => cd['Jometry Contestant Id']).includes(contestantId)) {
         return d3.filter(data, cd => cd['Jometry Contestant Id'] === contestantId)[0]['Contestant'];
@@ -246,6 +271,6 @@ var filterValues = function(map, lambda) {
 
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
 
-export { averageData, rollupData, 
+export { subdomainIdentifier, subdomainTitle, averageData, rollupData, 
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat, urlDateParse,
     clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues, filterValues, threeColorSet };

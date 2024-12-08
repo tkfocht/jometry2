@@ -135,7 +135,6 @@ const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.i
 </template>
 
 <style lang="scss" scoped>
-
 .toc-period {
   text-align: left;
 }
