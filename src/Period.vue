@@ -24,6 +24,8 @@ let urlParams = new URLSearchParams(window.location.search);
 data.loadContestantData()
 if (isPopCulture()) {
   data.loadTeamData()
+  data.loadGameTeamStatData()
+  data.loadGameRoundTeamStatData()
 }
 data.loadGameData()
 data.loadGameStatData()
@@ -168,7 +170,11 @@ const gameDailyDoubleData = data.computedIfRefHasValues(
 
 const teamIds = data.computedIfRefHasValue(gameData, gData => [...new Set(gData.flatMap(g => [g.podium_1_team_id, g.podium_2_team_id, g.podium_3_team_id]))])
 const gameTeamStatData = data.computedIfRefHasValues([data.gameTeamStatData, gameIds], (gcsData, gIds) => gcsData.filter(gs => gIds.includes(gs.game_id)))
-const gameTeamStatDataByGameIdAndTeamId = data.computedIfRefHasValue(gameTeamStatData, gcsData => d3.group(gcsData, gcs => gcs.team_id))
+const gameTeamStatDataByTeamId = data.computedIfRefHasValue(gameTeamStatData, gcsData => d3.group(gcsData, gcs => gcs.team_id))
+const gameTeamStatDataByGameIdAndTeamId = data.computedIfRefHasValue(gameTeamStatData, gcsData => d3.group(gcsData, gcs => gcs.game_id, gcs => gcs.team_id))
+const gameRoundTeamStatDataByRoundIdTeamId = data.computedIfRefHasValues(
+    [data.gameRoundTeamStatData, gameIds],
+    (gcsData, gIds) => d3.group(gcsData.filter(gr => gIds.includes(gr.game_id)), r => r.round_of_game, r => r.team_id))
 
 const summaryDataConstructed = periodUtil.summaryDataConstructor(
   gameData,
@@ -179,7 +185,9 @@ const summaryDataConstructed = periodUtil.summaryDataConstructor(
   displayContestantIdParameters,
   contestantIds,
   gameDataById,
-  graphDisplayLimitString
+  graphDisplayLimitString,
+  winThresholdString,
+  winLimitString
 );
 const teamSummaryDataConstructed = periodUtil.summaryDataConstructor(
   gameData,
@@ -190,9 +198,10 @@ const teamSummaryDataConstructed = periodUtil.summaryDataConstructor(
   displayContestantIdParameters,
   teamIds,
   gameDataById,
-  graphDisplayLimitString
+  graphDisplayLimitString,
+  winThresholdString,
+  winLimitString
 );
-console.log(teamSummaryDataConstructed)
 
 const displayContestantGameContestantStatData = summaryDataConstructed.displayCompetitorGameCompetitorStatData
 const displayContestantIds = summaryDataConstructed.displayCompetitorIds
@@ -228,10 +237,27 @@ const colorSet = computed(() => {
     .range(d3.schemeCategory10.concat(d3.schemeDark2).concat(d3.schemeAccent))
 })
 
+const teamColorSet = computed(() => {
+  if (!displayTeamIds.value) return undefined
+  return d3.scaleOrdinal()
+    .domain(displayTeamIds.value)
+    .range(d3.schemeCategory10.concat(d3.schemeDark2).concat(d3.schemeAccent))
+})
+
 const color = computed(() => {
   return cid => {
     if (displayContestantIds.value && displayContestantIds.value.includes(cid)) {
       return colorSet.value(cid);
+    } else {
+      return "black";
+    }
+  }
+})
+
+const teamColor = computed(() => {
+  return cid => {
+    if (displayTeamIds.value && displayTeamIds.value.includes(cid)) {
+      return teamColorSet.value(cid);
     } else {
       return "black";
     }
@@ -248,7 +274,7 @@ function contestantLink (contestant_id, contestant_name) {
 
 function teamLink (contestant_id, contestant_name) {
   return '<span style="color: ' + 
-    color.value(contestant_id) + 
+    teamColor.value(contestant_id) + 
     '">&#9632;</span>&nbsp;<a href="/team.html?team_id=' + 
     contestant_id + 
     '">' + contestant_name + '</a>'
@@ -260,15 +286,22 @@ const selectedRoundIndex = ref(0)
 const aggregationOptionLabels = ref(['Game Average', 'Total', 'Game Max', 'Game Median', 'Game Min'])
 const selectedAggregationIndex = ref(0)
 
-const baseScoringTableData = data.computedIfRefHasValues(
-  [selectedRoundIndex, gameContestantStatDataByContestantId, gameRoundContestantStatDataByRoundIdContestantId],
-  (rIdx, gcsDataByCId, grcsDataByRIdCId) => {
-    if (rIdx === 0) {
-      return gcsDataByCId
-    }
-    return grcsDataByRIdCId.get(rIdx)
+const buildBaseScoringTableData = function(rIdx, gcsDataByCId, grcsDataByRIdCId) {
+  if (rIdx === 0) {
+    return gcsDataByCId
   }
-)
+  return grcsDataByRIdCId.get(rIdx)
+}
+
+const standardBaseScoringTableData = data.computedIfRefHasValues(
+  [selectedRoundIndex, gameContestantStatDataByContestantId, gameRoundContestantStatDataByRoundIdContestantId],
+  (rIdx, gcsDataByCId, grcsDataByRIdCId) => buildBaseScoringTableData(rIdx, gcsDataByCId, grcsDataByRIdCId))
+const popCultureBaseScoringTableData = data.computedIfRefHasValues(
+  [selectedRoundIndex, gameTeamStatDataByTeamId, gameRoundTeamStatDataByRoundIdTeamId],
+  (rIdx, gcsDataByCId, grcsDataByRIdCId) => buildBaseScoringTableData(rIdx, gcsDataByCId, grcsDataByRIdCId))
+
+const baseScoringTableData = isPopCulture() ? popCultureBaseScoringTableData : standardBaseScoringTableData
+
 const baseScoringTableAggregation = data.computedIfRefHasValue(
   selectedAggregationIndex, idx => [d3.mean, d3.sum, d3.max, d3.median, d3.min][idx])
 const baseScoringTableDisplayFunction = data.computedIfRefHasValue(
@@ -283,7 +316,7 @@ const buildBaseScoringTableRow = function(displayCompetitorIds, competitorSort, 
   displayCompetitorIds.sort(competitorSort)
   return displayCompetitorIds.map((competitor_id, idx) => {
     const foundWins = competitorWins.get(competitor_id)
-    var obj = {
+    const obj = {
       'wins': _.isNil(foundWins) ? 0 : foundWins,
       'ranking': displayCompetitorIds.length - idx - 1
     }
@@ -308,7 +341,10 @@ const constructSpecificationConstructors = isPopCulture() ?
     baseScoringTableData,
     baseScoringTableAggregation,
     baseScoringTableDisplayFunction,
-    teamLink
+    teamLink,
+    row => row.team_id,
+    g => g.winning_team_id,
+    'Team'
   ) : periodUtil.constructSpecificationConstuctors(
     baseScoringTableRows,
     gameDataById,
@@ -316,7 +352,10 @@ const constructSpecificationConstructors = isPopCulture() ?
     baseScoringTableData,
     baseScoringTableAggregation,
     baseScoringTableDisplayFunction,
-    contestantLink
+    contestantLink,
+    row => row.contestant_id,
+    g => g.winning_contestant_id,
+    'Contestant'
   )
 const constructScoringTableSpecification = constructSpecificationConstructors.constructScoringTableSpecification
 

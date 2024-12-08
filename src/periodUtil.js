@@ -12,14 +12,18 @@ const summaryDataConstructor = function(
   displayContestantIdParameters,
   competitorIds,
   gameDataById,
-  graphDisplayLimitString
+  graphDisplayLimitString,
+  winThresholdString,
+  winLimitString
 ) {
     const competitorWins = computedIfRefHasValue(gameData, gData => d3.rollup(gData, v => v.length, gameWinnerExtractionFn))
     const competitorWinnings = computedIfRefHasValues([gameData, gameCompetitorStatDataByGameIdAndCompetitorId], (gData, gcsData) => {
       const aggregateWinnings = function(games) {
         return games
           .filter(g => !_.isNil(gameWinnerExtractionFn(g)))
-          .map(g => gcsData.get(g.game_id).get(gameWinnerExtractionFn(g)).score)
+          .map(g => {
+            return gcsData.get(g.game_id).get(gameWinnerExtractionFn(g)).score
+          })
           .reduce((a, b) => a + b, 0)
       }
       return d3.rollup(gData, aggregateWinnings, gameWinnerExtractionFn)
@@ -81,7 +85,10 @@ const constructSpecificationConstuctors = function(
   baseScoringTableData,
   baseScoringTableAggregation,
   baseScoringTableDisplayFunction,
-  competititorLink
+  competitorLink,
+  competitorIdFn,
+  winningCompetitorIdFn,
+  competitorLabel
 ) {
   const constructScoringTableSpecification = function(attrSpecs) {
     return computedIfRefHasValues(
@@ -90,7 +97,7 @@ const constructSpecificationConstuctors = function(
       (baseRows, gData, cData, gcsData, aggrFn, attrDisplayFn) => {
         var columns = [
           {
-            label: 'Contestant (Wins)'
+            label: competitorLabel + ' (Wins)'
           }
         ]
         columns = columns.concat(attrSpecs.map(attr => ({
@@ -99,11 +106,10 @@ const constructSpecificationConstuctors = function(
         })))
 
         var rows = baseRows.map(baseRow => {
-          console.log(baseRow)
-          const cid = baseRow.contestant_id
+          const cid = competitorIdFn(baseRow)
           var row = [
             {
-              value: competititorLink(cid, cData.get(cid).name) + '&nbsp;(' + baseRow.wins + ')',
+              value: competitorLink(cid, cData.get(cid).name) + '&nbsp;(' + baseRow.wins + ')',
               sortValue: baseRow.ranking
             }
           ]
@@ -121,8 +127,8 @@ const constructSpecificationConstuctors = function(
         ]
 
         footerRows[0] = footerRows[0].concat(attrSpecs.map(attr => {
-          const contestantIds = baseRows.map(baseRow => baseRow.contestant_id)
-          const gcses = contestantIds.flatMap(cid => gcsData.get(cid))
+          const competitorIds = baseRows.map(competitorIdFn)
+          const gcses = competitorIds.flatMap(cid => gcsData.get(cid))
           return {
             value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
           }
@@ -136,7 +142,7 @@ const constructSpecificationConstuctors = function(
         }))
 
         footerRows[2] = footerRows[2].concat(attrSpecs.map(attr => {
-          const gcses = [...gcsData.values()].flatMap(l => l).filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id)
+          const gcses = [...gcsData.values()].flatMap(l => l).filter(gcs => winningCompetitorIdFn(gData.get(gcs.game_id)) === competitorIdFn(gcs))
           return {
             value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
           }
