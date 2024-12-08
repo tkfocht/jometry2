@@ -1,12 +1,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { movingAverageOfLast, dateFormat, transformValues, urlDateParse, roundAbbreviation } from '@/util'
+import { movingAverageOfLast, dateFormat, transformValues, urlDateParse, roundAbbreviation, subdomainIdentifier, isPopCulture, isSyndicated } from '@/util'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as configuration from '@/configuration'
 import * as data from '@/data'
 import * as gsAttributes from '@/gameStatAttributes'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
+import * as periodUtil from '@/periodUtil'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import BoxWhiskerChart from './components/util/BoxWhiskerChart.vue'
@@ -21,47 +22,54 @@ import StackValueBarChart from './components/util/StackValueBarChart.vue'
 let urlParams = new URLSearchParams(window.location.search);
 
 data.loadContestantData()
+if (isPopCulture()) {
+  data.loadTeamData()
+}
 data.loadGameData()
 data.loadGameStatData()
 data.loadGameContestantStatData()
 data.loadGameRoundContestantStatData()
 data.loadGameDailyDoubleData()
 
+const searchSeasonIds = isPopCulture() ? configuration.popCultureSeasonIds : configuration.seasonIds
+const searchTocPeriodIds = isPopCulture() ? configuration.popCultureTocPeriodIds : configuration.tocPeriodIds
+const searchPlayClassifications = isPopCulture() ? configuration.popCulturePlayClassifications : configuration.playClassifications
+
 const seasonSearchSelectedIndices = ref(
   urlParams.get('season') ?
   urlParams.get('season').split(',')
-    .map(sid => configuration.seasonIds.indexOf(sid))
+    .map(sid => searchSeasonIds.indexOf(sid))
     .filter(s_idx => s_idx >= 0)
     .sort(d3.ascending) :
   []
 )
 const seasonSearchParameters = data.computedIfRefHasValue(
   seasonSearchSelectedIndices,
-  idxs => idxs.map(idx => configuration.seasonIds[idx])
+  idxs => idxs.map(idx => searchSeasonIds[idx])
 )
 const tocPeriodSelectedIndices = ref(
   urlParams.get('toc_period') ?
   urlParams.get('toc_period').split(',')
-    .map(tid => configuration.tocPeriodIds.indexOf(tid))
+    .map(tid => searchTocPeriodIds.indexOf(tid))
     .filter(t_idx => t_idx >= 0)
     .sort(d3.ascending) :
   []
 )
 const tocPeriodSearchParameters = data.computedIfRefHasValue(
   tocPeriodSelectedIndices,
-  idxs => idxs.map(idx => configuration.tocPeriodIds[idx])
+  idxs => idxs.map(idx => searchTocPeriodIds[idx])
 )
 const playClassificationSelectedIndices = ref(
   urlParams.get('play_classification') ?
   urlParams.get('play_classification').split(',')
-    .map(tid => configuration.playClassifications.indexOf(tid))
+    .map(tid => searchPlayClassifications.indexOf(tid))
     .filter(t_idx => t_idx >= 0)
     .sort(d3.ascending) :
   []
 )
 const playClassificationSearchParameters = data.computedIfRefHasValue(
   playClassificationSelectedIndices,
-  idxs => idxs.map(idx => configuration.playClassifications[idx])
+  idxs => idxs.map(idx => searchPlayClassifications[idx])
 )
 
 const winThresholdString = ref(urlParams.get('win_threshold'))
@@ -140,6 +148,7 @@ const displayRounds = data.computedIfRefHasValue(gameData,
 const gameDataById = data.computedIfRefHasValue(gameData, gData => d3.index(gData, g => g.game_id))
 const gameIds = data.computedIfRefHasValue(gameData, gData => gData.map(g => g.game_id))
 const contestantDataById = data.contestantDataById
+const teamDataById = data.teamDataById
 const contestantIds = data.computedIfRefHasValue(gameData, gData => [...new Set(gData.flatMap(g => [g.podium_1_contestant_id, g.podium_2_contestant_id, g.podium_3_contestant_id]))])
 const gameStatData = data.computedIfRefHasValues([data.gameStatData, gameIds], (gsData, gIds) => gsData.filter(gs => gIds.includes(gs.game_id)))
 const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.index(gsData, gs => gs.game_id))
@@ -157,50 +166,48 @@ const gameDailyDoubleData = data.computedIfRefHasValues(
     }
 )
 
-const contestantWins = data.computedIfRefHasValue(gameData, gData => d3.rollup(gData, v => v.length, g => g.winning_contestant_id))
-const contestantWinnings = data.computedIfRefHasValues([gameData, gameContestantStatDataByGameIdAndContestantId], (gData, gcsData) => {
-  const aggregateWinnings = function(games) {
-    return games
-      .filter(g => !_.isNil(g.winning_contestant_id))
-      .map(g => gcsData.get(g.game_id).get(g.winning_contestant_id).score)
-      .reduce((a, b) => a + b, 0)
-  }
-  return d3.rollup(gData, aggregateWinnings, g => g.winning_contestant_id)
-})
-const contestantTotalScores = data.computedIfRefHasValue(gameContestantStatData, gcsData => {
-  return d3.rollup(gcsData, v => v.map(gcs => gcs.score).reduce((a, b) => a + b, 0), g => g.contestant_id)
-})
-const contestantSort = data.computedIfRefHasValues(
-  [contestantWins, contestantWinnings, contestantTotalScores],
-  (wins, winnings, totalScores) => (
-    (a, b) =>
-      d3.descending(_.defaultTo(wins.get(a), 0), _.defaultTo(wins.get(b), 0)) ||
-      d3.descending(_.defaultTo(winnings.get(a), 0), _.defaultTo(winnings.get(b), 0)) ||
-      d3.descending(_.defaultTo(totalScores.get(a), 0), _.defaultTo(totalScores.get(b), 0))))
-const displayContestantIds = data.computedIfRefHasValues(
-  [displayContestantIdParameters, contestantIds, contestantSort, contestantWins],
-  (dcIdParameters, cids, cSort, wins) => {
-    if (dcIdParameters.length > 0) {
-      return dcIdParameters.map(v => +v)
-    }
-    cids.sort(cSort)
-    if (cids.length <= 10) {
-      return cids
-    }
-    var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min((wins.get(cids[9]) ? wins.get(cids[9]) : 0), 4), cids.length > 21 ? 1 + (wins.get(cids[20]) ? wins.get(cids[20]) : 0) : 0)
-    //Okay fine, if anyone ever wins 10001 games this will be a bug,
-    //but truthy values are weird when winLimit=0 is a primary case
-    var winLimit = winLimitString.value ? +winLimitString.value : 10000
-    return cids.filter(i => {
-      var cwin = wins.get(i)
-      if (cwin === undefined) cwin = 0
-      return cwin >= winThreshold && cwin <= winLimit
-    })
-  })
-const displayContestantGameContestantStatData = data.computedIfRefHasValues(
-  [displayContestantIds, gameContestantStatData],
-  (dCids, gcsData) => gcsData.filter(gcs => dCids.includes(gcs.contestant_id))
-)
+const teamIds = data.computedIfRefHasValue(gameData, gData => [...new Set(gData.flatMap(g => [g.podium_1_team_id, g.podium_2_team_id, g.podium_3_team_id]))])
+const gameTeamStatData = data.computedIfRefHasValues([data.gameTeamStatData, gameIds], (gcsData, gIds) => gcsData.filter(gs => gIds.includes(gs.game_id)))
+const gameTeamStatDataByGameIdAndTeamId = data.computedIfRefHasValue(gameTeamStatData, gcsData => d3.group(gcsData, gcs => gcs.team_id))
+
+const summaryDataConstructed = periodUtil.summaryDataConstructor(
+  gameData,
+  g => g.winning_contestant_id,
+  gameContestantStatDataByGameIdAndContestantId,
+  gameContestantStatData,
+  gcs => gcs.contestant_id,
+  displayContestantIdParameters,
+  contestantIds,
+  gameDataById,
+  graphDisplayLimitString
+);
+const teamSummaryDataConstructed = periodUtil.summaryDataConstructor(
+  gameData,
+  g => g.winning_team_id,
+  gameTeamStatDataByGameIdAndTeamId,
+  gameTeamStatData,
+  gcs => gcs.team_id,
+  displayContestantIdParameters,
+  teamIds,
+  gameDataById,
+  graphDisplayLimitString
+);
+console.log(teamSummaryDataConstructed)
+
+const displayContestantGameContestantStatData = summaryDataConstructed.displayCompetitorGameCompetitorStatData
+const displayContestantIds = summaryDataConstructed.displayCompetitorIds
+const contestantSort = summaryDataConstructed.competitorSort
+const contestantWins = summaryDataConstructed.competitorWins
+const winnerContestantGameContestantStatData = summaryDataConstructed.winnerCompetitorGameCompetitorStatData
+
+const displayTeamGameTeamStatData = teamSummaryDataConstructed.displayCompetitorGameCompetitorStatData
+const displayTeamIds = teamSummaryDataConstructed.displayCompetitorIds
+const teamSort = teamSummaryDataConstructed.competitorSort
+const teamWins = teamSummaryDataConstructed.competitorWins
+const winnerTeamGameTeamStatData = teamSummaryDataConstructed.winnerCompetitorGameCompetitorStatData
+
+const graphDisplayLimit = isPopCulture() ? teamSummaryDataConstructed.graphDisplayLimit : summaryDataConstructed.graphDisplayLimit
+
 const anyGameHasAttemptData = data.computedIfRefHasValue(
   displayContestantGameContestantStatData,
   (dcgcsData) => {
@@ -213,11 +220,6 @@ const everyGameHasAttemptData = data.computedIfRefHasValue(
     return dcgcsData.every(gcsData => !_.isNil(gcsData.att))
   }
 )
-const winnerContestantGameContestantStatData = data.computedIfRefHasValues(
-  [gameDataById, gameContestantStatData],
-  (gData, gcsData) => gcsData.filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id)
-)
-const graphDisplayLimit = ref(graphDisplayLimitString.value ? +graphDisplayLimitString.value : undefined)
 
 const colorSet = computed(() => {
   if (!displayContestantIds.value) return undefined
@@ -240,6 +242,14 @@ function contestantLink (contestant_id, contestant_name) {
   return '<span style="color: ' + 
     color.value(contestant_id) + 
     '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
+    contestant_id + 
+    '">' + contestant_name + '</a>'
+}
+
+function teamLink (contestant_id, contestant_name) {
+  return '<span style="color: ' + 
+    color.value(contestant_id) + 
+    '">&#9632;</span>&nbsp;<a href="/team.html?team_id=' + 
     contestant_id + 
     '">' + contestant_name + '</a>'
 }
@@ -269,85 +279,47 @@ const baseScoringTableDisplayFunction = data.computedIfRefHasValue(
     attrSpec => attrSpec.valueDisplayFormat,
     attrSpec => attrSpec.valueDisplayFormat][idx])
 
-const baseScoringTableRows = data.computedIfRefHasValues([displayContestantIds, contestantSort, contestantWins], (cIds, cSort, cWins) => {
-  cIds.sort(cSort)
-  return cIds.map((contestant_id, idx) => {
-    const foundWins = cWins.get(contestant_id)
-    return {
-      'contestant_id': contestant_id,
+const buildBaseScoringTableRow = function(displayCompetitorIds, competitorSort, competitorWins, competitorLabel) {
+  displayCompetitorIds.sort(competitorSort)
+  return displayCompetitorIds.map((competitor_id, idx) => {
+    const foundWins = competitorWins.get(competitor_id)
+    var obj = {
       'wins': _.isNil(foundWins) ? 0 : foundWins,
-      'ranking': cIds.length - idx - 1
+      'ranking': displayCompetitorIds.length - idx - 1
     }
+    obj[competitorLabel] = competitor_id
+    return obj
   })
-})
-
-const constructScoringTableSpecification = function(attrSpecs) {
-  return data.computedIfRefHasValues(
-    [baseScoringTableRows, gameDataById, contestantDataById, baseScoringTableData, baseScoringTableAggregation, baseScoringTableDisplayFunction],
-    (baseRows, gData, cData, gcsData, aggrFn, attrDisplayFn) => {
-      var columns = [
-        {
-          label: 'Contestant (Wins)'
-        }
-      ]
-      columns = columns.concat(attrSpecs.map(attr => ({
-        label: attr.short_label,
-        description: attr.description
-      })))
-
-      var rows = baseRows.map(baseRow => {
-        const cid = baseRow.contestant_id
-        var row = [
-          {
-            value: contestantLink(cid, cData.get(cid).name) + '&nbsp;(' + baseRow.wins + ')',
-            sortValue: baseRow.ranking
-          }
-        ]
-        row = row.concat(attrSpecs.map(attr => ({
-          value: attrDisplayFn(attr)(aggrFn(gcsData.get(cid).map(attr.generatingFunction))),
-          sortValue: aggrFn(gcsData.get(cid).map(attr.generatingFunction))
-        })))
-        return row
-      })
-
-      var footerRows = [
-        [ { value: 'Selected' } ],
-        [ { value: 'All' } ],
-        [ { value: 'Winners' } ]
-      ]
-
-      footerRows[0] = footerRows[0].concat(attrSpecs.map(attr => {
-        const contestantIds = baseRows.map(baseRow => baseRow.contestant_id)
-        const gcses = contestantIds.flatMap(cid => gcsData.get(cid))
-        return {
-          value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
-        }
-      }))
-
-      footerRows[1] = footerRows[1].concat(attrSpecs.map(attr => {
-        const gcses = [...gcsData.values()].flatMap(l => l)
-        return {
-          value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
-        }
-      }))
-
-      footerRows[2] = footerRows[2].concat(attrSpecs.map(attr => {
-        const gcses = [...gcsData.values()].flatMap(l => l).filter(gcs => gData.get(gcs.game_id).winning_contestant_id === gcs.contestant_id)
-        return {
-          value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
-        }
-      }))
-
-      return {
-        columns: columns,
-        rows: rows,
-        footerRows: footerRows,
-        initialSortColumnIndex: 0,
-        initialSortDescending: true
-      }
-    }
-  )
 }
+const standardBaseScoringTableRows = data.computedIfRefHasValues(
+  [displayContestantIds, contestantSort, contestantWins],
+  (cIds, cSort, cWins) => buildBaseScoringTableRow(cIds, cSort, cWins, 'contestant_id'))
+const popCultureBaseScoringTableRows = data.computedIfRefHasValues(
+  [displayTeamIds, teamSort, teamWins],
+  (cIds, cSort, cWins) => buildBaseScoringTableRow(cIds, cSort, cWins, 'team_id'))
+
+const baseScoringTableRows = isPopCulture() ? popCultureBaseScoringTableRows : standardBaseScoringTableRows
+
+const constructSpecificationConstructors = isPopCulture() ?
+  periodUtil.constructSpecificationConstuctors(
+    baseScoringTableRows,
+    gameDataById,
+    teamDataById,
+    baseScoringTableData,
+    baseScoringTableAggregation,
+    baseScoringTableDisplayFunction,
+    teamLink
+  ) : periodUtil.constructSpecificationConstuctors(
+    baseScoringTableRows,
+    gameDataById,
+    contestantDataById,
+    baseScoringTableData,
+    baseScoringTableAggregation,
+    baseScoringTableDisplayFunction,
+    contestantLink
+  )
+const constructScoringTableSpecification = constructSpecificationConstructors.constructScoringTableSpecification
+
 
 const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
   gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
@@ -712,19 +684,19 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
     </h1>
     <div id="search-filters">
       <SearchFilterDropdown
-        :optionLabels="configuration.seasonIds.map(s => configuration.seasonDisplayId(s))"
+        :optionLabels="searchSeasonIds.map(s => configuration.seasonDisplayId(s))"
         :selectedIndices="seasonSearchSelectedIndices"
         :label="'Seasons'"
         @updateSelectionIndices="(idxs) => seasonSearchSelectedIndices = idxs"
       />
       <SearchFilterDropdown
-        :optionLabels="configuration.tocPeriodIds"
+        :optionLabels="searchTocPeriodIds"
         :selectedIndices="tocPeriodSelectedIndices"
         :label="'TOC Periods'"
         @updateSelectionIndices="(idxs) => tocPeriodSelectedIndices = idxs"
       />
       <SearchFilterDropdown
-        :optionLabels="configuration.playClassifications.map(configuration.playClassificationGenericName)"
+        :optionLabels="searchPlayClassifications.map(configuration.playClassificationGenericName)"
         :selectedIndices="playClassificationSelectedIndices"
         :label="'Play Classifications'"
         @updateSelectionIndices="(idxs) => playClassificationSelectedIndices = idxs"
@@ -784,19 +756,19 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
         <SortableTable v-if="slimConversionScoringTableSpec" v-bind="slimConversionScoringTableSpec" />
       </div>
     </div>
-    <div class="section">
+    <div class="section" v-if="isSyndicated()">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
       <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
-    <div class="section">
+    <div class="section" v-if="isSyndicated()">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempt Values</span><span v-else>Buzz Values</span></div>
       <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
-    <div class="section" v-if="anyGameHasAttemptData">
+    <div class="section" v-if="isSyndicated() && anyGameHasAttemptData">
       <div class="section-header">Total Attempts</div>
       <LineChart v-bind="totalAttemptsChartSpecification" />
     </div>
-    <div class="section" v-if="rollingAverageGraphAttribute">
+    <div class="section" v-if="isSyndicated() && rollingAverageGraphAttribute">
       <div class="section-header">Rolling Averages</div>
       <div class="option-groups">
         <OptionDropdown :optionLabels="rollingAverageRollCountLabels" :selectionIndex="rollingAverageRollCountIdx"
@@ -809,13 +781,13 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
       </div>
       <LineChart v-bind="rollingChartSpecification" />
     </div>
-    <div class="section">
+    <div class="section" v-if="isSyndicated()">
       <div class="section-header">Daily Double Heatmaps</div>
       <div v-for="(dailyDoubleAbsoluteLocationHeatmapChartSpec, index) in dailyDoubleAbsoluteLocationHeatmapChartSpecs">
         <ReactiveChart :chart="dailyDoubleAbsoluteLocationHeatmapChartSpec"/>
       </div>
     </div>
-    <div class="section" v-if="boxWhiskerGraphSpecification">
+    <div class="section" v-if="isSyndicated() && boxWhiskerGraphSpecification">
       <div class="section-header">Selectable Box and Whisker Plots</div>
       <div class="option-groups">
         <OptionDropdown
@@ -826,7 +798,7 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
       </div>
       <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
     </div>
-    <div class="section" v-if="scatterGraphSpecification && averageScatterGraphSpecification">
+    <div class="section" v-if="isSyndicated() && scatterGraphSpecification && averageScatterGraphSpecification">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <OptionDropdown
