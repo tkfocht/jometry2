@@ -109,9 +109,22 @@ const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasVa
     [data.gameRoundContestantStatData],
     (gcsData) => d3.index(gcsData.filter(gr => gameId === gr.game_id), r => r.round_of_game, r => r.contestant_id))
 
-  const gameRoundTeamStatDataByRoundIdTeamId = data.computedIfRefHasValues(
+
+const gameRoundTeamStatDataByRoundIdTeamId = data.computedIfRefHasValues(
     [data.gameRoundTeamStatData],
     (gcsData) => d3.index(gcsData.filter(gr => gameId === gr.game_id), r => r.round_of_game, r => r.team_id))
+const jschemaAllGameRoundTeamStatDataFlat = data.computedIfRefHasValues(
+  [data.gameRoundTeamStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
+  (grcsData, playClass, tocPeriod, gData) => grcsData.filter(grcs => gData.get(grcs.game_id).play_classification === playClass && gData.get(grcs.game_id).toc_period === tocPeriod))
+const jschemaAllGameRoundTeamStatData = computed(() => {
+  if (jschemaAllGameRoundTeamStatDataFlat.value) return d3.index(jschemaAllGameRoundTeamStatDataFlat.value, r => r.game_id, r => r.round_of_game, r => r.team_id)
+  else return null
+})
+const jschemaGameRoundTeamStatData = computed(() => {
+  if (jschemaAllGameRoundTeamStatData.value) return jschemaAllGameRoundTeamStatData.value.get(gameId)
+  else return null
+})
+
 
 
 const jschemaClueData = data.jschemaClueData
@@ -692,6 +705,39 @@ const histogramSpecification = computed(() => {
         :yLabel="gameHasAttemptData ? 'BuzC -> Buz -> Att' : 'BuzC -> Buz'"
         :title="gameHasAttemptData ? 'Attempts' : 'Buzzes'"/>
     </div>
+    <div class="section" v-if="isPopCulture() && gameTeamIds && jschemaGameRoundTeamStatData && teamDataById">
+      <div class="section-header"><span v-if="gameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
+      <StackValueBarChart 
+        :data="gameTeamIds"
+        :xCoreLabelFunction="cid => teamDataById.get(cid).name"
+        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
+          [
+            cid => jschemaGameRoundTeamStatData.get(rid).get(cid).buzc,
+            cid => jschemaGameRoundTeamStatData.get(rid).get(cid).buz,
+            cid => formatNumber(jschemaGameRoundTeamStatData.get(rid).get(cid).att, 0)
+          ])"
+        :colorFunction="cid => teamColor(cid)"
+        :yLabel="gameHasAttemptData ? 'BuzC -> Buz -> Att' : 'BuzC -> Buz'"
+        :title="gameHasAttemptData ? 'Attempts' : 'Buzzes'"/>
+    </div>
+    <div class="section" v-if="isPopCulture() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
+      <div class="section-header"><span v-if="gameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
+      <StackValueBarChart 
+        :data="gameContestantIds"
+        :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
+        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
+          [
+            cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buzc,
+            cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz,
+            cid => formatNumber(jschemaGameRoundContestantStatData.get(rid).get(cid).att, 0)
+          ])"
+        :colorFunction="cid => teamContestantColor(cid)"
+        :yLabel="gameHasAttemptData ? 'BuzC -> Buz -> Att' : 'BuzC -> Buz'"
+        :title="gameHasAttemptData ? 'Attempts' : 'Buzzes'"/>
+    </div>
+
     <div class="section" v-if="isSyndicated() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
       <div class="section-header"><span v-if="gameHasAttemptData">Attempt Values</span><span v-else>Buzz Values</span></div>
       <StackValueBarChart 
@@ -708,6 +754,40 @@ const histogramSpecification = computed(() => {
         :yLabel="gameHasAttemptData ? 'Buz$ -> BuzValue -> AttValue' : 'Buz$ -> BuzValue'"
         :title="gameHasAttemptData ? 'Attempt Values' : 'Buzz Values'"/>
     </div>
+    <div class="section" v-if="isPopCulture() && gameTeamIds && jschemaGameRoundTeamStatData && teamDataById">
+      <div class="section-header"><span v-if="gameHasAttemptData">Attempt Values</span><span v-else>Buzz Values</span></div>
+      <StackValueBarChart 
+        :data="gameTeamIds"
+        :xCoreLabelFunction="cid => teamDataById.get(cid).name"
+        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
+          [
+            cid => jschemaGameRoundTeamStatData.get(rid).get(cid).buz_score,
+            cid => jschemaGameRoundTeamStatData.get(rid).get(cid).buz_value,
+            cid => formatNumber(jschemaGameRoundTeamStatData.get(rid).get(cid).att_value, 0)
+          ])"
+        :colorFunction="cid => teamColor(cid)"
+        :yLabel="gameHasAttemptData ? 'Buz$ -> BuzValue -> AttValue' : 'Buz$ -> BuzValue'"
+        :title="gameHasAttemptData ? 'Attempt Values' : 'Buzz Values'"/>
+    </div>
+    <div class="section" v-if="isPopCulture() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
+      <div class="section-header"><span v-if="gameHasAttemptData">Attempt Values</span><span v-else>Buzz Values</span></div>
+      <StackValueBarChart 
+        :data="gameContestantIds"
+        :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
+        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
+          [
+            cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz_score,
+            cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz_value,
+            cid => formatNumber(jschemaGameRoundContestantStatData.get(rid).get(cid).att_value, 0)
+          ])"
+        :colorFunction="cid => teamContestantColor(cid)"
+        :yLabel="gameHasAttemptData ? 'Buz$ -> BuzValue -> AttValue' : 'Buz$ -> BuzValue'"
+        :title="gameHasAttemptData ? 'Attempt Values' : 'Buzz Values'"/>
+    </div>
+
+
     <div class="section" v-if="isSyndicated() && histogramSpecification && graphAttributesList">
       <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
@@ -724,6 +804,8 @@ const histogramSpecification = computed(() => {
       </div>
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
+
+    
     <div class="section" v-if="isSyndicated() && scatterSpecification && graphAttributesList">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
