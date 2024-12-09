@@ -693,10 +693,30 @@ const histogramSpecification = computed(() => {
         </table>
       </div>
     </div>
-    <div class="section" v-if="isSyndicated()">
+    <div class="section">
       <div class="section-header">Final Jeopardy! Win Matrix</div>
       <div id="fj-matrix-container">
-        <div class="game-stat-listing">
+        <div class="game-stat-listing" v-if="isPopCulture()">
+          <table>
+            <thead>
+              <tr class="bg-secondary">
+                <th>Team</th>
+                <th>If Incorrect</th>
+                <th>If Correct</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="gcsData in gameTeamStatData">
+                <td>
+                  <span :style="'color: ' + teamColor(gcsData.team_id)">&#9632;</span>&nbsp;{{ teamDataById.get(gcsData.team_id).name }}
+                </td>
+                <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) - Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
+                <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) + Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="game-stat-listing" v-else>
           <table>
             <thead>
               <tr class="bg-secondary">
@@ -707,14 +727,16 @@ const histogramSpecification = computed(() => {
             </thead>
             <tbody>
               <tr v-for="gcsData in gameContestantStatData">
-                <td><span :style="'color: ' + color(gcsData.contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(gcsData.contestant_id).name }}</td>
+                <td>
+                  <span :style="'color: ' + color(gcsData.contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(gcsData.contestant_id).name }}
+                </td>
                 <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) - Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
                 <td>{{ gcsAttributes.fj_start_score.generatingFunction(gcsData) + Math.abs(gcsAttributes.fj_score.generatingFunction(gcsData)) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
-        <table id="fj-matrix">
+        <table id="fj-matrix" v-if="isSyndicated()">
           <tr>
             <td class="empty"></td>
             <th colspan="2" :style="'background-color: ' + threeColorSet[1]">Correct</th>
