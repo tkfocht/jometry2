@@ -134,6 +134,7 @@ const jschemaClueTeamStatData = data.jschemaClueTeamStatData
 const jschemaClueByRoundRowColumn = data.jschemaClueByRoundRowColumn
 const jschemaClueContestantStatDataByRoundClueAndContestantId = data.jschemaClueContestantStatDataByRoundClueAndContestantId
 const jschemaResponseByRoundClue = data.jschemaResponseByRoundClue
+const jschemaTeamResponseByRoundClue = data.jschemaTeamResponseByRoundClue
 
 
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
@@ -150,9 +151,9 @@ const teamColor = computed(() => {
 const teamContestantColor = computed(() => {
   if (gameContestantIds.value) return d3.scaleOrdinal().domain(gameContestantIds.value).range(
     [
-      d3.color(threeColorSet[0]).darker(0.5), threeColorSet[0], d3.color(threeColorSet[0]).brighter(0.5),
-      d3.color(threeColorSet[1]).darker(0.5), threeColorSet[1], d3.color(threeColorSet[1]).brighter(0.5),
-      d3.color(threeColorSet[2]).darker(0.5), threeColorSet[2], d3.color(threeColorSet[2]).brighter(0.5),
+      d3.color(threeColorSet[0]).darker(0.7), d3.color(threeColorSet[0]).brighter(0.5), d3.color(threeColorSet[0]).brighter(1.0),
+      d3.color(threeColorSet[1]).darker(0.7), d3.color(threeColorSet[1]).brighter(0.5), d3.color(threeColorSet[1]).brighter(1.0),
+      d3.color(threeColorSet[2]).darker(0.7), d3.color(threeColorSet[2]).brighter(0.5), d3.color(threeColorSet[2]).brighter(1.0),
     ]
   )
   else return null
@@ -528,7 +529,7 @@ const histogramSpecification = computed(() => {
       <div id="view-boards">
         <div v-for="round in d3.range(1, gameRounds + 1)">
           <div class="subsection-header">{{ roundName(round) }} Round</div>
-          <table class="view-board" v-if="jschemaClueByRoundRowColumn && jschemaClueByRoundRowColumn.get(round) && jschemaResponseByRoundClue && jschemaResponseByRoundClue.get(round)" >
+          <table class="view-board" v-if="jschemaClueByRoundRowColumn && jschemaClueByRoundRowColumn.get(round) && jschemaResponseByRoundClue && jschemaTeamResponseByRoundClue && jschemaResponseByRoundClue.get(round)" >
             <tr v-for="row in d3.range(1,6)">
               <td v-for="column in d3.range(1,7)">
                 <div v-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)"
@@ -538,7 +539,7 @@ const histogramSpecification = computed(() => {
                         jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
                         jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length >= 3">
                     <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
-                      :style="'background-color: ' + teamColor(correctResponseItem.team_id)"
+                      :style="'background-color: ' + teamContestantColor(correctResponseItem.contestant_id)"
                       >
                     </div>                  
                   </template>
@@ -546,7 +547,7 @@ const histogramSpecification = computed(() => {
                         jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
                         jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length < 3">
                     <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
-                      :style="'background-color: ' + teamColor(correctResponseItem.team_id)"
+                      :style="'background-color: ' + teamContestantColor(correctResponseItem.contestant_id)"
                       >
                     </div>                  
                     <div v-for="i in _.range(3 - jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length)"
@@ -554,10 +555,18 @@ const histogramSpecification = computed(() => {
                       >
                     </div>                  
                   </template>
+                  <template v-else-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_daily_double'] === 1 &&
+                        jschemaTeamResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
+                        jschemaTeamResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length > 0">
+                    <div v-for="correctResponseItem in jschemaTeamResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
+                      :style="'background-color: ' + teamColor(correctResponseItem.team_id)"
+                      >
+                    </div>                  
+                  </template>
                   <template v-else-if="jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
                         jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length > 0">
                     <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
-                      :style="'background-color: ' + teamColor(correctResponseItem.team_id)"
+                      :style="'background-color: ' + teamContestantColor(correctResponseItem.contestant_id)"
                       >
                     </div>                  
                   </template>
@@ -575,11 +584,18 @@ const histogramSpecification = computed(() => {
           </table>
         </div>
       </div>
-      <div class="legend" v-if="false && gameContestantIds && contestantDataById">
+      <div class="legend" v-if="gameContestantIds && contestantDataById && gameTeamIds && teamDataById">
+        <div>
+          <span v-for="team_id in gameTeamIds">
+            <span :style="'color: ' + teamColor(team_id)">&#9632;</span>{{ teamDataById.get(team_id).name }}
+          </span>
+        </div>
+        <div>
           <span v-for="contestant_id in gameContestantIds">
             <span :style="'color: ' + teamContestantColor(contestant_id)">&#9632;</span>{{ contestantDataById.get(contestant_id).name }}
           </span>
         </div>
+      </div>
     </div>
     <div class="section" v-if="isSyndicated() && jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
       <div class="section-header">Daily Doubles</div>
@@ -1003,7 +1019,7 @@ div#view-boards > div {
   font-size: 0.8rem;
   margin-top: 0.5em;
 
-  > span {
+  > div > span {
     margin-left: 0.5em;
     margin-right: 0.5em;
   }

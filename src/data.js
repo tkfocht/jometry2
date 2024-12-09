@@ -133,9 +133,11 @@ const jschemaClueByRoundRowColumn = computed(() => {
 })
 
 const jschemaResponseData = ref(null)
+const jschemaTeamResponseData = ref(null)
 function loadJschemaResponseData(gameId) {
     if (dataPrefix() === 'popculture/') {
-        loadDataReference(jschemaResponseData, `/csvs/${ dataPrefix() }jschema_team_response/` + gameId + '.csv')
+        loadDataReference(jschemaResponseData, `/csvs/${ dataPrefix() }jschema_contestant_response/` + gameId + '.csv')
+        loadDataReference(jschemaTeamResponseData, `/csvs/${ dataPrefix() }jschema_team_response/` + gameId + '.csv')
     } else {
         loadDataReference(jschemaResponseData, `/csvs/${ dataPrefix() }jschema_response/` + gameId + '.csv')
     }
@@ -144,7 +146,11 @@ const jschemaResponseByRoundClue = computed(() => {
   if (!jschemaResponseData.value) return null
   return d3.group(jschemaResponseData.value, c => c.round_of_game, c => c.clue_of_round)
 })
-
+const jschemaTeamResponseByRoundClue = computed(() => {
+    if (!jschemaTeamResponseData.value) return null
+    return d3.group(jschemaTeamResponseData.value, c => c.round_of_game, c => c.clue_of_round)
+  })
+  
 export { computedIfRefHasValue, computedIfRefHasValues,
     loadContestantData, contestantData, contestantDataById,
     loadTeamData, teamData, teamDataById,
@@ -158,5 +164,5 @@ export { computedIfRefHasValue, computedIfRefHasValues,
     loadJschemaClueContestantStatData, jschemaClueContestantStatData, jschemaClueContestantStatDataByRoundClueAndContestantId,
     loadJschemaClueTeamStatData, jschemaClueTeamStatData, jschemaClueTeamStatDataByRoundClueAndTeamId,
     loadJschemaClueData, jschemaClueData, jschemaClueByRoundRowColumn,
-    loadJschemaResponseData, jschemaResponseData, jschemaResponseByRoundClue,
+    loadJschemaResponseData, jschemaResponseData, jschemaTeamResponseData, jschemaResponseByRoundClue, jschemaTeamResponseByRoundClue,
 };
