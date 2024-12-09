@@ -4,7 +4,7 @@ import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as data from '@/data'
 import { playClassificationNameByTocPeriod, seasonDisplayId } from '@/configuration'
-import { threeColorSet, roundAbbreviation } from '@/util'
+import { threeColorSet, roundAbbreviation, subdomainIdentifier, isPopCulture, isSyndicated } from '@/util'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
@@ -19,7 +19,16 @@ import { dateFormat } from './util'
 let urlParams = new URLSearchParams(window.location.search);
 const contestantId = +urlParams.get('contestant_id')
 
+const displayAsTeamListing = window.location.pathname === '/team.html'
+const teamId = +urlParams.get('team_id')
+
 data.loadContestantData()
+const isPopCultureTeam = isPopCulture() && displayAsTeamListing
+if (isPopCultureTeam) {
+  data.loadTeamData()
+  data.loadGameTeamStatData()
+  data.loadGameRoundTeamStatData()
+}
 data.loadGameData()
 data.loadGameContestantStatData()
 data.loadGameRoundContestantStatData()
@@ -27,12 +36,22 @@ data.loadGameRoundContestantStatData()
 const allGameData = data.gameData
 const contestantGames = data.computedIfRefHasValue(
   allGameData,
-  gData => gData.filter(g => [g.podium_1_contestant_id, g.podium_2_contestant_id, g.podium_3_contestant_id].includes(contestantId)))
+  gData => gData.filter(g => [g.podium_1_contestant_id, g.podium_2_contestant_id, g.podium_3_contestant_id,
+    g.podium_1_1_contestant_id, g.podium_1_2_contestant_id, g.podium_1_3_contestant_id,
+    g.podium_2_1_contestant_id, g.podium_2_2_contestant_id, g.podium_2_3_contestant_id,
+    g.podium_3_1_contestant_id, g.podium_3_2_contestant_id, g.podium_3_3_contestant_id,
+  ].includes(contestantId)))
+const teamGames = data.computedIfRefHasValue(
+  allGameData,
+  gData => gData.filter(g => [g.podium_1_team_id, g.podium_2_team_id, g.podium_3_team_id].includes(teamId)))
 const contestantGamesByStatisticalDatasetKeys = data.computedIfRefHasValue(
   contestantGames,
   cgData => d3.group(cgData, cg => cg.toc_period, cg => cg.play_classification))
+const teamGamesByStatisticalDatasetKeys = data.computedIfRefHasValue(
+  teamGames,
+  cgData => d3.group(cgData, cg => cg.toc_period, cg => cg.play_classification))
 const playClassificationPeriods = data.computedIfRefHasValue(
-  contestantGamesByStatisticalDatasetKeys,
+  isPopCultureTeam ? teamGamesByStatisticalDatasetKeys : contestantGamesByStatisticalDatasetKeys,
   cgs => {
     const periodIds = Array.from(cgs.keys())
     return periodIds.flatMap(pid => Array.from(cgs.get(pid).keys()).map(pctype => [pid, pctype]))
@@ -42,6 +61,9 @@ const playClassificationPeriod = data.computedIfRefHasValue(playClassificationPe
 const displayRounds = data.computedIfRefHasValue(playClassificationPeriod, pcp => pcp[1] === 'celebrity' ? 3 : 2)
 
 const singleContestantData = data.computedIfRefHasValue(data.contestantDataById, cData => cData.get(contestantId))
+const singleTeamData = data.computedIfRefHasValue(data.teamDataById, cData => cData.get(teamId))
+
+const singleCompetitorData = isPopCultureTeam ? singleTeamData : singleContestantData
 
 const gameIds = data.computedIfRefHasValues([allGameData, playClassificationPeriod],
   (gData, pcp) => gData.filter(g => g.toc_period === pcp[0] && g.play_classification === pcp[1]).map(g => g.game_id))
@@ -55,6 +77,18 @@ const winnerGameContestantStatData = data.computedIfRefHasValues(
 const gameContestantStatDataByContestantId = data.computedIfRefHasValue(gameContestantStatData, gcsData => d3.group(gcsData, gcs => gcs.contestant_id))
 const singleContestantGameContestantStatData = data.computedIfRefHasValue(gameContestantStatDataByContestantId, gcsData => gcsData.get(contestantId))
 const singleContestantGameContestantStatDataByGameId = data.computedIfRefHasValue(singleContestantGameContestantStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id))
+
+const gameTeamStatData = data.computedIfRefHasValues(
+  [gameIds, data.gameTeamStatData],
+  (gids, gcsData) => gcsData.filter(gcs => gids.includes(gcs.game_id)))
+const winnerGameTeamStatData = data.computedIfRefHasValues(
+  [data.gameDataById, gameTeamStatData],
+  (gData, gcsData) => gcsData.filter(gcs => gData.get(gcs.game_id).winning_team_id === gcs.team_id))
+const gameTeamStatDataByTeamId = data.computedIfRefHasValue(gameTeamStatData, gcsData => d3.group(gcsData, gcs => gcs.team_id))
+const singleTeamGameTeamStatData = data.computedIfRefHasValue(gameTeamStatDataByTeamId, gcsData => gcsData.get(teamId))
+const singleTeamGameTeamStatDataByGameId = data.computedIfRefHasValue(singleTeamGameTeamStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id))
+
+const singleCompetitorGameCompetitorStatData = isPopCultureTeam ? singleTeamGameTeamStatData : singleContestantGameContestantStatData
 
 const anyGameHasAttemptData = data.computedIfRefHasValue(singleContestantGameContestantStatData, gcsData => gcsData.some(gData => !_.isNil(gData.att)))
 
@@ -75,6 +109,24 @@ const singleContestantRoundContestantStatDataByRoundAndGameId = data.computedIfR
   [roundContestantStatData],
   (rcsData) => d3.index(rcsData, rcs => rcs.contestant_id, rcs => rcs.round_of_game, rcs => rcs.game_id).get(contestantId))
 
+const roundTeamStatData = data.computedIfRefHasValues(
+  [gameIds, data.gameRoundTeamStatData],
+  (gids, rcsData) => rcsData.filter(rcs => gids.includes(rcs.game_id)))
+const winnerRoundTeamStatDataByRound = data.computedIfRefHasValues(
+  [data.gameDataById, roundTeamStatData],
+  (gData, rcsData) => d3.group(rcsData.filter(rcs => gData.get(rcs.game_id).winning_team_id === rcs.team_id), rcs => rcs.round_of_game))
+const roundTeamStatDataByRound = data.computedIfRefHasValues(
+  [roundTeamStatData],
+  (rcsData) => d3.group(rcsData, rcs => rcs.round_of_game))
+const roundTeamStatDataByTeamIdAndRound = data.computedIfRefHasValues(
+  [roundTeamStatData],
+  (rcsData) => d3.group(rcsData, rcs => rcs.team_id, rcs => rcs.round_of_game))
+const singleTeamRoundTeamStatData = data.computedIfRefHasValue(roundTeamStatDataByTeamIdAndRound, rcs => rcs.get(teamId))
+const singleTeamRoundTeamStatDataByRoundAndGameId = data.computedIfRefHasValues(
+  [roundTeamStatData],
+  (rcsData) => d3.index(rcsData, rcs => rcs.team_id, rcs => rcs.round_of_game, rcs => rcs.game_id).get(teamId))
+
+  
 function gameLink(game_id, season_id, game_of_season) {
   return '<a href="/game.html?game_id=' + 
     game_id + 
@@ -85,7 +137,7 @@ const roundOptionLabels = ref(['Full Game', 'J Round', 'DJ Round'])
 const selectedRoundIndex = ref(0)
 
 const baseScoringTableRows = data.computedIfRefHasValues(
-  [data.gameDataById, singleContestantGameContestantStatData],
+  [data.gameDataById, isPopCultureTeam ? singleTeamGameTeamStatData : singleContestantGameContestantStatData],
   (gData, gcsData) => {
     const gIds = gcsData.map(gcs => gcs.game_id)
     return gIds.map((game_id, idx) => {
@@ -99,7 +151,10 @@ const baseScoringTableRows = data.computedIfRefHasValues(
   })
 
 const baseScoringTableData = data.computedIfRefHasValues(
-  [singleContestantGameContestantStatData, singleContestantRoundContestantStatData],
+  [
+    isPopCultureTeam ? singleTeamGameTeamStatData : singleContestantGameContestantStatData,
+    isPopCultureTeam ? singleTeamRoundTeamStatData : singleContestantRoundContestantStatData
+  ],
   (gcsData, gcrsData) => {
     if (selectedRoundIndex.value === 0) {
       return d3.index(gcsData, gcs => gcs.game_id)
@@ -323,7 +378,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
 
 <template>
   <Header />
-  <div class="component-body">
+  <div class="component-body" :data-bs-theme="subdomainIdentifier()">
     <div id="contestant-overview" class="section">
       <div class="subsection" v-if="playClassificationPeriods">
         <div class="option-groups">
@@ -338,19 +393,19 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
             }" />
         </div>  
       </div>
-      <div v-if="singleContestantData && singleContestantGameContestantStatData" class="subsection">
+      <div v-if="singleCompetitorData && singleCompetitorGameCompetitorStatData" class="subsection">
         <div class="overview">
           <div class="overview-row">
-            <div id="overview-name" class="value">{{ singleContestantData.name }}</div>
+            <div id="overview-name" class="value">{{ singleCompetitorData.name }}</div>
             <div class="overview-window">
               <div class="overview-row">
                 <div class="caption-stack">
                   <div class="caption">Games</div>
-                  <div class="value">{{ singleContestantGameContestantStatData.length }}</div>
+                  <div class="value">{{ singleCompetitorGameCompetitorStatData.length }}</div>
                 </div>
                 <div class="caption-stack">
                   <div class="caption">Total Final$</div>
-                  <div class="value">${{ d3.sum(singleContestantGameContestantStatData.map(gcsAttributes.fj_final_score.generatingFunction)) }}</div>
+                  <div class="value">${{ d3.sum(singleCompetitorGameCompetitorStatData.map(gcsAttributes.fj_final_score.generatingFunction)) }}</div>
                 </div>
               </div>
             </div>
@@ -358,15 +413,15 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
               <div class="overview-row">
                 <div class="caption-stack" v-if="anyGameHasAttemptData">
                   <div class="caption">Avg Attempt Value</div>
-                  <div class="value">${{ gcsAttributes.att_value.averageDisplayFormat(d3.mean(singleContestantGameContestantStatData.map(gcsAttributes.att_value.generatingFunction))) }}</div>
+                  <div class="value">${{ gcsAttributes.att_value.averageDisplayFormat(d3.mean(singleCompetitorGameCompetitorStatData.map(gcsAttributes.att_value.generatingFunction))) }}</div>
                 </div>
                 <div class="caption-stack">
                   <div class="caption">Avg Buzz Value</div>
-                  <div class="value">${{ gcsAttributes.buz_value.averageDisplayFormat(d3.mean(singleContestantGameContestantStatData.map(gcsAttributes.buz_value.generatingFunction))) }}</div>
+                  <div class="value">${{ gcsAttributes.buz_value.averageDisplayFormat(d3.mean(singleCompetitorGameCompetitorStatData.map(gcsAttributes.buz_value.generatingFunction))) }}</div>
                 </div>
                 <div class="caption-stack">
                   <div class="caption">Avg Buzz Score</div>
-                  <div class="value">${{ gcsAttributes.buz_score.averageDisplayFormat(d3.mean(singleContestantGameContestantStatData.map(gcsAttributes.buz_score.generatingFunction))) }}</div>
+                  <div class="value">${{ gcsAttributes.buz_score.averageDisplayFormat(d3.mean(singleCompetitorGameCompetitorStatData.map(gcsAttributes.buz_score.generatingFunction))) }}</div>
                 </div>
               </div>
             </div>
@@ -397,7 +452,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
         <SortableTable v-if="slimConversionScoringTableSpec" v-bind="slimConversionScoringTableSpec" />
       </div>
     </div>
-    <div v-if="singleContestantGameContestantStatData" class="section">
+    <div v-if="isSyndicated() && singleContestantGameContestantStatData" class="section">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
       <div class="option-groups">
         <OptionDropdown
@@ -407,7 +462,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
       <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
-    <div v-if="singleContestantGameContestantStatData" class="section">
+    <div v-if="isSyndicated() && singleContestantGameContestantStatData" class="section">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempt Value</span><span v-else>Buzz Value</span></div>
       <div class="option-groups">
         <OptionDropdown
@@ -417,7 +472,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
       <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
-    <div class="section" v-if="histogramGraphAttributes">
+    <div class="section" v-if="isSyndicated() && histogramGraphAttributes">
       <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
         <OptionDropdown
@@ -432,7 +487,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
       <HighlightHistogramHorizontal v-bind="histogramSpecification" />
     </div>
-    <div class="section" v-if="scatterGraphAttributes">
+    <div class="section" v-if="isSyndicated() && scatterGraphAttributes">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <OptionDropdown
