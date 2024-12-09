@@ -715,7 +715,7 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
 
 <template>
   <Header />
-  <div class="component-body">
+  <div class="component-body" :data-bs-theme="subdomainIdentifier()">
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.map(s => configuration.seasonDisplayId(s)).join(', ') }}&nbsp;</span>

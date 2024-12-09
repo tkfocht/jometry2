@@ -60,7 +60,7 @@ a:link, a:visited, a:hover {
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
-  background-color: #{$colorJometrySecondary};
+  background-color: var(--bs-secondary);
   max-width: 75%;
   margin: 0 auto;
   border-radius: 15px;
