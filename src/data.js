@@ -105,14 +105,21 @@ const gameDailyDoubleDataByGameIdRound = computedIfRefHasValue(gameDailyDoubleDa
 
 
 const jschemaClueContestantStatData = ref(null)
-async function loadJschemaClueContestantStatData(gameId) {
+function loadJschemaClueContestantStatData(gameId) {
     loadDataReference(jschemaClueContestantStatData, `/csvs/${ dataPrefix() }jschema_stat_clue_contestant/` + gameId + '.csv')
 }
 const jschemaClueContestantStatDataByRoundClueAndContestantId = computedIfRefHasValue(jschemaClueContestantStatData,
   ccsData => d3.index(ccsData, ccs => ccs.round_of_game, ccs => ccs.clue_of_round, ccs => ccs.contestant_id))
 
+const jschemaClueTeamStatData = ref(null)
+function loadJschemaClueTeamStatData(gameId) {
+    loadDataReference(jschemaClueTeamStatData, `/csvs/${ dataPrefix() }jschema_stat_clue_team/` + gameId + '.csv')
+}
+const jschemaClueTeamStatDataByRoundClueAndTeamId = computedIfRefHasValue(jschemaClueTeamStatData,
+    ccsData => d3.index(ccsData, ccs => ccs.round_of_game, ccs => ccs.clue_of_round, ccs => ccs.team_id))
+   
 const jschemaClueData = ref(null)
-async function loadJschemaClueData(gameId) {
+function loadJschemaClueData(gameId) {
     loadDataReference(jschemaClueData, `/csvs/${ dataPrefix() }jschema_clue/` + gameId + '.csv')
 }
 const jschemaClueByRoundRowColumn = computed(() => {
@@ -126,7 +133,7 @@ const jschemaClueByRoundRowColumn = computed(() => {
 })
 
 const jschemaResponseData = ref(null)
-async function loadJschemaResponseData(gameId) {
+function loadJschemaResponseData(gameId) {
     if (dataPrefix() === 'popculture/') {
         loadDataReference(jschemaResponseData, `/csvs/${ dataPrefix() }jschema_team_response/` + gameId + '.csv')
     } else {
@@ -149,6 +156,7 @@ export { computedIfRefHasValue, computedIfRefHasValues,
     loadGameRoundTeamStatData, gameRoundTeamStatData, gameRoundTeamStatDataByGameIdRoundIdTeamId,
     loadGameDailyDoubleData, gameDailyDoubleData, gameDailyDoubleDataByGameId, gameDailyDoubleDataByGameIdRound,
     loadJschemaClueContestantStatData, jschemaClueContestantStatData, jschemaClueContestantStatDataByRoundClueAndContestantId,
+    loadJschemaClueTeamStatData, jschemaClueTeamStatData, jschemaClueTeamStatDataByRoundClueAndTeamId,
     loadJschemaClueData, jschemaClueData, jschemaClueByRoundRowColumn,
     loadJschemaResponseData, jschemaResponseData, jschemaResponseByRoundClue,
 };

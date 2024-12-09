@@ -32,6 +32,7 @@ if (isPopCulture()) {
   data.loadGameRoundTeamStatData()
 }
 data.loadJschemaClueContestantStatData(gameId)
+data.loadJschemaClueTeamStatData(gameId)
 data.loadJschemaClueData(gameId)
 data.loadJschemaResponseData(gameId)
 
@@ -108,6 +109,7 @@ const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasVa
 
 const jschemaClueData = data.jschemaClueData
 const jschemaClueContestantStatData = data.jschemaClueContestantStatData
+const jschemaClueTeamStatData = data.jschemaClueTeamStatData
 const jschemaClueByRoundRowColumn = data.jschemaClueByRoundRowColumn
 const jschemaClueContestantStatDataByRoundClueAndContestantId = data.jschemaClueContestantStatDataByRoundClueAndContestantId
 const jschemaResponseByRoundClue = data.jschemaResponseByRoundClue
@@ -393,7 +395,7 @@ const byClueLineChartData = data.computedIfRefHasValues(
 )
 
 
-const finalJeopardyMatrixCells = computed(() => {
+const standardFinalJeopardyMatrixCells = computed(() => {
   if (!jschemaClueContestantStatData.value || !gameRounds.value || !gameContestantIds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
   const fjRecords = jschemaClueContestantStatData.value.filter(r => r.round_of_game == gameRounds.value + 1 && r.clue_of_round == 1)
   const fjRecordsByContestant = d3.index(fjRecords, r => r.contestant_id)
@@ -421,6 +423,35 @@ const finalJeopardyMatrixCells = computed(() => {
   return mapped
 })
 
+const popCultureFinalJeopardyMatrixCells = computed(() => {
+  if (!jschemaClueTeamStatData.value || !gameRounds.value || !gameTeamIds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
+  const fjRecords = jschemaClueTeamStatData.value.filter(r => r.round_of_game == gameRounds.value + 1 && r.clue_of_round == 1)
+  const fjRecordsByTeam = d3.index(fjRecords, r => r.team_id)
+  var combinations = [[true, true, true],
+                        [true, true, false],
+                        [true, false, true],
+                        [true, false, false],
+                        [false, true, true],
+                        [false, true, false],
+                        [false, false, true],
+                        [false, false, false]]
+  const fjInitialScores = d3.map(gameTeamIds.value, cid => fjRecordsByTeam.get(cid).prescore);
+  const fjWagers = d3.map(gameTeamIds.value, cid => Math.abs(fjRecordsByTeam.get(cid).postscore - fjRecordsByTeam.get(cid).prescore));
+  const mapped = d3.map(combinations, combo => {
+    var fjFinalScores = d3.map([0,1,2], p => fjInitialScores[p] + (fjWagers[p] * (combo[p] ? 1 : -1)));
+    var winningScore = d3.max(fjFinalScores);
+    var winners = d3.filter([0,1,2], idx => fjFinalScores[idx] === winningScore);
+    winners = d3.map(winners, w => w+1);
+    if (winningScore <= 0) {
+      return [-1]
+    } else {
+      return winners
+    }
+  })
+  return mapped
+})
+
+const finalJeopardyMatrixCells = isPopCulture() ? popCultureFinalJeopardyMatrixCells : standardFinalJeopardyMatrixCells
 
 
 //Charts
@@ -736,7 +767,7 @@ const histogramSpecification = computed(() => {
             </tbody>
           </table>
         </div>
-        <table id="fj-matrix" v-if="isSyndicated()">
+        <table id="fj-matrix">
           <tr>
             <td class="empty"></td>
             <th colspan="2" :style="'background-color: ' + threeColorSet[1]">Correct</th>
