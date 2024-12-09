@@ -1,5 +1,6 @@
 <script setup>
 import * as d3 from 'd3'
+import * as _ from 'lodash'
 import { ref, computed } from 'vue'
 import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor, roundAbbreviation, subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
 import { playClassificationName, seasonDisplayId } from '@/configuration'
@@ -489,7 +490,7 @@ const histogramSpecification = computed(() => {
         <SortableTable v-if="slimConversionValueScoringTableSpec" v-bind="slimConversionValueScoringTableSpec" />
       </div>
     </div>
-    <div class="section" v-if="isSyndicated()">
+    <div class="section response-boards-section" v-if="isSyndicated()">
       <div class="section-header">Correct Responses</div>
       <div id="view-boards">
         <div v-for="round in d3.range(1, gameRounds + 1)">
@@ -522,7 +523,7 @@ const histogramSpecification = computed(() => {
         </div>
       </div>
     </div>
-    <div class="section" v-if="isPopCulture()">
+    <div class="section response-boards-section" v-if="isPopCulture()">
       <div class="section-header">Correct Responses</div>
       <div id="view-boards">
         <div v-for="round in d3.range(1, gameRounds + 1)">
@@ -533,7 +534,27 @@ const histogramSpecification = computed(() => {
                 <div v-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)"
                     :class="(jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_daily_double'] === 1 ? 'daily-double' : '') +
                             (jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_triple_play'] === 1 ? 'triple-play' : '')">
-                  <template v-if="jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
+                  <template v-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_triple_play'] === 1 &&
+                        jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
+                        jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length >= 3">
+                    <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
+                      :style="'background-color: ' + teamColor(correctResponseItem.team_id)"
+                      >
+                    </div>                  
+                  </template>
+                  <template v-else-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_triple_play'] === 1 &&
+                        jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
+                        jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length < 3">
+                    <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
+                      :style="'background-color: ' + teamColor(correctResponseItem.team_id)"
+                      >
+                    </div>                  
+                    <div v-for="i in _.range(3 - jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length)"
+                      style="background-color: gray"
+                      >
+                    </div>                  
+                  </template>
+                  <template v-else-if="jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
                         jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length > 0">
                     <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
                       :style="'background-color: ' + teamColor(correctResponseItem.team_id)"
@@ -554,6 +575,11 @@ const histogramSpecification = computed(() => {
           </table>
         </div>
       </div>
+      <div class="legend" v-if="false && gameContestantIds && contestantDataById">
+          <span v-for="contestant_id in gameContestantIds">
+            <span :style="'color: ' + teamContestantColor(contestant_id)">&#9632;</span>{{ contestantDataById.get(contestant_id).name }}
+          </span>
+        </div>
     </div>
     <div class="section" v-if="isSyndicated() && jschemaClueData && contestantDataById && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
       <div class="section-header">Daily Doubles</div>
@@ -805,7 +831,7 @@ const histogramSpecification = computed(() => {
       <HighlightHistogram v-bind="histogramSpecification" />
     </div>
 
-    
+
     <div class="section" v-if="isSyndicated() && scatterSpecification && graphAttributesList">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
@@ -971,6 +997,16 @@ div#view-boards > div {
 
 .overview table td:first-child {
   text-align: left;
+}
+
+.response-boards-section .legend {
+  font-size: 0.8rem;
+  margin-top: 0.5em;
+
+  > span {
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+  }
 }
 
 </style>
