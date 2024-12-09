@@ -30,9 +30,9 @@ if (isPopCulture()) {
   data.loadTeamData()
   data.loadGameTeamStatData()
   data.loadGameRoundTeamStatData()
+  data.loadJschemaClueTeamStatData(gameId)
 }
 data.loadJschemaClueContestantStatData(gameId)
-data.loadJschemaClueTeamStatData(gameId)
 data.loadJschemaClueData(gameId)
 data.loadJschemaResponseData(gameId)
 
@@ -46,7 +46,7 @@ const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_clas
 const gameContestantIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 const gameTeamIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_team_id, gData.podium_2_team_id, gData.podium_3_team_id])
 
-const gameHasAttemptData = isSyndicated() && data.computedIfRefHasValue(gameStatData, gsData => gsData.att_total > 0)
+const gameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => isSyndicated() && gsData.att_total > 0)
 
 const allGameStatData = data.computedIfRefHasValues(
   [data.gameStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
@@ -373,7 +373,7 @@ const cumulativeDataAttributesList = data.computedIfRefHasValue(gameHasAttemptDa
 const byClueLineChartAttributeIdx = ref(0)
 const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList.value[byClueLineChartAttributeIdx.value])
 
-const byClueLineChartData = data.computedIfRefHasValues(
+const standardByClueLineChartData = data.computedIfRefHasValues(
   [jschemaClueContestantStatData, jschemaClueData, gameContestantIds],
   (clueCSData, clueData, cids) => {
     var groupedCSData = d3.group(clueCSData, c => c.round_of_game, c => c.clue_of_round, c => c.contestant_id)
@@ -394,6 +394,28 @@ const byClueLineChartData = data.computedIfRefHasValues(
   }
 )
 
+const popCultureByClueLineChartData = data.computedIfRefHasValues(
+  [jschemaClueTeamStatData, jschemaClueData, gameTeamIds],
+  (clueCSData, clueData, cids) => {
+    var groupedCSData = d3.group(clueCSData, c => c.round_of_game, c => c.clue_of_round, c => c.team_id)
+    var indexedClueData = d3.index(clueData, c => c.round_of_game, c => c.clue_of_round)
+    var traceData = []
+    var rounds = [...groupedCSData.keys()].sort((a,b) => d3.ascending(a, b))
+    for (var r of rounds) {
+      var clue_numbers = [...groupedCSData.get(r).keys()].sort((a,b) => d3.ascending(a, b))
+      for (var c of clue_numbers) {
+        traceData.push({
+          'clue_identifier': r + '-' + c,
+          'contestant_data': cids.map(cid => groupedCSData.get(r).get(c).get(cid)[0]),
+          'clue_data': indexedClueData.get(r).get(c)
+        })
+      }
+    }
+    return traceData
+  }
+)
+
+const byClueLineChartData = isPopCulture() ? popCultureByClueLineChartData : standardByClueLineChartData
 
 const standardFinalJeopardyMatrixCells = computed(() => {
   if (!jschemaClueContestantStatData.value || !gameRounds.value || !gameContestantIds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
@@ -844,6 +866,45 @@ const histogramSpecification = computed(() => {
         :blur="2"
       />
     </div>
+    <div class="section" v-if="isPopCulture() && cumulativeDataAttributesList">
+      <div class="section-header">Game Progress</div>
+      <div class="option-groups">
+        <OptionDropdown
+          :optionLabels="cumulativeDataAttributesList.map(attr => attr.label)"
+          :selectionIndex="byClueLineChartAttributeIdx"
+          @newSelectionIndex="(idx) => byClueLineChartAttributeIdx = idx"
+        />
+        <OptionDropdown
+          :optionLabels="gameProgressGraphTypeList"
+          :selectionIndex="gameProgressGraphTypeIdx"
+          @newSelectionIndex="(idx) => gameProgressGraphTypeIdx = idx"
+        />
+      </div>
+      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
+        :data="byClueLineChartData"
+        :xFunction="d => d['clue_identifier']"
+        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+        :labels="gameTeamIds.map(cid => teamDataById.get(cid).name)"
+        :colors="gameTeamIds.map(cid => teamColor(cid))"
+        :title="'Cumulative ' + byClueLineChartAttribute.label"
+        :xLabel="'Clues'"
+        :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
+      />
+      <TrendLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
+        :data="byClueLineChartData"
+        :xFunction="d => d['clue_identifier']"
+        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+        :labels="gameTeamIds.map(cid => teamDataById.get(cid).name)"
+        :colors="gameTeamIds.map(cid => teamColor(cid))"
+        :title="byClueLineChartAttribute.label + ' Trend'"
+        :xLabel="'Clues'"
+        :yLabel="byClueLineChartAttribute.label"
+        :blur="2"
+      />
+    </div>
+
     <div class="section" v-if="isSyndicated() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
       <div class="section-header"><span v-if="gameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
       <StackValueBarChart 
