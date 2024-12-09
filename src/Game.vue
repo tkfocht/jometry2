@@ -378,14 +378,35 @@ const histogramSpecification = computed(() => {
     histogramData: histogramData,
     lineData: scatterData,
     lineLabelFunction: d => contestantDataById.value.get(d.contestant_id).name,
-    lineColorFunction: d => color.value(d.contestant_id),
+    lineColorFunction: isPopCulture() ? (d => teamContestantColor.value(d.contestant_id)) : (d => color.value(d.contestant_id)),
     title: xAttr['label'],
     xLabel: xAttr['label'],
     xFunction: xAttr.generatingFunction,
     xBins: xAttr['bins']
   }
 })
-
+const teamHistogramSpecification = computed(() => {
+  if (!teamDataById.value || !jschemaAllGameRoundTeamStatDataFlat.value || !allGameTeamStatData.value) return null
+  const xAttr = histogramGraphAttribute.value
+  var histogramData = allGameTeamStatData.value
+  var scatterData = gameTeamStatData.value
+  if (histogramGraphRoundIdx.value > 0) {
+    histogramData = jschemaAllGameRoundTeamStatByRound.value.get(histogramGraphRoundIdx.value)
+    scatterData = jschemaGameRoundTeamStatDataByRound.value[histogramGraphRoundIdx.value]
+  }
+  histogramData = d3.filter(histogramData, r => xAttr.generatingFunction(r) !== undefined)
+  scatterData = d3.filter(scatterData, r => xAttr.generatingFunction(r) !== undefined)
+  return {
+    histogramData: histogramData,
+    lineData: scatterData,
+    lineLabelFunction: d => teamDataById.value.get(d.team_id).name,
+    lineColorFunction: isPopCulture() ? (d => teamColor.value(d.team_id)) : (d => color.value(d.contestant_id)),
+    title: xAttr['label'],
+    xLabel: xAttr['label'],
+    xFunction: xAttr.generatingFunction,
+    xBins: xAttr['bins']
+  }
+})
 </script>
 
 <template>
@@ -829,8 +850,7 @@ const histogramSpecification = computed(() => {
         :title="gameHasAttemptData ? 'Attempt Values' : 'Buzz Values'"/>
     </div>
 
-
-    <div class="section" v-if="isSyndicated() && histogramSpecification && graphAttributesList">
+    <div class="section" v-if="graphAttributesList">
       <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
         <OptionDropdown
@@ -844,7 +864,8 @@ const histogramSpecification = computed(() => {
           @newSelectionIndex="(idx) => histogramGraphRoundIdx = idx"
         />
       </div>
-      <HighlightHistogram v-bind="histogramSpecification" />
+      <HighlightHistogram v-bind="teamHistogramSpecification" v-if="isPopCulture() && teamHistogramSpecification"/>
+      <HighlightHistogram v-bind="histogramSpecification" v-if="histogramSpecification" />
     </div>
 
 
