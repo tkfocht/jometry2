@@ -246,51 +246,6 @@ const slimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.b
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
 const slimConversionValueScoringTableSpec = constructScoringTableSpecification(slimConversionValueScoringAttributes)
 
-
-const standardByClueLineChartData = data.computedIfRefHasValues(
-  [jschemaClueContestantStatData, jschemaClueData, gameContestantIds],
-  (clueCSData, clueData, cids) => {
-    var groupedCSData = d3.group(clueCSData, c => c.round_of_game, c => c.clue_of_round, c => c.contestant_id)
-    var indexedClueData = d3.index(clueData, c => c.round_of_game, c => c.clue_of_round)
-    var traceData = []
-    var rounds = [...groupedCSData.keys()].sort((a,b) => d3.ascending(a, b))
-    for (var r of rounds) {
-      var clue_numbers = [...groupedCSData.get(r).keys()].sort((a,b) => d3.ascending(a, b))
-      for (var c of clue_numbers) {
-        traceData.push({
-          'clue_identifier': r + '-' + c,
-          'contestant_data': cids.map(cid => groupedCSData.get(r).get(c).get(cid)[0]),
-          'clue_data': indexedClueData.get(r).get(c)
-        })
-      }
-    }
-    return traceData
-  }
-)
-
-const popCultureByClueLineChartData = data.computedIfRefHasValues(
-  [jschemaClueTeamStatData, jschemaClueData, gameTeamIds],
-  (clueCSData, clueData, cids) => {
-    var groupedCSData = d3.group(clueCSData, c => c.round_of_game, c => c.clue_of_round, c => c.team_id)
-    var indexedClueData = d3.index(clueData, c => c.round_of_game, c => c.clue_of_round)
-    var traceData = []
-    var rounds = [...groupedCSData.keys()].sort((a,b) => d3.ascending(a, b))
-    for (var r of rounds) {
-      var clue_numbers = [...groupedCSData.get(r).keys()].sort((a,b) => d3.ascending(a, b))
-      for (var c of clue_numbers) {
-        traceData.push({
-          'clue_identifier': r + '-' + c,
-          'contestant_data': cids.map(cid => groupedCSData.get(r).get(c).get(cid)[0]),
-          'clue_data': indexedClueData.get(r).get(c)
-        })
-      }
-    }
-    return traceData
-  }
-)
-
-const byClueLineChartData = isPopCulture() ? popCultureByClueLineChartData : standardByClueLineChartData
-
 const standardFinalJeopardyMatrixCells = computed(() => {
   if (!jschemaClueContestantStatData.value || !gameRounds.value || !gameContestantIds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
   const fjRecords = jschemaClueContestantStatData.value.filter(r => r.round_of_game == gameRounds.value + 1 && r.clue_of_round == 1)
