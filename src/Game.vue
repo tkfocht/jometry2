@@ -4,6 +4,7 @@ import { ref, computed } from 'vue'
 import { formatNumber, dateFormat, roundName, jschemaCsvDataAccessor, roundAbbreviation, subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
 import { playClassificationName, seasonDisplayId } from '@/configuration'
 import * as data from '@/data'
+import * as gameUtil from '@/gameUtil'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
@@ -97,6 +98,11 @@ const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasVa
     [data.gameRoundContestantStatData],
     (gcsData) => d3.index(gcsData.filter(gr => gameId === gr.game_id), r => r.round_of_game, r => r.contestant_id))
 
+  const gameRoundTeamStatDataByRoundIdTeamId = data.computedIfRefHasValues(
+    [data.gameRoundTeamStatData],
+    (gcsData) => d3.index(gcsData.filter(gr => gameId === gr.game_id), r => r.round_of_game, r => r.team_id))
+
+    
 const jschemaClueContestantStatData = ref(null)
 async function fetchJschemaClueContestantStatData() {
   const res = await d3.csv('/csvs/jschema_stat_clue_contestant/' + gameId + '.csv', jschemaCsvDataAccessor)
@@ -137,7 +143,6 @@ const color = computed(() => {
 })
 const teamColor = computed(() => {
   if (gameTeamIds.value) {
-    console.log(gameTeamIds.value)
     return d3.scaleOrdinal().domain(gameTeamIds.value).range(threeColorSet)
   }
   else return null
@@ -170,7 +175,7 @@ const roundOptionLabels = computed(() =>
   ['Full Game', 'J Round', 'DJ Round'].concat(gameRounds.value && gameRounds.value > 2 ? ['TJ Round'] : []))
 const selectedRoundIndex = ref(0)
 
-const baseScoringTableData = data.computedIfRefHasValues(
+const standardBaseScoringTableData = data.computedIfRefHasValues(
   [selectedRoundIndex, gameContestantStatDataByContestantId, gameRoundContestantStatDataByRoundIdContestantId],
   (rIdx, gcsDataByCId, gcrsData) => {
     if (rIdx === 0) {
@@ -179,8 +184,7 @@ const baseScoringTableData = data.computedIfRefHasValues(
     return gcrsData.get(rIdx)
   }
 )
-
-const baseScoringTableRows = data.computedIfRefHasValues([gameContestantIds], (cIds) => {
+const standardBaseScoringTableRows = data.computedIfRefHasValues([gameContestantIds], (cIds) => {
   return cIds.map((cid, idx) => {
     return {
       contestant_id: cid,
@@ -189,45 +193,42 @@ const baseScoringTableRows = data.computedIfRefHasValues([gameContestantIds], (c
   })
 })
 
-const constructScoringTableSpecification = function(attrSpecs) {
-  return data.computedIfRefHasValues(
-    [baseScoringTableRows, isPopCulture() ? teamDataById : contestantDataById, baseScoringTableData],
-    (baseRows, cData, gcsData) => {
-      var columns = [
-        {
-          label: 'Contestant'
-        }
-      ]
-      columns = columns.concat(attrSpecs.map(attr => ({
-        label: attr.short_label,
-        description: attr.description
-      })))
-
-      var rows = baseRows.map(baseRow => {
-        const cid = baseRow.contestant_id
-        var row = [
-          {
-            value: contestantLink(cid, cData.get(cid).name),
-            sortValue: baseRow.podium
-          }
-        ]
-        row = row.concat(attrSpecs.map(attr => ({
-          value: attr.valueDisplayFormat(attr.generatingFunction(gcsData.get(cid))),
-          sortValue: attr.generatingFunction(gcsData.get(cid))
-        })))
-        return row
-      })
-
-      return {
-        columns: columns,
-        rows: rows,
-        footerRows: [],
-        initialSortColumnIndex: 0,
-        initialSortDescending: true
-      }
+const popCultureBaseScoringTableData = data.computedIfRefHasValues(
+  [selectedRoundIndex, gameTeamStatDataByTeamId, gameRoundTeamStatDataByRoundIdTeamId],
+  (rIdx, gcsDataByCId, gcrsData) => {
+    if (rIdx === 0) {
+      return gcsDataByCId
     }
-  )
-}
+    return gcrsData.get(rIdx)
+  }
+)
+const popCultureBaseScoringTableRows = data.computedIfRefHasValues([gameTeamIds], (cIds) => {
+  return cIds.map((cid, idx) => {
+    return {
+      team_id: cid,
+      podium: cIds.length - (idx + 1)
+    }
+  })
+})
+
+const standardConstructSpecificationConstructor = gameUtil.constructSpecificationConstructor(
+  standardBaseScoringTableRows,
+  contestantDataById,
+  standardBaseScoringTableData,
+  contestantLink,
+  r => r.contestant_id,
+  'Contestant'
+)
+const popCultureConstructSpecificationConstructor = gameUtil.constructSpecificationConstructor(
+  popCultureBaseScoringTableRows,
+  teamDataById,
+  popCultureBaseScoringTableData,
+  teamLink,
+  r => r.team_id,
+  'Team'
+)
+const constructSpecificationConstructor = isPopCulture() ? popCultureConstructSpecificationConstructor : standardConstructSpecificationConstructor
+const constructScoringTableSpecification = constructSpecificationConstructor.constructScoringTableSpecification
 
 const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
   gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
@@ -593,7 +594,7 @@ const histogramSpecification = computed(() => {
         </div>
       </div>
     </div>
-    <div v-if="gameData && isSyndicated()" class="section player-statistics">
+    <div v-if="gameData" class="section player-statistics">
       <div class="section-header">Player Statistics</div>
       <div class="option-groups">
         <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
