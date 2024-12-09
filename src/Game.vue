@@ -175,6 +175,14 @@ function teamLink (contestant_id, contestant_name) {
     '">' + contestant_name + '</a>'
 }
 
+function teamContestantLink (contestant_id, contestant_name) {
+  return '<span style="color: ' + 
+    teamContestantColor.value(contestant_id) + 
+    '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
+    contestant_id + 
+    '">' + contestant_name + '</a>'
+}
+
 function contestantLegend (contestant_id, contestant_name) {
   return '<span style="color: ' + 
     color.value(contestant_id) + 
@@ -226,11 +234,11 @@ const standardConstructSpecificationConstructor = gameUtil.constructSpecificatio
   standardBaseScoringTableRows,
   contestantDataById,
   standardBaseScoringTableData,
-  contestantLink,
+  isPopCulture() ? teamContestantLink : contestantLink,
   r => r.contestant_id,
   'Contestant'
 )
-const popCultureConstructSpecificationConstructor = gameUtil.constructSpecificationConstructor(
+const teamConstructSpecificationConstructor = gameUtil.constructSpecificationConstructor(
   popCultureBaseScoringTableRows,
   teamDataById,
   popCultureBaseScoringTableData,
@@ -238,28 +246,46 @@ const popCultureConstructSpecificationConstructor = gameUtil.constructSpecificat
   r => r.team_id,
   'Team'
 )
-const constructSpecificationConstructor = isPopCulture() ? popCultureConstructSpecificationConstructor : standardConstructSpecificationConstructor
-const constructScoringTableSpecification = constructSpecificationConstructor.constructScoringTableSpecification
 
 const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
   gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
   gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
-const standardScoringTableSpec = constructScoringTableSpecification(standardScoringAttributes)
+const standardScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
     gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
     gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
-const conversionScoringTableSpec = constructScoringTableSpecification(conversionScoringAttributes)
+const conversionScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
 
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
     gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
     gcsAttributes.time_value, gcsAttributes.time_score,
     gcsAttributes.solo_value, gcsAttributes.solo_score]
-const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
+const conversionValueScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
 
 const slimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
-const slimConversionValueScoringTableSpec = constructScoringTableSpecification(slimConversionValueScoringAttributes)
+const slimConversionValueScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(slimConversionValueScoringAttributes)
+
+const teamStandardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
+  gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
+  gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
+const teamStandardScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
+
+const teamConversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
+    gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
+const teamConversionScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
+
+const teamConversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.time_value, gcsAttributes.time_score,
+    gcsAttributes.solo_value, gcsAttributes.solo_score]
+const teamConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
+
+const teamSlimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
+    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
+const teamSlimConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(slimConversionValueScoringAttributes)
 
 const standardFinalJeopardyMatrixCells = computed(() => {
   if (!jschemaClueContestantStatData.value || !gameRounds.value || !gameContestantIds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
@@ -531,6 +557,22 @@ const teamHistogramSpecification = computed(() => {
       <div class="option-groups">
         <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
           @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
+      </div>
+      <div class="subsection" v-if="teamStandardScoringTableSpec">
+        <div class="subsection-header">Standard Metrics</div>
+        <SortableTable v-bind="teamStandardScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="teamConversionScoringTableSpec && gameHasAttemptData">
+        <div class="subsection-header">Conversion Metrics</div>
+        <SortableTable v-bind="teamConversionScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="teamConversionValueScoringTableSpec && gameHasAttemptData">
+        <div class="subsection-header">Conversion Value Metrics</div>
+        <SortableTable v-bind="teamConversionValueScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="teamSlimConversionValueScoringTableSpec && !gameHasAttemptData">
+        <div class="subsection-header">Conversion Metrics</div>
+        <SortableTable v-bind="teamSlimConversionValueScoringTableSpec" />
       </div>
       <div class="subsection">
         <div class="subsection-header">Standard Metrics</div>
