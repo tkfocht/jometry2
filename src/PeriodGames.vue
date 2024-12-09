@@ -245,7 +245,7 @@ const tableSpec = data.computedIfRefHasValues(
   <Header />
   <div class="component-body" :data-bs-theme="subdomainIdentifier()">
     <h1>
-      <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} TOC Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
+      <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} Qual Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
       <span v-if="seasonSearchParameters && seasonSearchParameters.length > 0">Season<span v-if="seasonSearchParameters.length > 1">s</span> {{ seasonSearchParameters.map(configuration.seasonDisplayId).join(', ') }}&nbsp;</span>
       <span v-if="playClassificationSearchParameters && playClassificationSearchParameters.length > 0">{{ d3.map(playClassificationSearchParameters, p => configuration.playClassificationGenericName(p)).join(", ") }}&nbsp;</span>Games
     </h1>
@@ -259,7 +259,7 @@ const tableSpec = data.computedIfRefHasValues(
       <SearchFilterDropdown
         :optionLabels="searchTocPeriodIds"
         :selectedIndices="tocPeriodSelectedIndices"
-        :label="'TOC Periods'"
+        :label="'Qual Periods'"
         @updateSelectionIndices="(idxs) => tocPeriodSelectedIndices = idxs"
       />
       <SearchFilterDropdown
