@@ -595,7 +595,7 @@ const histogramSpecification = computed(() => {
       </div>
     </div>
     <div v-if="gameData" class="section player-statistics">
-      <div class="section-header">Player Statistics</div>
+      <div class="section-header"><span v-if="isPopCulture()">Team</span><span v-else>Player</span> Statistics</div>
       <div class="option-groups">
         <OptionGroup :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
           @newSelectionIndex="(idx) => selectedRoundIndex = idx" />
