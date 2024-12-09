@@ -6,13 +6,14 @@ import { playClassificationName, seasonDisplayId } from '@/configuration'
 import * as data from '@/data'
 import * as gameUtil from '@/gameUtil'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
+
+import CumulativeChartSection from '@/components/game/CumulativeChartSection.vue'
+
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
-import CumulativeLineChart from './components/util/CumulativeLineChart.vue'
 import HighlightHistogram from './components/util/HighlightHistogram.vue'
 import OptionDropdown from './components/util/OptionDropdown.vue'
 import OptionGroup from './components/util/OptionGroup.vue'
-import TrendLineChart from './components/util/TrendLineChart.vue'
 import ScatterHistogram from './components/util/ScatterHistogram.vue'
 import SortableTable from './components/util/SortableTable.vue'
 import StackValueBarChart from './components/util/StackValueBarChart.vue'
@@ -43,7 +44,13 @@ const gameStatData = data.computedIfRefHasValue(data.gameStatDataById, gsData =>
 const gamePlayClassification = data.computedIfRefHasValue(gameData, gData => gData.play_classification)
 const gameTocPeriod = data.computedIfRefHasValue(gameData, gData => gData.toc_period)
 const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_classification == 'celebrity' ? 3 : 2)
-const gameContestantIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
+const gameContestantIds = isPopCulture() ?
+  data.computedIfRefHasValue(gameData, gData => [
+    gData.podium_1_1_contestant_id, gData.podium_1_2_contestant_id, gData.podium_1_3_contestant_id,
+    gData.podium_2_1_contestant_id, gData.podium_2_2_contestant_id, gData.podium_2_3_contestant_id,
+    gData.podium_3_1_contestant_id, gData.podium_3_2_contestant_id, gData.podium_3_3_contestant_id
+  ]) :
+  data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 const gameTeamIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_team_id, gData.podium_2_team_id, gData.podium_3_team_id])
 
 const gameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => isSyndicated() && gsData.att_total > 0)
@@ -124,6 +131,16 @@ const teamColor = computed(() => {
   if (gameTeamIds.value) {
     return d3.scaleOrdinal().domain(gameTeamIds.value).range(threeColorSet)
   }
+  else return null
+})
+const teamContestantColor = computed(() => {
+  if (gameContestantIds.value) return d3.scaleOrdinal().domain(gameContestantIds.value).range(
+    [
+      d3.color(threeColorSet[0]).darker(0.5), threeColorSet[0], d3.color(threeColorSet[0]).brighter(0.5),
+      d3.color(threeColorSet[1]).darker(0.5), threeColorSet[1], d3.color(threeColorSet[1]).brighter(0.5),
+      d3.color(threeColorSet[2]).darker(0.5), threeColorSet[2], d3.color(threeColorSet[2]).brighter(0.5),
+    ]
+  )
   else return null
 })
 
@@ -229,149 +246,6 @@ const slimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.b
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
 const slimConversionValueScoringTableSpec = constructScoringTableSpecification(slimConversionValueScoringAttributes)
 
-
-function defaultUndefinedForBuzzing(clueStatValue, clueInfo, defaultValue, forceUndefinedForNonbuzz = false) {
-  if (forceUndefinedForNonbuzz) {
-    if (clueInfo.is_daily_double === 1) return undefined
-    if (clueInfo.is_final_jeopardy === 1) return undefined
-  }
-  if (clueStatValue !== undefined) return clueStatValue
-  if (clueInfo.is_daily_double === 1) return undefined
-  if (clueInfo.is_final_jeopardy === 1) return undefined
-  return defaultValue
-}
-
-const gameProgressGraphTypeList = [
-  'Cumulative',
-  'Trend'
-]
-const gameProgressGraphTypeIdx = ref(0)
-const cumulativeDataAttributesFullList = [
-  {
-    label: 'Score',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.score, cl, 0, false),
-    includeIfNoAttemptData: true
-  },
-  {
-    label: 'Score (excluding FJ)',
-    generatingFunction: (c, cl) => cl.is_final_jeopardy ? undefined : c.score,
-    includeIfNoAttemptData: true
-  },
-  {
-    label: 'Buzz Score',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_score, cl, 0, true),
-    includeIfNoAttemptData: true
-  },
-  {
-    label: 'Attempts',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att, cl, 0, true),
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Attempted Clues',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_clue, cl, 0, true),
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Attempt %',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_clue, cl, 0, true),
-    generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : 1,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Attempt Value',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_value, cl, 0, true),
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Attempt Value %',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.att_value, cl, 0, true),
-    generatingDenominatorFunction: (c, cl) => cl.is_daily_double === 1 || cl.is_final_jeopardy === 1 ? 0 : cl.value,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Buzzes',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value === 0 ? 0 : 1, cl, 0, true),
-    includeIfNoAttemptData: true
-  },
-  {
-    label: 'Buzz Value',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value, cl, 0, true),
-    includeIfNoAttemptData: true
-  },
-  {
-    label: 'Buzz %',
-    generatingFunction: (c, cl) => defaultUndefinedForBuzzing(c.buz_value === 0 ? 0 : 1, cl, 0, true),
-    generatingDenominatorFunction: c => c.att,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Accuracy %',
-    generatingFunction: c => c.buz_score > 0 ? 1 : 0,
-    generatingDenominatorFunction: c => c.buz_score !== 0 ? 1 : 0,
-    includeIfNoAttemptData: true
-  },
-  {
-    label: 'Conversion %',
-    generatingFunction: c => c.buz_score > 0 ? 1 : 0,
-    generatingDenominatorFunction: c => c.att,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Buzz Value %',
-    generatingFunction: c => c.buz_value,
-    generatingDenominatorFunction: c => c.att_value,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Accuracy Value %',
-    generatingFunction: c => c.buz_score,
-    generatingDenominatorFunction: c => c.buz_value,
-    includeIfNoAttemptData: true
-  },
-  {
-    label: 'Conversion Value %',
-    generatingFunction: c => c.buz_score,
-    generatingDenominatorFunction: c => c.att_value,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Timing',
-    generatingFunction: c => c.timing,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Timing Value',
-    generatingFunction: c => c.timing_value,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Timing Score',
-    generatingFunction: c => c.timing_score,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Solo',
-    generatingFunction: c => c.solo,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Solo Value',
-    generatingFunction: c => c.solo_value,
-    includeIfNoAttemptData: false
-  },
-  {
-    label: 'Solo Score',
-    generatingFunction: c => c.solo_score,
-    includeIfNoAttemptData: false
-  }
-]
-const cumulativeDataAttributesList = data.computedIfRefHasValue(gameHasAttemptData, hasAttempt => {
-  if (hasAttempt) return cumulativeDataAttributesFullList
-  return cumulativeDataAttributesFullList.filter(attr => attr.includeIfNoAttemptData)
-})
-const byClueLineChartAttributeIdx = ref(0)
-const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList.value[byClueLineChartAttributeIdx.value])
 
 const standardByClueLineChartData = data.computedIfRefHasValues(
   [jschemaClueContestantStatData, jschemaClueData, gameContestantIds],
@@ -828,82 +702,24 @@ const histogramSpecification = computed(() => {
       </div>
     </div>
 
-    <div class="section" v-if="isSyndicated() && cumulativeDataAttributesList">
-      <div class="section-header">Game Progress</div>
-      <div class="option-groups">
-        <OptionDropdown
-          :optionLabels="cumulativeDataAttributesList.map(attr => attr.label)"
-          :selectionIndex="byClueLineChartAttributeIdx"
-          @newSelectionIndex="(idx) => byClueLineChartAttributeIdx = idx"
-        />
-        <OptionDropdown
-          :optionLabels="gameProgressGraphTypeList"
-          :selectionIndex="gameProgressGraphTypeIdx"
-          @newSelectionIndex="(idx) => gameProgressGraphTypeIdx = idx"
-        />
-      </div>
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
-        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
-        :labels="gameContestantIds.map(cid => contestantDataById.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="'Cumulative ' + byClueLineChartAttribute.label"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
-      />
-      <TrendLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
-        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
-        :labels="gameContestantIds.map(cid => contestantDataById.get(cid).name)"
-        :colors="gameContestantIds.map(cid => color(cid))"
-        :title="byClueLineChartAttribute.label + ' Trend'"
-        :xLabel="'Clues'"
-        :yLabel="byClueLineChartAttribute.label"
-        :blur="2"
-      />
-    </div>
-    <div class="section" v-if="isPopCulture() && cumulativeDataAttributesList">
-      <div class="section-header">Game Progress</div>
-      <div class="option-groups">
-        <OptionDropdown
-          :optionLabels="cumulativeDataAttributesList.map(attr => attr.label)"
-          :selectionIndex="byClueLineChartAttributeIdx"
-          @newSelectionIndex="(idx) => byClueLineChartAttributeIdx = idx"
-        />
-        <OptionDropdown
-          :optionLabels="gameProgressGraphTypeList"
-          :selectionIndex="gameProgressGraphTypeIdx"
-          @newSelectionIndex="(idx) => gameProgressGraphTypeIdx = idx"
-        />
-      </div>
-      <CumulativeLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
-        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
-        :labels="gameTeamIds.map(cid => teamDataById.get(cid).name)"
-        :colors="gameTeamIds.map(cid => teamColor(cid))"
-        :title="'Cumulative ' + byClueLineChartAttribute.label"
-        :xLabel="'Clues'"
-        :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
-      />
-      <TrendLineChart v-if="gameContestantIds && byClueLineChartData && contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
-        :data="byClueLineChartData"
-        :xFunction="d => d['clue_identifier']"
-        :yFunctions="[0,1,2].map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
-        :yDenominatorFunctions="[0,1,2].map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
-        :labels="gameTeamIds.map(cid => teamDataById.get(cid).name)"
-        :colors="gameTeamIds.map(cid => teamColor(cid))"
-        :title="byClueLineChartAttribute.label + ' Trend'"
-        :xLabel="'Clues'"
-        :yLabel="byClueLineChartAttribute.label"
-        :blur="2"
-      />
-    </div>
+    <CumulativeChartSection v-if="isPopCulture()"
+      :jschemaClueCompetitorStatData="jschemaClueTeamStatData"
+      :jschemaClueData="jschemaClueData"
+      :competitorIdExtractionFn="c => c.team_id"
+      :gameHasAttemptData="gameHasAttemptData"
+      :gameCompetitorIds="gameTeamIds"
+      :competitorDataById="teamDataById"
+      :competitorColorFn="teamColor"
+    />
+    <CumulativeChartSection 
+      :jschemaClueCompetitorStatData="jschemaClueContestantStatData"
+      :jschemaClueData="jschemaClueData"
+      :competitorIdExtractionFn="c => c.contestant_id"
+      :gameHasAttemptData="gameHasAttemptData"
+      :gameCompetitorIds="gameContestantIds"
+      :competitorDataById="contestantDataById"
+      :competitorColorFn="isPopCulture() ? teamContestantColor : color"
+    />
 
     <div class="section" v-if="isSyndicated() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById">
       <div class="section-header"><span v-if="gameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
