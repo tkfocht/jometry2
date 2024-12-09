@@ -329,10 +329,20 @@ const histogramGraphAttribute = data.computedIfRefHasValues([graphAttributesList
 const histogramGraphRoundIdx = ref(0)
 
 const xScatterGraphAttributeSelectedIdx = ref(-1)
-const xScatterGraphAttributeIdx = computed(() => xScatterGraphAttributeSelectedIdx.value >= 0 ? xScatterGraphAttributeSelectedIdx.value : 0)
+const xScatterGraphAttributeDefaultIdx = data.computedIfRefHasValues(
+  [graphAttributesList, gameHasAttemptData],
+  (attrList, hasAttempt) => hasAttempt ? attrList.indexOf(gcsAttributes.att_value) : attrList.indexOf(gcsAttributes.buz_value))
+const xScatterGraphAttributeIdx = data.computedIfRefHasValues(
+  [xScatterGraphAttributeSelectedIdx, xScatterGraphAttributeDefaultIdx],
+  (selectedIdx, defaultIdx) => selectedIdx >= 0 ? selectedIdx : defaultIdx)
 const xScatterGraphAttribute = data.computedIfRefHasValues([graphAttributesList, xScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const yScatterGraphAttributeSelectedIdx = ref(-1)
-const yScatterGraphAttributeIdx = computed(() => yScatterGraphAttributeSelectedIdx.value >= 0 ? yScatterGraphAttributeSelectedIdx.value : 2)
+const yScatterGraphAttributeDefaultIdx = data.computedIfRefHasValues(
+  [graphAttributesList, gameHasAttemptData],
+  (attrList, hasAttempt) => hasAttempt ? attrList.indexOf(gcsAttributes.conversion_value_percent) : attrList.indexOf(gcsAttributes.acc_value_percent))
+const yScatterGraphAttributeIdx = data.computedIfRefHasValues(
+  [yScatterGraphAttributeSelectedIdx, yScatterGraphAttributeDefaultIdx],
+  (selectedIdx, defaultIdx) => selectedIdx >= 0 ? selectedIdx : defaultIdx)
 const yScatterGraphAttribute = data.computedIfRefHasValues([graphAttributesList, yScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const scatterGraphRoundIdx = ref(0)
 
@@ -352,7 +362,34 @@ const scatterSpecification = computed(() => {
     histogramData: histogramData,
     scatterData: scatterData,
     scatterLabelFunction: d => contestantDataById.value.get(d.contestant_id).name,
-    scatterColorFunction: d => color.value(d.contestant_id),
+    scatterColorFunction: d => isPopCulture() ? teamContestantColor.value(d.contestant_id) : color.value(d.contestant_id),
+    title: xAttr['label'] + ' vs ' + yAttr['label'],
+    xLabel: xAttr['label'],
+    xFunction: xAttr.generatingFunction,
+    xBins: xAttr['bins'],
+    yLabel: yAttr['label'],
+    yFunction: yAttr.generatingFunction,
+    yBins: yAttr['bins'],
+  }
+})
+
+const teamScatterSpecification = computed(() => {
+  if (!teamDataById.value || !jschemaAllGameRoundTeamStatDataFlat.value || !allGameTeamStatData.value) return null
+  const xAttr = xScatterGraphAttribute.value
+  const yAttr = yScatterGraphAttribute.value
+  var histogramData = allGameTeamStatData.value
+  var scatterData = gameTeamStatData.value
+  if (scatterGraphRoundIdx.value > 0) {
+    histogramData = jschemaAllGameRoundTeamStatByRound.value.get(scatterGraphRoundIdx.value)
+    scatterData = jschemaGameRoundTeamStatDataByRound.value[scatterGraphRoundIdx.value]
+  }
+  histogramData = d3.filter(histogramData, r => xAttr.generatingFunction(r) !== undefined && yAttr.generatingFunction(r) !== undefined)
+  scatterData = d3.filter(scatterData, r => xAttr.generatingFunction(r) !== undefined && yAttr.generatingFunction(r) !== undefined)
+  return {
+    histogramData: histogramData,
+    scatterData: scatterData,
+    scatterLabelFunction: d => teamDataById.value.get(d.team_id).name,
+    scatterColorFunction: d => isPopCulture() ? teamColor.value(d.team_id) : color.value(d.contestant_id),
     title: xAttr['label'] + ' vs ' + yAttr['label'],
     xLabel: xAttr['label'],
     xFunction: xAttr.generatingFunction,
@@ -869,7 +906,7 @@ const teamHistogramSpecification = computed(() => {
     </div>
 
 
-    <div class="section" v-if="isSyndicated() && scatterSpecification && graphAttributesList">
+    <div class="section" v-if="graphAttributesList">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <OptionDropdown
@@ -888,7 +925,8 @@ const teamHistogramSpecification = computed(() => {
           @newSelectionIndex="(idx) => scatterGraphRoundIdx = idx"
         />
       </div>
-      <ScatterHistogram v-bind="scatterSpecification" />
+      <ScatterHistogram v-bind="teamScatterSpecification" v-if="isPopCulture() && teamScatterSpecification"/>
+      <ScatterHistogram v-bind="scatterSpecification" v-if="scatterSpecification"/>
     </div>
   </div>
   <Footer/>
