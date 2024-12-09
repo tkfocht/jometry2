@@ -55,7 +55,8 @@ import Header from './components/Header.vue'
         <div class="term">Buz$: Score on Buzz</div>
         <div class="definition">
             Score using only buzz-in responses. Equivalent to actual score and to Coryat score, except
-            it ignores Daily Doubles entirely. <i>Why not just use Coryat?</i> The earliest version of
+            it ignores Daily Doubles entirely. For Pop Culture games, this includes buzz-in responses for
+            Triple Plays but not forced responses. <i>Why not just use Coryat?</i> The earliest version of
             this site was based soley on the box scores, and Coryat is not derivable from them. After that,
             I mostly just decided I liked Buz$ as an in-game contestant statistic better, as it only covers clues available
             to all players. I do believe Coryat is better for comparing performance at home, though.
@@ -71,6 +72,13 @@ import Header from './components/Header.vue'
         <div class="term">ConvValue% (ConvV%): Conversion Value</div>
         <div class="definition">
           Percentage of attempt value that becomes buzz score: Buz$ / AttValue.
+        </div>
+      </div>
+      <div class="entry">
+        <div class="term">Coryat$: Coryat Score</div>
+        <div class="definition">
+            Score using only buzz-in responses and only positive results for Daily Doubles. For Pop Culture games,
+            this includes buzz-in responses for Triple Plays but not forced responses.
         </div>
       </div>
       <div class="entry">
