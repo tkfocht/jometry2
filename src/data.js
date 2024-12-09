@@ -104,6 +104,40 @@ const gameDailyDoubleDataByGameId = computedIfRefHasValue(gameDailyDoubleData, g
 const gameDailyDoubleDataByGameIdRound = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id, r => r.round_of_game))
 
 
+const jschemaClueContestantStatData = ref(null)
+async function loadJschemaClueContestantStatData(gameId) {
+    loadDataReference(jschemaClueContestantStatData, `/csvs/${ dataPrefix() }jschema_stat_clue_contestant/` + gameId + '.csv')
+}
+const jschemaClueContestantStatDataByRoundClueAndContestantId = computedIfRefHasValue(jschemaClueContestantStatData,
+  ccsData => d3.index(ccsData, ccs => ccs.round_of_game, ccs => ccs.clue_of_round, ccs => ccs.contestant_id))
+
+const jschemaClueData = ref(null)
+async function loadJschemaClueData(gameId) {
+    loadDataReference(jschemaClueData, `/csvs/${ dataPrefix() }jschema_clue/` + gameId + '.csv')
+}
+const jschemaClueByRoundRowColumn = computed(() => {
+  if (!jschemaClueData.value) return null
+
+  const fj_clue = jschemaClueData.value.filter(c => c.is_final_jeopardy)
+  const game_rounds = fj_clue[0].round_of_game
+
+  const clueData = jschemaClueData.value.filter(c => c.round_of_game <= game_rounds)
+  return d3.index(clueData, c => c.round_of_game, c => c.row, c => c.column)
+})
+
+const jschemaResponseData = ref(null)
+async function loadJschemaResponseData(gameId) {
+    if (dataPrefix() === 'popculture/') {
+        loadDataReference(jschemaResponseData, `/csvs/${ dataPrefix() }jschema_team_response/` + gameId + '.csv')
+    } else {
+        loadDataReference(jschemaResponseData, `/csvs/${ dataPrefix() }jschema_response/` + gameId + '.csv')
+    }
+}
+const jschemaResponseByRoundClue = computed(() => {
+  if (!jschemaResponseData.value) return null
+  return d3.group(jschemaResponseData.value, c => c.round_of_game, c => c.clue_of_round)
+})
+
 export { computedIfRefHasValue, computedIfRefHasValues,
     loadContestantData, contestantData, contestantDataById,
     loadTeamData, teamData, teamDataById,
@@ -113,5 +147,8 @@ export { computedIfRefHasValue, computedIfRefHasValues,
     loadGameRoundContestantStatData, gameRoundContestantStatData, gameRoundContestantStatDataByGameIdRoundIdContestantId,
     loadGameTeamStatData, gameTeamStatData, gameTeamStatDataByGameId, gameTeamStatDataByTeamId, gameTeamStatDataByGameIdTeamId,
     loadGameRoundTeamStatData, gameRoundTeamStatData, gameRoundTeamStatDataByGameIdRoundIdTeamId,
-    loadGameDailyDoubleData, gameDailyDoubleData, gameDailyDoubleDataByGameId, gameDailyDoubleDataByGameIdRound
+    loadGameDailyDoubleData, gameDailyDoubleData, gameDailyDoubleDataByGameId, gameDailyDoubleDataByGameIdRound,
+    loadJschemaClueContestantStatData, jschemaClueContestantStatData, jschemaClueContestantStatDataByRoundClueAndContestantId,
+    loadJschemaClueData, jschemaClueData, jschemaClueByRoundRowColumn,
+    loadJschemaResponseData, jschemaResponseData, jschemaResponseByRoundClue,
 };

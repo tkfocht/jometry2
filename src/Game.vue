@@ -31,6 +31,9 @@ if (isPopCulture()) {
   data.loadGameTeamStatData()
   data.loadGameRoundTeamStatData()
 }
+data.loadJschemaClueContestantStatData(gameId)
+data.loadJschemaClueData(gameId)
+data.loadJschemaResponseData(gameId)
 
 const contestantDataById = data.contestantDataById
 const teamDataById = data.teamDataById
@@ -102,38 +105,12 @@ const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasVa
     [data.gameRoundTeamStatData],
     (gcsData) => d3.index(gcsData.filter(gr => gameId === gr.game_id), r => r.round_of_game, r => r.team_id))
 
-    
-const jschemaClueContestantStatData = ref(null)
-async function fetchJschemaClueContestantStatData() {
-  const res = await d3.csv('/csvs/jschema_stat_clue_contestant/' + gameId + '.csv', jschemaCsvDataAccessor)
-  jschemaClueContestantStatData.value = res
-}
-fetchJschemaClueContestantStatData()
-const jschemaClueContestantStatDataByRoundClueAndContestantId = data.computedIfRefHasValue(jschemaClueContestantStatData,
-  ccsData => d3.index(ccsData, ccs => ccs.round_of_game, ccs => ccs.clue_of_round, ccs => ccs.contestant_id))
 
-const jschemaClueData = ref(null)
-async function fetchJschemaClueData() {
-  const res = await d3.csv('/csvs/jschema_clue/' + gameId + '.csv', jschemaCsvDataAccessor)
-  jschemaClueData.value = res
-}
-fetchJschemaClueData()
-const jschemaClueByRoundRowColumn = computed(() => {
-  if (!jschemaClueData.value || !gameRounds.value) return null
-  const clueData = jschemaClueData.value.filter(c => c.round_of_game <= gameRounds.value)
-  return d3.index(clueData, c => c.round_of_game, c => c.row, c => c.column)
-})
-
-const jschemaResponseData = ref(null)
-async function fetchJschemaResponseData() {
-  const res = await d3.csv('/csvs/jschema_response/' + gameId + '.csv', jschemaCsvDataAccessor)
-  jschemaResponseData.value = res
-}
-fetchJschemaResponseData()
-const jschemaResponseByRoundClue = computed(() => {
-  if (!jschemaResponseData.value) return null
-  return d3.group(jschemaResponseData.value, c => c.round_of_game, c => c.clue_of_round)
-})
+const jschemaClueData = data.jschemaClueData
+const jschemaClueContestantStatData = data.jschemaClueContestantStatData
+const jschemaClueByRoundRowColumn = data.jschemaClueByRoundRowColumn
+const jschemaClueContestantStatDataByRoundClueAndContestantId = data.jschemaClueContestantStatDataByRoundClueAndContestantId
+const jschemaResponseByRoundClue = data.jschemaResponseByRoundClue
 
 
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
@@ -626,11 +603,45 @@ const histogramSpecification = computed(() => {
             <tr v-for="row in d3.range(1,6)">
               <td v-for="column in d3.range(1,7)">
                 <div v-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)"
-                    :class="jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_daily_double'] === 1 ? 'daily-double' : ''">
+                    :class="(jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_daily_double'] === 1 ? 'daily-double' : '') +
+                            (jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_triple_play'] === 1 ? 'triple-play' : '')">
                   <template v-if="jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
                         jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length > 0">
                     <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
                       :style="'background-color: ' + color(correctResponseItem.contestant_id)"
+                      >
+                    </div>                  
+                  </template>
+                  <template v-else>
+                    <div style="background-color: gray">
+                    </div>
+                  </template>
+                </div>
+                <div v-else>
+                  <div style="background-color: black">
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="section" v-if="isPopCulture()">
+      <div class="section-header">Correct Responses</div>
+      <div id="view-boards">
+        <div v-for="round in d3.range(1, gameRounds + 1)">
+          <div class="subsection-header">{{ roundName(round) }} Round</div>
+          <table class="view-board" v-if="jschemaClueByRoundRowColumn && jschemaClueByRoundRowColumn.get(round) && jschemaResponseByRoundClue && jschemaResponseByRoundClue.get(round)" >
+            <tr v-for="row in d3.range(1,6)">
+              <td v-for="column in d3.range(1,7)">
+                <div v-if="jschemaClueByRoundRowColumn.get(round).get(row).get(column)"
+                    :class="(jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_daily_double'] === 1 ? 'daily-double' : '') +
+                            (jschemaClueByRoundRowColumn.get(round).get(row).get(column)['is_triple_play'] === 1 ? 'triple-play' : '')">
+                  <template v-if="jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round) && 
+                        jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct).length > 0">
+                    <div v-for="correctResponseItem in jschemaResponseByRoundClue.get(round).get(jschemaClueByRoundRowColumn.get(round).get(row).get(column).clue_of_round).filter(r => r.is_correct)"
+                      :style="'background-color: ' + teamColor(correctResponseItem.team_id)"
                       >
                     </div>                  
                   </template>
@@ -879,6 +890,11 @@ table.view-board div {
 table.view-board div.daily-double {
     padding: 5px 5px;
     background-color: yellow;
+}
+
+table.view-board div.triple-play {
+    padding: 5px 5px;
+    background-color: var(--bs-primary);
 }
 
 table.view-board div div {
