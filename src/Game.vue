@@ -812,23 +812,17 @@ const teamHistogramSpecification = computed(() => {
       </div>
     </div>
 
-    <CumulativeChartSection v-if="isPopCulture()"
-      :jschemaClueCompetitorStatData="jschemaClueTeamStatData"
+    <CumulativeChartSection
+      :jschemaClueTeamStatData="jschemaClueTeamStatData"
+      :jschemaClueContestantStatData="jschemaClueContestantStatData"
       :jschemaClueData="jschemaClueData"
-      :competitorIdExtractionFn="c => c.team_id"
       :gameHasAttemptData="gameHasAttemptData"
-      :gameCompetitorIds="gameTeamIds"
-      :competitorDataById="teamDataById"
-      :competitorColorFn="teamColor"
-    />
-    <CumulativeChartSection 
-      :jschemaClueCompetitorStatData="jschemaClueContestantStatData"
-      :jschemaClueData="jschemaClueData"
-      :competitorIdExtractionFn="c => c.contestant_id"
-      :gameHasAttemptData="gameHasAttemptData"
-      :gameCompetitorIds="gameContestantIds"
-      :competitorDataById="contestantDataById"
-      :competitorColorFn="isPopCulture() ? teamContestantColor : color"
+      :gameTeamIds="gameTeamIds"
+      :gameContestantIds="gameContestantIds"
+      :teamDataById="teamDataById"
+      :contestantDataById="contestantDataById"
+      :teamColorFn="teamColor"
+      :contestantColorFn="isPopCulture() ? teamContestantColor : color"
     />
 
     <div class="section">
