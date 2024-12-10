@@ -58,10 +58,13 @@ const gameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => is
 
 const allGameStatData = data.computedIfRefHasValues(
   [data.gameStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
-  (gsData, playClass, tocPeriod, gData) => gsData.filter(gs => gData.get(gs.game_id).play_classification === playClass && gData.get(gs.game_id).toc_period === tocPeriod))
+  (gsData, playClass, tocPeriod, gData) => gsData.filter(gs => gData.get(gs.game_id).play_classification === playClass &&
+    (gData.get(gs.game_id).toc_period === tocPeriod || (gData.get(gcs.game_id).toc_period_2 ? gData.get(gs.game_id).toc_period_2.toString() : undefined) === tocPeriod)))
 const allGameContestantStatData = data.computedIfRefHasValues(
   [data.gameContestantStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
-  (gcsData, playClass, tocPeriod, gData) => gcsData.filter(gcs => gData.get(gcs.game_id).play_classification === playClass && gData.get(gcs.game_id).toc_period === tocPeriod))
+  (gcsData, playClass, tocPeriod, gData) => gcsData.filter(gcs => 
+    gData.get(gcs.game_id).play_classification === playClass && 
+    (gData.get(gcs.game_id).toc_period === tocPeriod || (gData.get(gcs.game_id).toc_period_2 ? gData.get(gcs.game_id).toc_period_2.toString() : undefined) === tocPeriod)))
 const gameContestantStatDataByContestantId = data.computedIfRefHasValue(data.gameContestantStatDataByGameIdContestantId, gcsData => gcsData.get(gameId))
 const gameContestantStatData = computed(() => {
   if (data.gameContestantStatDataByGameIdContestantId.value && gameContestantIds.value) {
