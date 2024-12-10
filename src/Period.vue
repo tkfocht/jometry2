@@ -185,44 +185,44 @@ const gameRoundTeamStatDataByRoundIdTeamId = data.computedIfRefHasValues(
 
 const teamIdToContestantIdMap = data.computedIfRefHasValue(gameData,
   gData => {
-    var retMap = {}
+    var retMap = new d3.InternMap()
     for (var g of gData) {
       if (g.podium_1_team_id !== undefined) {
-        if (!(g.podium_1_team_id in retMap)) {
-          retMap[g.podium_1_team_id] = []
+        if (!retMap.has(g.podium_1_team_id)) {
+          retMap.set(g.podium_1_team_id, [])
         }
-        if (!(g.podium_2_team_id in retMap)) {
-          retMap[g.podium_2_team_id] = []
+        if (!retMap.has(g.podium_2_team_id)) {
+          retMap.set(g.podium_2_team_id, [])
         }
-        if (!(g.podium_3_team_id in retMap)) {
-          retMap[g.podium_3_team_id] = []
+        if (!retMap.has(g.podium_3_team_id)) {
+          retMap.set(g.podium_3_team_id, [])
         }
-        if (!retMap[g.podium_1_team_id].includes(g.podium_1_1_contestant_id)) {
-          retMap[g.podium_1_team_id].push(g.podium_1_1_contestant_id)
+        if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_1_contestant_id)) {
+          retMap.get(g.podium_1_team_id).push(g.podium_1_1_contestant_id)
         }
-        if (!retMap[g.podium_1_team_id].includes(g.podium_1_2_contestant_id)) {
-          retMap[g.podium_1_team_id].push(g.podium_1_2_contestant_id)
+        if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_2_contestant_id)) {
+          retMap.get(g.podium_1_team_id).push(g.podium_1_2_contestant_id)
         }
-        if (!retMap[g.podium_1_team_id].includes(g.podium_1_3_contestant_id)) {
-          retMap[g.podium_1_team_id].push(g.podium_1_3_contestant_id)
+        if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_3_contestant_id)) {
+          retMap.get(g.podium_1_team_id).push(g.podium_1_3_contestant_id)
         }
-        if (!retMap[g.podium_2_team_id].includes(g.podium_2_1_contestant_id)) {
-          retMap[g.podium_2_team_id].push(g.podium_2_1_contestant_id)
+        if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_1_contestant_id)) {
+          retMap.get(g.podium_2_team_id).push(g.podium_2_1_contestant_id)
         }
-        if (!retMap[g.podium_2_team_id].includes(g.podium_2_2_contestant_id)) {
-          retMap[g.podium_2_team_id].push(g.podium_2_2_contestant_id)
+        if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_2_contestant_id)) {
+          retMap.get(g.podium_2_team_id).push(g.podium_2_2_contestant_id)
         }
-        if (!retMap[g.podium_2_team_id].includes(g.podium_2_3_contestant_id)) {
-          retMap[g.podium_2_team_id].push(g.podium_2_3_contestant_id)
+        if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_3_contestant_id)) {
+          retMap.get(g.podium_2_team_id).push(g.podium_2_3_contestant_id)
         }
-        if (!retMap[g.podium_3_team_id].includes(g.podium_3_1_contestant_id)) {
-          retMap[g.podium_3_team_id].push(g.podium_3_1_contestant_id)
+        if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_1_contestant_id)) {
+          retMap.get(g.podium_3_team_id).push(g.podium_3_1_contestant_id)
         }
-        if (!retMap[g.podium_3_team_id].includes(g.podium_3_2_contestant_id)) {
-          retMap[g.podium_3_team_id].push(g.podium_3_2_contestant_id)
+        if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_2_contestant_id)) {
+          retMap.get(g.podium_3_team_id).push(g.podium_3_2_contestant_id)
         }
-        if (!retMap[g.podium_3_team_id].includes(g.podium_3_3_contestant_id)) {
-          retMap[g.podium_3_team_id].push(g.podium_3_3_contestant_id)
+        if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_3_contestant_id)) {
+          retMap.get(g.podium_3_team_id).push(g.podium_3_3_contestant_id)
         }
       }
     }
@@ -232,62 +232,62 @@ const teamIdToContestantIdMap = data.computedIfRefHasValue(gameData,
 
 const contestantIdToTeamIdMap = data.computedIfRefHasValue(gameData,
   gData => {
-    var retMap = {}
+    var retMap = new d3.InternMap()
     for (var g of gData) {
       if (g.podium_1_team_id !== undefined) {
-        if (!(g.podium_1_1_contestant_id in retMap)) {
-          retMap[g.podium_1_1_contestant_id] = []
+        if (!retMap.has(g.podium_1_1_contestant_id)) {
+          retMap.set(g.podium_1_1_contestant_id, [])
         }
-        if (!(g.podium_1_2_contestant_id in retMap)) {
-          retMap[g.podium_1_2_contestant_id] = []
+        if (!retMap.has(g.podium_1_2_contestant_id)) {
+          retMap.set(g.podium_1_2_contestant_id, [])
         }
-        if (!(g.podium_1_3_contestant_id in retMap)) {
-          retMap[g.podium_1_3_contestant_id] = []
+        if (!retMap.has(g.podium_1_3_contestant_id)) {
+          retMap.set(g.podium_1_3_contestant_id, [])
         }
-        if (!(g.podium_2_1_contestant_id in retMap)) {
-          retMap[g.podium_2_1_contestant_id] = []
+        if (!retMap.has(g.podium_2_1_contestant_id)) {
+          retMap.set(g.podium_2_1_contestant_id, [])
         }
-        if (!(g.podium_2_2_contestant_id in retMap)) {
-          retMap[g.podium_2_2_contestant_id] = []
+        if (!retMap.has(g.podium_2_2_contestant_id)) {
+          retMap.set(g.podium_2_2_contestant_id, [])
         }
-        if (!(g.podium_2_3_contestant_id in retMap)) {
-          retMap[g.podium_2_3_contestant_id] = []
+        if (!retMap.has(g.podium_2_3_contestant_id)) {
+          retMap.set(g.podium_2_3_contestant_id, [])
         }
-        if (!(g.podium_3_1_contestant_id in retMap)) {
-          retMap[g.podium_3_1_contestant_id] = []
+        if (!retMap.has(g.podium_3_1_contestant_id)) {
+          retMap.set(g.podium_3_1_contestant_id, [])
         }
-        if (!(g.podium_3_2_contestant_id in retMap)) {
-          retMap[g.podium_3_2_contestant_id] = []
+        if (!retMap.has(g.podium_3_2_contestant_id)) {
+          retMap.set(g.podium_3_2_contestant_id, [])
         }
-        if (!(g.podium_3_3_contestant_id in retMap)) {
-          retMap[g.podium_3_3_contestant_id] = []
+        if (!retMap.has(g.podium_3_3_contestant_id)) {
+          retMap.set(g.podium_3_3_contestant_id, [])
         }
-        if (!retMap[g.podium_1_1_contestant_id].includes(g.podium_1_team_id)) {
-          retMap[g.podium_1_1_contestant_id].push(g.podium_1_team_id)
+        if (!retMap.get(g.podium_1_1_contestant_id).includes(g.podium_1_team_id)) {
+          retMap.get(g.podium_1_1_contestant_id).push(g.podium_1_team_id)
         }
-        if (!retMap[g.podium_1_2_contestant_id].includes(g.podium_1_team_id)) {
-          retMap[g.podium_1_2_contestant_id].push(g.podium_1_team_id)
+        if (!retMap.get(g.podium_1_2_contestant_id).includes(g.podium_1_team_id)) {
+          retMap.get(g.podium_1_2_contestant_id).push(g.podium_1_team_id)
         }
-        if (!retMap[g.podium_1_3_contestant_id].includes(g.podium_1_team_id)) {
-          retMap[g.podium_1_3_contestant_id].push(g.podium_1_team_id)
+        if (!retMap.get(g.podium_1_3_contestant_id).includes(g.podium_1_team_id)) {
+          retMap.get(g.podium_1_3_contestant_id).push(g.podium_1_team_id)
         }
-        if (!retMap[g.podium_2_1_contestant_id].includes(g.podium_2_team_id)) {
-          retMap[g.podium_2_1_contestant_id].push(g.podium_2_team_id)
+        if (!retMap.get(g.podium_2_1_contestant_id).includes(g.podium_2_team_id)) {
+          retMap.get(g.podium_2_1_contestant_id).push(g.podium_2_team_id)
         }
-        if (!retMap[g.podium_2_2_contestant_id].includes(g.podium_2_team_id)) {
-          retMap[g.podium_2_2_contestant_id].push(g.podium_2_team_id)
+        if (!retMap.get(g.podium_2_2_contestant_id).includes(g.podium_2_team_id)) {
+          retMap.get(g.podium_2_2_contestant_id).push(g.podium_2_team_id)
         }
-        if (!retMap[g.podium_2_3_contestant_id].includes(g.podium_2_team_id)) {
-          retMap[g.podium_2_3_contestant_id].push(g.podium_2_team_id)
+        if (!retMap.get(g.podium_2_3_contestant_id).includes(g.podium_2_team_id)) {
+          retMap.get(g.podium_2_3_contestant_id).push(g.podium_2_team_id)
         }
-        if (!retMap[g.podium_3_1_contestant_id].includes(g.podium_3_team_id)) {
-          retMap[g.podium_3_1_contestant_id].push(g.podium_3_team_id)
+        if (!retMap.get(g.podium_3_1_contestant_id).includes(g.podium_3_team_id)) {
+          retMap.get(g.podium_3_1_contestant_id).push(g.podium_3_team_id)
         }
-        if (!retMap[g.podium_3_2_contestant_id].includes(g.podium_3_team_id)) {
-          retMap[g.podium_3_2_contestant_id].push(g.podium_3_team_id)
+        if (!retMap.get(g.podium_3_2_contestant_id).includes(g.podium_3_team_id)) {
+          retMap.get(g.podium_3_2_contestant_id).push(g.podium_3_team_id)
         }
-        if (!retMap[g.podium_3_3_contestant_id].includes(g.podium_3_team_id)) {
-          retMap[g.podium_3_3_contestant_id].push(g.podium_3_team_id)
+        if (!retMap.get(g.podium_3_3_contestant_id).includes(g.podium_3_team_id)) {
+          retMap.get(g.podium_3_3_contestant_id).push(g.podium_3_team_id)
         }
       }
     }
@@ -412,6 +412,21 @@ function teamLink (contestant_id, contestant_name) {
     '">' + contestant_name + '</a>'
 }
 
+function teamContestantLink (contestant_id, contestant_name) {
+  const teamId = contestantIdToTeamIdMap.value.get(contestant_id)[0]
+  const contestant_idx = teamIdToContestantIdMap.value.get(teamId).indexOf(contestant_id)
+  const teamColorValue = teamColor.value(teamId)
+  var contestantColorValue = teamColorValue
+  if (contestant_idx == 0) contestantColorValue = d3.color(contestantColorValue).darker(0.7)
+  if (contestant_idx == 1) contestantColorValue = d3.color(contestantColorValue).brighter(0.5)
+  if (contestant_idx == 2) contestantColorValue = d3.color(contestantColorValue).brighter(1.0)
+  return '<span style="color: ' + 
+    contestantColorValue + 
+    '">&#9632;</span>&nbsp;<a href="/team.html?team_id=' + 
+    contestant_id + 
+    '">' + contestant_name + '</a> (' + teamDataById.value.get(teamId).name + ')'
+}
+
 //Tables
 const roundOptionLabels = data.computedIfRefHasValue(displayRounds, dr => ['Full Game', 'J! Round', 'DJ! Round'].concat(dr >= 3 ? ['TJ! Round'] : []))
 const selectedRoundIndex = ref(0)
@@ -480,10 +495,11 @@ const contestantSpecificationConstructor = periodUtil.constructSpecificationCons
   standardBaseScoringTableData,
   baseScoringTableAggregation,
   baseScoringTableDisplayFunction,
-  contestantLink,
+  isPopCulture() ? teamContestantLink : contestantLink,
   row => row.contestant_id,
   g => g.winning_contestant_id,
-  'Contestant'
+  'Contestant',
+  !isPopCulture()
 )
 
 

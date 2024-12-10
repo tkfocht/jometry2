@@ -101,7 +101,8 @@ const constructSpecificationConstuctors = function(
   competitorLink,
   competitorIdFn,
   winningCompetitorIdFn,
-  competitorLabel
+  competitorLabel,
+  includeWinners = true
 ) {
   const constructScoringTableSpecification = function(attrSpecs) {
     return computedIfRefHasValues(
@@ -135,9 +136,14 @@ const constructSpecificationConstuctors = function(
 
         var footerRows = [
           [ { value: 'Selected' } ],
-          [ { value: 'All' } ],
-          [ { value: 'Winners' } ]
+          [ { value: 'All' } ]
         ]
+        if (includeWinners) {
+          footerRows = footerRows.concat([
+            [ { value: 'Winners' } ]
+          ])
+        }
+        
 
         footerRows[0] = footerRows[0].concat(attrSpecs.map(attr => {
           const competitorIds = baseRows.map(competitorIdFn)
@@ -154,13 +160,15 @@ const constructSpecificationConstuctors = function(
           }
         }))
 
-        footerRows[2] = footerRows[2].concat(attrSpecs.map(attr => {
-          const gcses = [...gcsData.values()].flatMap(l => l).filter(gcs => winningCompetitorIdFn(gData.get(gcs.game_id)) === competitorIdFn(gcs))
-          return {
-            value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
-          }
-        }))
-
+        if (includeWinners) {
+          footerRows[2] = footerRows[2].concat(attrSpecs.map(attr => {
+            const gcses = [...gcsData.values()].flatMap(l => l).filter(gcs => winningCompetitorIdFn(gData.get(gcs.game_id)) === competitorIdFn(gcs))
+            return {
+              value: attrDisplayFn(attr)(aggrFn(gcses.map(attr.generatingFunction)))
+            }
+          }))
+        }
+        
         return {
           columns: columns,
           rows: rows,
