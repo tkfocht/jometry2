@@ -429,7 +429,7 @@ function teamLink (contestant_id, contestant_name) {
 function teamContestantLink (contestant_id, contestant_name) {
   return '<span style="color: ' + 
     teamContestantColor.value(contestant_id) + 
-    '">&#9632;</span>&nbsp;<a href="/team.html?team_id=' + 
+    '">&#9632;</span>&nbsp;<a href="/contestant.html?contestant_id=' + 
     contestant_id + 
     '">' + contestant_name + '</a> (' + teamDataById.value.get(contestantIdToTeamIdMap.value.get(contestant_id)[0]).name + ')'
 }
