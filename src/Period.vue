@@ -151,7 +151,14 @@ const gameDataById = data.computedIfRefHasValue(gameData, gData => d3.index(gDat
 const gameIds = data.computedIfRefHasValue(gameData, gData => gData.map(g => g.game_id))
 const contestantDataById = data.contestantDataById
 const teamDataById = data.teamDataById
-const contestantIds = data.computedIfRefHasValue(gameData, gData => [...new Set(gData.flatMap(g => [g.podium_1_contestant_id, g.podium_2_contestant_id, g.podium_3_contestant_id]))])
+const contestantIds = data.computedIfRefHasValue(
+  gameData,
+  gData => [...new Set(gData.flatMap(g => [
+    g.podium_1_contestant_id, g.podium_2_contestant_id, g.podium_3_contestant_id,
+    g.podium_1_1_contestant_id, g.podium_1_2_contestant_id, g.podium_1_3_contestant_id,
+    g.podium_2_1_contestant_id, g.podium_2_2_contestant_id, g.podium_2_3_contestant_id,
+    g.podium_3_1_contestant_id, g.podium_3_2_contestant_id, g.podium_3_3_contestant_id,
+  ]))].filter(cid => !_.isNil(cid)))
 const gameStatData = data.computedIfRefHasValues([data.gameStatData, gameIds], (gsData, gIds) => gsData.filter(gs => gIds.includes(gs.game_id)))
 const gameStatDataById = data.computedIfRefHasValue(gameStatData, gsData => d3.index(gsData, gs => gs.game_id))
 const gameContestantStatData = data.computedIfRefHasValues([data.gameContestantStatData, gameIds], (gcsData, gIds) => gcsData.filter(gs => gIds.includes(gs.game_id)))
@@ -175,6 +182,53 @@ const gameTeamStatDataByGameIdAndTeamId = data.computedIfRefHasValue(gameTeamSta
 const gameRoundTeamStatDataByRoundIdTeamId = data.computedIfRefHasValues(
     [data.gameRoundTeamStatData, gameIds],
     (gcsData, gIds) => d3.group(gcsData.filter(gr => gIds.includes(gr.game_id)), r => r.round_of_game, r => r.team_id))
+
+const teamIdToContestantIdMap = data.computedIfRefHasValue(gameData,
+  gData => {
+    var retMap = {}
+    for (var g of gData) {
+      if (g.podium_1_team_id !== undefined) {
+        if (!(g.podium_1_team_id in retMap)) {
+          retMap[g.podium_1_team_id] = []
+        }
+        if (!(g.podium_2_team_id in retMap)) {
+          retMap[g.podium_2_team_id] = []
+        }
+        if (!(g.podium_3_team_id in retMap)) {
+          retMap[g.podium_3_team_id] = []
+        }
+        if (!retMap[g.podium_1_team_id].includes(g.podium_1_1_contestant_id)) {
+          retMap[g.podium_1_team_id].push(g.podium_1_1_contestant_id)
+        }
+        if (!retMap[g.podium_1_team_id].includes(g.podium_1_2_contestant_id)) {
+          retMap[g.podium_1_team_id].push(g.podium_1_2_contestant_id)
+        }
+        if (!retMap[g.podium_1_team_id].includes(g.podium_1_3_contestant_id)) {
+          retMap[g.podium_1_team_id].push(g.podium_1_3_contestant_id)
+        }
+        if (!retMap[g.podium_2_team_id].includes(g.podium_2_1_contestant_id)) {
+          retMap[g.podium_2_team_id].push(g.podium_2_1_contestant_id)
+        }
+        if (!retMap[g.podium_2_team_id].includes(g.podium_2_2_contestant_id)) {
+          retMap[g.podium_2_team_id].push(g.podium_2_2_contestant_id)
+        }
+        if (!retMap[g.podium_2_team_id].includes(g.podium_2_3_contestant_id)) {
+          retMap[g.podium_2_team_id].push(g.podium_2_3_contestant_id)
+        }
+        if (!retMap[g.podium_3_team_id].includes(g.podium_3_1_contestant_id)) {
+          retMap[g.podium_3_team_id].push(g.podium_3_1_contestant_id)
+        }
+        if (!retMap[g.podium_3_team_id].includes(g.podium_3_2_contestant_id)) {
+          retMap[g.podium_3_team_id].push(g.podium_3_2_contestant_id)
+        }
+        if (!retMap[g.podium_3_team_id].includes(g.podium_3_3_contestant_id)) {
+          retMap[g.podium_3_team_id].push(g.podium_3_3_contestant_id)
+        }
+      }
+    }
+    return retMap
+  }
+)
 
 const summaryDataConstructed = periodUtil.summaryDataConstructor(
   gameData,
@@ -296,11 +350,9 @@ const buildBaseScoringTableData = function(rIdx, gcsDataByCId, grcsDataByRIdCId)
 const standardBaseScoringTableData = data.computedIfRefHasValues(
   [selectedRoundIndex, gameContestantStatDataByContestantId, gameRoundContestantStatDataByRoundIdContestantId],
   (rIdx, gcsDataByCId, grcsDataByRIdCId) => buildBaseScoringTableData(rIdx, gcsDataByCId, grcsDataByRIdCId))
-const popCultureBaseScoringTableData = data.computedIfRefHasValues(
+const teamBaseScoringTableData = data.computedIfRefHasValues(
   [selectedRoundIndex, gameTeamStatDataByTeamId, gameRoundTeamStatDataByRoundIdTeamId],
   (rIdx, gcsDataByCId, grcsDataByRIdCId) => buildBaseScoringTableData(rIdx, gcsDataByCId, grcsDataByRIdCId))
-
-const baseScoringTableData = isPopCulture() ? popCultureBaseScoringTableData : standardBaseScoringTableData
 
 const baseScoringTableAggregation = data.computedIfRefHasValue(
   selectedAggregationIndex, idx => [d3.mean, d3.sum, d3.max, d3.median, d3.min][idx])
@@ -327,58 +379,55 @@ const buildBaseScoringTableRow = function(displayCompetitorIds, competitorSort, 
 const standardBaseScoringTableRows = data.computedIfRefHasValues(
   [displayContestantIds, contestantSort, contestantWins],
   (cIds, cSort, cWins) => buildBaseScoringTableRow(cIds, cSort, cWins, 'contestant_id'))
-const popCultureBaseScoringTableRows = data.computedIfRefHasValues(
+const teamBaseScoringTableRows = data.computedIfRefHasValues(
   [displayTeamIds, teamSort, teamWins],
   (cIds, cSort, cWins) => buildBaseScoringTableRow(cIds, cSort, cWins, 'team_id'))
 
-const baseScoringTableRows = isPopCulture() ? popCultureBaseScoringTableRows : standardBaseScoringTableRows
-
-const constructSpecificationConstructors = isPopCulture() ?
-  periodUtil.constructSpecificationConstuctors(
-    baseScoringTableRows,
-    gameDataById,
-    teamDataById,
-    baseScoringTableData,
-    baseScoringTableAggregation,
-    baseScoringTableDisplayFunction,
-    teamLink,
-    row => row.team_id,
-    g => g.winning_team_id,
-    'Team'
-  ) : periodUtil.constructSpecificationConstuctors(
-    baseScoringTableRows,
-    gameDataById,
-    contestantDataById,
-    baseScoringTableData,
-    baseScoringTableAggregation,
-    baseScoringTableDisplayFunction,
-    contestantLink,
-    row => row.contestant_id,
-    g => g.winning_contestant_id,
-    'Contestant'
-  )
-const constructScoringTableSpecification = constructSpecificationConstructors.constructScoringTableSpecification
+const teamSpecificationConstructor = periodUtil.constructSpecificationConstuctors(
+  teamBaseScoringTableRows,
+  gameDataById,
+  teamDataById,
+  teamBaseScoringTableData,
+  baseScoringTableAggregation,
+  baseScoringTableDisplayFunction,
+  teamLink,
+  row => row.team_id,
+  g => g.winning_team_id,
+  'Team'
+)
+const contestantSpecificationConstructor = periodUtil.constructSpecificationConstuctors(
+  standardBaseScoringTableRows,
+  gameDataById,
+  contestantDataById,
+  standardBaseScoringTableData,
+  baseScoringTableAggregation,
+  baseScoringTableDisplayFunction,
+  contestantLink,
+  row => row.contestant_id,
+  g => g.winning_contestant_id,
+  'Contestant'
+)
 
 
 const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
   gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
   gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
-const standardScoringTableSpec = constructScoringTableSpecification(standardScoringAttributes)
+const standardScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
     gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
     gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
-const conversionScoringTableSpec = constructScoringTableSpecification(conversionScoringAttributes)
+const conversionScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
 
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
     gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
     gcsAttributes.time_value, gcsAttributes.time_score,
     gcsAttributes.solo_value, gcsAttributes.solo_score]
-const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
+const conversionValueScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
 
 const slimConversionScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
-const slimConversionScoringTableSpec = constructScoringTableSpecification(slimConversionScoringAttributes)
+const slimConversionScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(slimConversionScoringAttributes)
 
 
 //Stacked bars
@@ -715,6 +764,8 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
 
 <template>
   <Header />
+  {{ contestantIds }}
+  {{ teamIdToContestantIdMap }}
   <div class="component-body" :data-bs-theme="subdomainIdentifier()">
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} Qual Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>

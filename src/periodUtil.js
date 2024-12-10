@@ -95,6 +95,7 @@ const constructSpecificationConstuctors = function(
       [baseScoringTableRows, gameDataById, competitorDataById,
         baseScoringTableData, baseScoringTableAggregation, baseScoringTableDisplayFunction],
       (baseRows, gData, cData, gcsData, aggrFn, attrDisplayFn) => {
+        console.log(baseRows)
         var columns = [
           {
             label: competitorLabel + ' (Wins)'
@@ -107,6 +108,7 @@ const constructSpecificationConstuctors = function(
 
         var rows = baseRows.map(baseRow => {
           const cid = competitorIdFn(baseRow)
+          console.log(baseRow)
           var row = [
             {
               value: competitorLink(cid, cData.get(cid).name) + '&nbsp;(' + baseRow.wins + ')',
