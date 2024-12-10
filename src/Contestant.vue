@@ -56,7 +56,14 @@ const playClassificationPeriods = data.computedIfRefHasValue(
     const periodIds = Array.from(cgs.keys())
     return periodIds.flatMap(pid => Array.from(cgs.get(pid).keys()).map(pctype => [pid, pctype]))
   })
-const playClassificationPeriodIdx = ref(0)
+const selectedPlayClassificationPeriodIdx = ref(-1)
+const defaultPlayClassificationPeriodIdx = data.computedIfRefHasValue(
+  playClassificationPeriods,
+  pcps => pcps.findLastIndex(pcp => pcp[1] === 'regular') >= 0 ? pcps.findLastIndex(pcp => pcp[1] === 'regular') : 0
+)
+const playClassificationPeriodIdx = data.computedIfRefHasValues(
+  [selectedPlayClassificationPeriodIdx, defaultPlayClassificationPeriodIdx],
+  (selectedIdx, defaultIdx) => selectedIdx >= 0 ? selectedIdx : defaultIdx)
 const playClassificationPeriod = data.computedIfRefHasValue(playClassificationPeriods, pcp => pcp[playClassificationPeriodIdx.value])
 const displayRounds = data.computedIfRefHasValue(playClassificationPeriod, pcp => pcp[1] === 'celebrity' ? 3 : 2)
 
@@ -66,7 +73,7 @@ const singleTeamData = data.computedIfRefHasValue(data.teamDataById, cData => cD
 const singleCompetitorData = isPopCultureTeam ? singleTeamData : singleContestantData
 
 const gameIds = data.computedIfRefHasValues([allGameData, playClassificationPeriod],
-  (gData, pcp) => gData.filter(g => g.toc_period === pcp[0] && g.play_classification === pcp[1]).map(g => g.game_id))
+  (gData, pcp) => gData.filter(g => (g.toc_period === pcp[0] || (g.toc_period_2 ? g.toc_period_2.toString() : undefined) === pcp[0]) && g.play_classification === pcp[1]).map(g => g.game_id))
 
 const gameContestantStatData = data.computedIfRefHasValues(
   [gameIds, data.gameContestantStatData],
@@ -403,7 +410,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
             :optionLabels="playClassificationPeriods.map(pcp => playClassificationNameByTocPeriod(pcp[1], pcp[0]) + ' (' + pcp[[0]] + (pcp[[0]][0] == '2' ? ' TOC' : '') + ')')"
             :selectionIndex="playClassificationPeriodIdx"
             @newSelectionIndex="(idx) => {
-              playClassificationPeriodIdx = idx
+              selectedPlayClassificationPeriodIdx = idx
               histogramGraphAttributeSelectedIdx = -1
               xScatterGraphAttributeSelectedIdx = -1
               yScatterGraphAttributeSelectedIdx = -1

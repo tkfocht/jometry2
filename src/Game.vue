@@ -497,7 +497,7 @@ const teamHistogramSpecification = computed(() => {
           </div>
           <div class="caption-stack">
             <div class="caption">TOC Period</div>
-            <div class="value">{{ gameData?.toc_period }}</div>
+            <div class="value">{{ gameData?.toc_period }}<span v-if="gameData?.toc_period_2">/{{ gameData?.toc_period_2 }}</span></div>
           </div>
         </div>
         <div class="overview-row">

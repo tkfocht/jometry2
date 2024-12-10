@@ -108,7 +108,7 @@ const gameFilter = computed(() => {
     d => seasonSearchParameters.value.includes(d.season_id)
   const satisfiesTocPeriod = tocPeriodSearchParameters.value.length === 0 ? 
     d => true :
-    d => tocPeriodSearchParameters.value.includes(d.toc_period)
+    d => tocPeriodSearchParameters.value.includes(d.toc_period) || tocPeriodSearchParameters.value.includes(d.toc_period_2 ? d.toc_period_2.toString() : undefined)
   const satisfiesPlayClassification = playClassificationSearchParameters.value.length === 0 ? 
     d => true :
     d => playClassificationSearchParameters.value.includes(d.play_classification)
@@ -187,7 +187,7 @@ const tableSpec = data.computedIfRefHasValues(
           sortValue: cData.get(g.podium_3_contestant_id).name
         },
         {
-          value: g.toc_period,
+          value: g.toc_period + (g.toc_period_2 ? '/' + g.toc_period_2 : ''),
           sortValue: g.toc_period
         },
         {
