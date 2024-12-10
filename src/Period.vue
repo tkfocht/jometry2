@@ -396,6 +396,20 @@ const teamColor = computed(() => {
   }
 })
 
+const teamContestantColor = data.computedIfRefHasValues(
+  [contestantIdToTeamIdMap, teamIdToContestantIdMap, teamColor],
+  (cToT, tToC, tColor) => (cid => {
+    const teamId = cToT.get(cid)[0]
+    const contestant_idx = tToC.get(teamId).indexOf(cid)
+    const teamColorValue = tColor(teamId)
+    var contestantColorValue = teamColorValue
+    if (contestant_idx == 0) contestantColorValue = d3.color(contestantColorValue).darker(0.7)
+    if (contestant_idx == 1) contestantColorValue = d3.color(contestantColorValue).brighter(0.5)
+    if (contestant_idx == 2) contestantColorValue = d3.color(contestantColorValue).brighter(1.0)
+    return contestantColorValue
+  })
+)
+
 function contestantLink (contestant_id, contestant_name) {
   return '<span style="color: ' + 
     color.value(contestant_id) + 
@@ -413,18 +427,11 @@ function teamLink (contestant_id, contestant_name) {
 }
 
 function teamContestantLink (contestant_id, contestant_name) {
-  const teamId = contestantIdToTeamIdMap.value.get(contestant_id)[0]
-  const contestant_idx = teamIdToContestantIdMap.value.get(teamId).indexOf(contestant_id)
-  const teamColorValue = teamColor.value(teamId)
-  var contestantColorValue = teamColorValue
-  if (contestant_idx == 0) contestantColorValue = d3.color(contestantColorValue).darker(0.7)
-  if (contestant_idx == 1) contestantColorValue = d3.color(contestantColorValue).brighter(0.5)
-  if (contestant_idx == 2) contestantColorValue = d3.color(contestantColorValue).brighter(1.0)
   return '<span style="color: ' + 
-    contestantColorValue + 
+    teamContestantColor.value(contestant_id) + 
     '">&#9632;</span>&nbsp;<a href="/team.html?team_id=' + 
     contestant_id + 
-    '">' + contestant_name + '</a> (' + teamDataById.value.get(teamId).name + ')'
+    '">' + contestant_name + '</a> (' + teamDataById.value.get(contestantIdToTeamIdMap.value.get(contestant_id)[0]).name + ')'
 }
 
 //Tables
@@ -531,7 +538,7 @@ const teamSlimConversionScoringTableSpec = teamSpecificationConstructor.construc
 
 
 //Stacked bars
-const buildStackedBarSpecificationLambda = function(yAttrsInput) {
+const buildStackedBarSpecificationLambda = function(yAttrsInput, colorFn) {
   return (cids, cData, gcsData, displayGcsData, allGcsData, winGcsData, hasAttempt) => {
     const yAttrs = hasAttempt ? yAttrsInput.slice(0,3) : yAttrsInput.slice(0,2)
     const dataSet = cids.map(cid => ({
@@ -565,7 +572,7 @@ const buildStackedBarSpecificationLambda = function(yAttrsInput) {
       xCoreLabelFunction: d => cData.get(d.contestant_id).name,
       xGroupLabels: [],
       yFunctionGroups: [d3.range(0, yAttrs.length).map(i => (d => d.displayValues[i]))],
-      colorFunction: d => color.value(d.contestant_id),
+      colorFunction: d => colorFn.value(d.contestant_id),
       sortFunction: (a, b) => d3.descending(a.values[0], b.values[0]),
       displayLimit: graphDisplayLimit.value,
       yLabel: yAttrs.map(attr => attr.short_label).join(' -> '),
@@ -577,12 +584,22 @@ const buildStackedBarSpecificationLambda = function(yAttrsInput) {
 const attemptBarChartSpecification = data.computedIfRefHasValues(
   [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId,
     displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData, anyGameHasAttemptData],
-  buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att]))
+  buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], isPopCulture() ? teamContestantColor : color))
+
+const teamAttemptBarChartSpecification = data.computedIfRefHasValues(
+  [displayTeamIds, teamDataById, gameTeamStatDataByTeamId,
+    displayTeamGameTeamStatData, gameTeamStatData, winnerTeamGameTeamStatData, anyGameHasAttemptData],
+  buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], teamColor))
 
 const attemptValueBarChartSpecification = data.computedIfRefHasValues(
   [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId,
     displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData, anyGameHasAttemptData],
-  buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value]))
+  buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], isPopCulture() ? teamContestantColor : color))
+
+const teamAttemptValueBarChartSpecification = data.computedIfRefHasValues(
+  [displayTeamIds, teamDataById, gameTeamStatDataByTeamId,
+    displayTeamGameTeamStatData, gameTeamStatData, winnerTeamGameTeamStatData, anyGameHasAttemptData],
+  buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], teamColor))
 
 //Charts
 const totalAttemptsChartSpecification = data.computedIfRefHasValues(
@@ -664,7 +681,7 @@ const boxWhiskerGraphSpecification = data.computedIfRefHasValues(
       xLabel: k => cData.get(k).name,
       yFunction: attr.generatingFunction,
       yLabel: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
-      idColorFunction: color.value,
+      idColorFunction: isPopCulture() ? teamContestantColor.value : color.value,
       title: attr.label,
       additionalBoxes: [
         {
@@ -672,6 +689,41 @@ const boxWhiskerGraphSpecification = data.computedIfRefHasValues(
           color: 'black',
           yLabel: d => cData.get(d.contestant_id).name + ' ' + gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
           filter: d => !cids.includes(d.contestant_id)
+        }
+      ]
+    }
+  }
+)
+
+const teamBoxWhiskerGraphSpecification = data.computedIfRefHasValues(
+  [displayTeamIds, teamDataById, gameDataById, gameTeamStatDataByTeamId, boxWhiskerGraphAttribute],
+  (cids, cData, gData, gcsData, attr) => {
+    cids = cids.filter(cid => {
+      return gcsData.get(cid).some(gcs => !_.isNil(attr.generatingFunction(gcs)))
+    })
+    cids.sort((a,b) => d3.descending(
+      d3.mean(gcsData.get(a).map(attr.generatingFunction)),
+      d3.mean(gcsData.get(b).map(attr.generatingFunction))
+    ))
+    if (teamGraphDisplayLimit.value) {
+      cids = cids.slice(0, teamGraphDisplayLimit.value)
+    }
+    console.log(cids)
+    console.log(cData)
+    return {
+      dataByKey: gcsData,
+      orderedKeys: cids,
+      xLabel: k => cData.get(k).name,
+      yFunction: attr.generatingFunction,
+      yLabel: d => gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+      idColorFunction: teamColor.value,
+      title: attr.label,
+      additionalBoxes: [
+        {
+          label: 'All Others',
+          color: 'black',
+          yLabel: d => cData.get(d.team_id).name + ' ' + gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+          filter: d => !cids.includes(d.team_id)
         }
       ]
     }
@@ -697,7 +749,7 @@ const yScatterGraphAttributeIdx = data.computedIfRefHasValues(
 const xScatterGraphAttribute = data.computedIfRefHasValues([scatterGraphAttributes, xScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const yScatterGraphAttribute = data.computedIfRefHasValues([scatterGraphAttributes, yScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const scatterGraphSpecification = data.computedIfRefHasValues(
-  [displayContestantIds, contestantDataById, gameDataById, gameContestantStatData, xScatterGraphAttribute, yScatterGraphAttribute, color],
+  [displayContestantIds, contestantDataById, gameDataById, gameContestantStatData, xScatterGraphAttribute, yScatterGraphAttribute, isPopCulture() ? teamContestantColor : color],
   (cids, cData, gData, gcsData, xAttr, yAttr, colorFunction) => {
     return {
       histogramData: gcsData,
@@ -718,7 +770,52 @@ const scatterGraphSpecification = data.computedIfRefHasValues(
 
 
 const averageScatterGraphSpecification = data.computedIfRefHasValues(
-  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId, xScatterGraphAttribute, yScatterGraphAttribute, color],
+  [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId, xScatterGraphAttribute, yScatterGraphAttribute, isPopCulture() ? teamContestantColor : color],
+  (cids, cData, gcsData, xAttr, yAttr, colorFunction) => {
+    const gcsDataTransformed = transformValues(gcsData, gcsArray => [
+      d3.mean(gcsArray.map(xAttr.generatingFunction)),
+      d3.mean(gcsArray.map(yAttr.generatingFunction))
+    ])
+    const gcsDataForDisplay = [...gcsDataTransformed].map(([k, vs]) => [k].concat(vs))
+    return {
+      histogramData: gcsDataForDisplay,
+      scatterData: gcsDataForDisplay.filter(gcs => cids.includes(gcs[0])),
+      scatterLabelFunction: d => cData.get(d[0]).name,
+      scatterColorFunction: d => colorFunction(d[0]),
+      title: 'Average ' + xAttr.label + ' vs ' + yAttr.label,
+      xLabel: xAttr.label,
+      xFunction: d => d[1],
+      xBins: xAttr.bins ? xAttr.bins : {},
+      yLabel: yAttr.label,
+      yFunction: d => d[2],
+      yBins: yAttr.bins ? yAttr.bins : {}
+    }
+  }
+)
+
+const teamScatterGraphSpecification = data.computedIfRefHasValues(
+  [displayTeamIds, teamDataById, gameDataById, gameTeamStatData, xScatterGraphAttribute, yScatterGraphAttribute, teamColor],
+  (cids, cData, gData, gcsData, xAttr, yAttr, colorFunction) => {
+    return {
+      histogramData: gcsData,
+      scatterData: gcsData.filter(gcs => cids.includes(gcs.team_id)),
+      scatterLabelFunction: d => cData.get(d.team_id).name + ' ' + gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+      scatterColorFunction: d => colorFunction(d.team_id),
+      title: xAttr.label + ' vs ' + yAttr.label,
+      xLabel: xAttr.label,
+      xFunction: xAttr.generatingFunction,
+      xBins: xAttr.bins ? xAttr.bins : {},
+      yLabel: yAttr.label,
+      yFunction: yAttr.generatingFunction,
+      yBins: yAttr.bins ? yAttr.bins : {},
+      scatterMode: 'markers'
+    }
+  }
+)
+
+
+const teamAverageScatterGraphSpecification = data.computedIfRefHasValues(
+  [displayTeamIds, teamDataById, gameTeamStatDataByTeamId, xScatterGraphAttribute, yScatterGraphAttribute, teamColor],
   (cids, cData, gcsData, xAttr, yAttr, colorFunction) => {
     const gcsDataTransformed = transformValues(gcsData, gcsArray => [
       d3.mean(gcsArray.map(xAttr.generatingFunction)),
@@ -960,12 +1057,14 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
         <SortableTable v-bind="slimConversionScoringTableSpec" />
       </div>
     </div>
-    <div class="section" v-if="isSyndicated()">
+    <div class="section">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
+      <StackValueBarChart v-if="teamAttemptBarChartSpecification" v-bind="teamAttemptBarChartSpecification" />
       <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
-    <div class="section" v-if="isSyndicated()">
+    <div class="section">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempt Values</span><span v-else>Buzz Values</span></div>
+      <StackValueBarChart v-if="teamAttemptValueBarChartSpecification" v-bind="teamAttemptValueBarChartSpecification" />
       <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
     <div class="section" v-if="isSyndicated() && anyGameHasAttemptData">
@@ -985,13 +1084,13 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
       </div>
       <LineChart v-bind="rollingChartSpecification" />
     </div>
-    <div class="section" v-if="isSyndicated()">
+    <div class="section">
       <div class="section-header">Daily Double Heatmaps</div>
       <div v-for="(dailyDoubleAbsoluteLocationHeatmapChartSpec, index) in dailyDoubleAbsoluteLocationHeatmapChartSpecs">
         <ReactiveChart :chart="dailyDoubleAbsoluteLocationHeatmapChartSpec"/>
       </div>
     </div>
-    <div class="section" v-if="isSyndicated() && boxWhiskerGraphSpecification">
+    <div class="section" v-if="boxWhiskerGraphAttributes">
       <div class="section-header">Selectable Box and Whisker Plots</div>
       <div class="option-groups">
         <OptionDropdown
@@ -1000,9 +1099,10 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
           @newSelectionIndex="(idx) => boxWhiskerGraphAttributeSelectedIdx = idx"
         />
       </div>
-      <BoxWhiskerChart v-bind="boxWhiskerGraphSpecification" />
+      <BoxWhiskerChart v-if="teamBoxWhiskerGraphSpecification" v-bind="teamBoxWhiskerGraphSpecification" />
+      <BoxWhiskerChart v-if="boxWhiskerGraphSpecification" v-bind="boxWhiskerGraphSpecification" />
     </div>
-    <div class="section" v-if="isSyndicated() && scatterGraphSpecification && averageScatterGraphSpecification">
+    <div class="section" v-if="scatterGraphAttributes">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <OptionDropdown
@@ -1016,13 +1116,17 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
           @newSelectionIndex="(idx) => yScatterGraphAttributeSelectedIdx = idx"
         />
       </div>
-      <div class="subsection">
+      <div class="subsection" v-if="isSyndicated()">
         <div class="subsection-header">All Games</div>
-        <ScatterHistogram v-bind="scatterGraphSpecification"/>
+        <ScatterHistogram v-if="scatterGraphSpecification" v-bind="scatterGraphSpecification"/>
+      </div>
+      <div class="subsection" v-if="isPopCulture()">
+        <div class="subsection-header">Average for Team</div>
+        <ScatterHistogram v-if="teamAverageScatterGraphSpecification" v-bind="teamAverageScatterGraphSpecification"/>
       </div>
       <div class="subsection">
-        <div class="subsection-header">Average by Contestant</div>
-        <ScatterHistogram v-bind="averageScatterGraphSpecification"/>
+        <div class="subsection-header">Average for Contestant</div>
+        <ScatterHistogram v-if="averageScatterGraphSpecification" v-bind="averageScatterGraphSpecification"/>
       </div>
     </div>
   </div>

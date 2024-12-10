@@ -57,9 +57,6 @@ const summaryDataConstructor = function(
         if (dcIdParameters.length > 0) {
           return dcIdParameters.map(v => +v)
         }
-        if (cids.length <= 10) {
-          return cids
-        }
         var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min((wins.get(cids[9]) ? wins.get(cids[9]) : 0), 4), cids.length > 21 ? 1 + (wins.get(cids[20]) ? wins.get(cids[20]) : 0) : 0)
         //Okay fine, if anyone ever wins 10001 games this will be a bug,
         //but truthy values are weird when winLimit=0 is a primary case
@@ -77,7 +74,7 @@ const summaryDataConstructor = function(
     )
     const winnerCompetitorGameCompetitorStatData = computedIfRefHasValues(
       [gameDataById, gameCompetitorStatData],
-      (gData, gcsData) => gcsData.filter(gcs => gameWinnerExtractionFn(gData.get(gcs.game_id)) === competitorExtractionFn(gcs))
+      (gData, gcsData) => gcsData.filter(gcs => gameWinnerExtractionFn(gData.get(gcs.game_id)).includes(competitorExtractionFn(gcs)))
     )
     const graphDisplayLimit = ref(graphDisplayLimitString.value ? +graphDisplayLimitString.value : undefined)
     
