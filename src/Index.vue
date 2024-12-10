@@ -37,10 +37,11 @@ const teamData = data.teamDataById
   <Header />
   <div class="component-body" :data-bs-theme="subdomain">
     <div class="alert alert-primary" role="alert" v-if="isSyndicated()">
-      As of the game on December 6, 2024, the site has rolled over to treat the 2026 TOC as the current qualification period.
-      The game on December 5 is currently being treated as part of the 2025 period so that Stevie Ruiz's statistics
-      are fully within that period while the 2025 postseason completes, but will be placed in the 2026
-      period later to put all of Dave Bond's victories within one qualification period.
+      The site has been updated to allow games to fit within two different tournament qualification periods.
+      The beginning of champion runs for Dave Bond, Lucas Patridge, and Luigi de Guzman have been updated to
+      reflect that they took place within a prior period but carried over for the champions to a new period.
+      This addresses inconsistencies of having champions' runs split into two or having part of an SCC field
+      separated from others. 
     </div>
 
     <div v-if="isSyndicated() && gameData && contestantData">
