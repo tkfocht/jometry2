@@ -88,10 +88,6 @@ const gameTeamStatDataByTeamId = data.computedIfRefHasValue(gameTeamStatData, gc
 const singleTeamGameTeamStatData = data.computedIfRefHasValue(gameTeamStatDataByTeamId, gcsData => gcsData.get(teamId))
 const singleTeamGameTeamStatDataByGameId = data.computedIfRefHasValue(singleTeamGameTeamStatData, gcsData => d3.index(gcsData, gcs => gcs.game_id))
 
-const singleCompetitorGameCompetitorStatData = isPopCultureTeam ? singleTeamGameTeamStatData : singleContestantGameContestantStatData
-
-const anyGameHasAttemptData = data.computedIfRefHasValue(singleContestantGameContestantStatData, gcsData => gcsData.some(gData => !_.isNil(gData.att)))
-
 const roundContestantStatData = data.computedIfRefHasValues(
   [gameIds, data.gameRoundContestantStatData],
   (gids, rcsData) => rcsData.filter(rcs => gids.includes(rcs.game_id)))
@@ -126,7 +122,15 @@ const singleTeamRoundTeamStatDataByRoundAndGameId = data.computedIfRefHasValues(
   [roundTeamStatData],
   (rcsData) => d3.index(rcsData, rcs => rcs.team_id, rcs => rcs.round_of_game, rcs => rcs.game_id).get(teamId))
 
-  
+const singleCompetitorGameCompetitorStatData = isPopCultureTeam ? singleTeamGameTeamStatData : singleContestantGameContestantStatData
+const winnerGameCompetitorStatData = isPopCultureTeam ? winnerGameTeamStatData : winnerGameContestantStatData
+const gameCompetitorStatData = isPopCultureTeam ? gameTeamStatData : gameContestantStatData
+const singleCompetitorRoundCompetitorStatData = isPopCultureTeam ? singleTeamRoundTeamStatData : singleContestantRoundContestantStatData
+const winnerRoundCompetitorStatDataByRound = isPopCultureTeam ? winnerRoundTeamStatDataByRound : winnerRoundContestantStatDataByRound
+const roundCompetitorStatDataByRound = isPopCultureTeam ? roundTeamStatDataByRound : roundContestantStatDataByRound
+const anyGameHasAttemptData = data.computedIfRefHasValue(singleCompetitorGameCompetitorStatData, gcsData => gcsData.some(gData => !_.isNil(gData.att)))
+
+
 function gameLink(game_id, season_id, game_of_season) {
   return '<a href="/game.html?game_id=' + 
     game_id + 
@@ -216,8 +220,11 @@ const constructScoringTableSpecification = function(attrSpecs) {
 }
 
 const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
-  gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
-  gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
+    gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection]
+  .concat(isPopCulture() && !isPopCultureTeam ? [] : [gcsAttributes.dd_score])
+  .concat(isPopCulture() ? [gcsAttributes.tp_score] : [])
+  .concat(isPopCulture() && !isPopCultureTeam ? [] : [gcsAttributes.fj_start_score, gcsAttributes.fj_score])
+  .concat([gcsAttributes.fj_final_score])
 const standardScoringTableSpec = constructScoringTableSpecification(standardScoringAttributes)
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
@@ -260,7 +267,7 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title, slimTitle) {
     }))
     const aggregateDataSet = [
       {
-        label: 'Contestant avg',
+        label: isPopCultureTeam ? 'Team avg' : 'Contestant avg',
         values: yAttrsToUse.map(attr => d3.mean(csData.map(attr.generatingFunction))),
         displayValues: yAttrsToUse.map(attr => attr.averageDisplayFormat(d3.mean(csData.map(attr.generatingFunction)))),
         color: threeColorSet[2]
@@ -272,12 +279,15 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title, slimTitle) {
         color: threeColorSet[1]
       },
       {
-        label: 'All contestant avg',
+        label: isPopCultureTeam ? 'All team avg' : 'All contestant avg',
         values: yAttrsToUse.map(attr => d3.mean(allCsData.map(attr.generatingFunction))),
         displayValues: yAttrsToUse.map(attr => attr.averageDisplayFormat(d3.mean(allCsData.map(attr.generatingFunction)))),
         color: 'black'
       }
     ]
+    if (isPopCulture() && !isPopCultureTeam) {
+      aggregateDataSet.splice(1, 1)
+    }
     return {
       data: dataSet,
       aggregateData: aggregateDataSet,
@@ -294,24 +304,25 @@ const buildStackedBarSpecificationLambda = function(yAttrs, title, slimTitle) {
 
 const attemptBarChartRoundIdx = ref(0)
 const attemptBarChartSpecification = data.computedIfRefHasValues(
-  [attemptBarChartRoundIdx, singleContestantGameContestantStatData, data.gameDataById, winnerGameContestantStatData, gameContestantStatData,
-    singleContestantRoundContestantStatData, winnerRoundContestantStatDataByRound, roundContestantStatDataByRound, anyGameHasAttemptData],
+  [attemptBarChartRoundIdx, singleCompetitorGameCompetitorStatData, data.gameDataById, winnerGameCompetitorStatData, gameCompetitorStatData,
+    singleCompetitorRoundCompetitorStatData, winnerRoundCompetitorStatDataByRound, roundCompetitorStatDataByRound, anyGameHasAttemptData],
   buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], 'Attempts', 'Buzzes'))
 
 const attemptValueBarChartRoundIdx = ref(0)
 const attemptValueBarChartSpecification = data.computedIfRefHasValues(
-  [attemptValueBarChartRoundIdx, singleContestantGameContestantStatData, data.gameDataById, winnerGameContestantStatData, gameContestantStatData,
-    singleContestantRoundContestantStatData, winnerRoundContestantStatDataByRound, roundContestantStatDataByRound, anyGameHasAttemptData],
+  [attemptValueBarChartRoundIdx, singleCompetitorGameCompetitorStatData, data.gameDataById, winnerGameCompetitorStatData, gameCompetitorStatData,
+    singleCompetitorRoundCompetitorStatData, winnerRoundCompetitorStatDataByRound, roundCompetitorStatDataByRound, anyGameHasAttemptData],
   buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], 'Attempt Values', 'Buzz Values'))
 
 
 const histogramGraphRoundIdx = ref(0)
-const histogramGraphAttributes = data.computedIfRefHasValue(anyGameHasAttemptData, hasAttempt => hasAttempt ? gcsAttributes.all_attributes : gcsAttributes.attributes_without_att)
+const histogramGraphAttributes = data.computedIfRefHasValue(anyGameHasAttemptData,
+  hasAttempt => isPopCulture() ? gcsAttributes.attributes_for_pop_culture : (hasAttempt ? gcsAttributes.all_attributes : gcsAttributes.attributes_without_att))
 const histogramGraphAttributeSelectedIdx = ref(-1)
 const histogramGraphAttributeIdx = computed(() => histogramGraphAttributeSelectedIdx.value >= 0 ? histogramGraphAttributeSelectedIdx.value : 0)
 const histogramGraphAttribute = data.computedIfRefHasValues([histogramGraphAttributes, histogramGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const histogramSpecification = data.computedIfRefHasValues(
-  [histogramGraphRoundIdx, singleContestantGameContestantStatData, singleContestantRoundContestantStatData, gameContestantStatData, roundContestantStatDataByRound, data.gameDataById, histogramGraphAttribute],
+  [histogramGraphRoundIdx, singleCompetitorGameCompetitorStatData, singleCompetitorRoundCompetitorStatData, gameCompetitorStatData, roundCompetitorStatDataByRound, data.gameDataById, histogramGraphAttribute],
   (rIdx, singleGCSData, singleRCSData, gcsData, rcsData, gData, attr) => {
     var singleCSData = singleGCSData
     var csData = gcsData
@@ -340,12 +351,18 @@ const scatterGraphRoundIdx = ref(0)
 const scatterGraphAttributes = data.computedIfRefHasValue(anyGameHasAttemptData, hasAttempt => hasAttempt ? gcsAttributes.all_attributes : gcsAttributes.attributes_without_att)
 const xScatterGraphAttributeSelectedIdx = ref(-1)
 const yScatterGraphAttributeSelectedIdx = ref(-1)
-const xScatterGraphAttributeIdx = data.computedIfRefHasValue(xScatterGraphAttributeSelectedIdx, idx => idx >= 0 ? idx : 0)
-const yScatterGraphAttributeIdx = data.computedIfRefHasValue(yScatterGraphAttributeSelectedIdx, idx => idx >= 0 ? idx : 2)
+const xScatterGraphAttributeDefaultIdx = data.computedIfRefHasValues(
+  [scatterGraphAttributes, anyGameHasAttemptData],
+  (attrList, hasAttempt) => hasAttempt ? attrList.indexOf(gcsAttributes.att_value) : attrList.indexOf(gcsAttributes.buz_value))
+const xScatterGraphAttributeIdx = data.computedIfRefHasValues([xScatterGraphAttributeSelectedIdx, xScatterGraphAttributeDefaultIdx], (idx, defaultIdx) => idx >= 0 ? idx : defaultIdx)
+const yScatterGraphAttributeDefaultIdx = data.computedIfRefHasValues(
+  [scatterGraphAttributes, anyGameHasAttemptData],
+  (attrList, hasAttempt) => hasAttempt ? attrList.indexOf(gcsAttributes.conversion_value_percent) : attrList.indexOf(gcsAttributes.acc_value_percent))
+const yScatterGraphAttributeIdx = data.computedIfRefHasValues([yScatterGraphAttributeSelectedIdx, yScatterGraphAttributeDefaultIdx], (idx, defaultIdx) => idx >= 0 ? idx : defaultIdx)
 const xScatterGraphAttribute = data.computedIfRefHasValues([scatterGraphAttributes, xScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const yScatterGraphAttribute = data.computedIfRefHasValues([scatterGraphAttributes, yScatterGraphAttributeIdx], (attrList, idx) => attrList[idx])
 const scatterHistogramSpecification = data.computedIfRefHasValues(
-  [scatterGraphRoundIdx, singleContestantGameContestantStatData, singleContestantRoundContestantStatData, gameContestantStatData, roundContestantStatDataByRound, data.gameDataById, xScatterGraphAttribute, yScatterGraphAttribute],
+  [scatterGraphRoundIdx, singleCompetitorGameCompetitorStatData, singleCompetitorRoundCompetitorStatData, gameCompetitorStatData, roundCompetitorStatDataByRound, data.gameDataById, xScatterGraphAttribute, yScatterGraphAttribute],
   (rIdx, singleGCSData, singleRCSData, gcsData, rcsData, gData, xAttr, yAttr) => {
     var singleCSData = singleGCSData
     var csData = gcsData
@@ -452,7 +469,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
         <SortableTable v-if="slimConversionScoringTableSpec" v-bind="slimConversionScoringTableSpec" />
       </div>
     </div>
-    <div v-if="isSyndicated() && singleContestantGameContestantStatData" class="section">
+    <div v-if="singleCompetitorGameCompetitorStatData" class="section">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempts</span><span v-else>Buzzes</span></div>
       <div class="option-groups">
         <OptionDropdown
@@ -462,7 +479,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
       <StackValueBarChart v-if="attemptBarChartSpecification" v-bind="attemptBarChartSpecification" />
     </div>
-    <div v-if="isSyndicated() && singleContestantGameContestantStatData" class="section">
+    <div v-if="singleCompetitorGameCompetitorStatData" class="section">
       <div class="section-header"><span v-if="anyGameHasAttemptData">Attempt Value</span><span v-else>Buzz Value</span></div>
       <div class="option-groups">
         <OptionDropdown
@@ -472,7 +489,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
       <StackValueBarChart v-if="attemptValueBarChartSpecification" v-bind="attemptValueBarChartSpecification" />
     </div>
-    <div class="section" v-if="isSyndicated() && histogramGraphAttributes">
+    <div class="section" v-if="histogramGraphAttributes">
       <div class="section-header">Selectable Histograms</div>
       <div class="option-groups">
         <OptionDropdown
@@ -487,7 +504,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       </div>
       <HighlightHistogramHorizontal v-bind="histogramSpecification" />
     </div>
-    <div class="section" v-if="isSyndicated() && scatterGraphAttributes">
+    <div class="section" v-if="scatterGraphAttributes">
       <div class="section-header">Selectable Scatter Plots</div>
       <div class="option-groups">
         <OptionDropdown
