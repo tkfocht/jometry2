@@ -251,6 +251,16 @@ const dd_score = {
     bins: { size: 500 }
 }
 
+const tp_score = {
+    short_label: 'TP$',
+    label: 'Triple Play Score',
+    description: 'Scoring on Triple Plays',
+    generatingFunction: gcs => gcs.tp_score,
+    valueDisplayFormat: v => formatNumber(v, 0, false),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 500 }
+}
+
 const fj_start_score = {
     short_label: 'PreFJ$',
     label: 'Pre-FJ Score',
@@ -292,9 +302,15 @@ const attributes_without_att = [
     buz_value, buz_score, coryat_score, acc_value_percent,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score, fj_start_score, fj_score, fj_final_score]
 
+const attributes_for_pop_culture = [
+    buz, buzc, acc_percent,
+    buz_value, buz_score, coryat_score, acc_value_percent,
+    dd_found, dd_plus_buzc, dd_plus_selection, dd_score, tp_score, fj_start_score, fj_score, fj_final_score]
+    
 export { att, att_value, att_clue, buz, buz_value, buz_percent, buz_value_percent,
     buzc, buz_score, coryat_score, acc_percent, acc_value_percent, conversion_percent, conversion_value_percent,
     time, time_value, time_score, timing_rating, solo, solo_value, solo_score,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score,
+    tp_score,
     fj_start_score, fj_score, fj_final_score,
-    all_attributes, attributes_without_att };
+    all_attributes, attributes_without_att, attributes_for_pop_culture };

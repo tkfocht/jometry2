@@ -247,9 +247,10 @@ const teamConstructSpecificationConstructor = gameUtil.constructSpecificationCon
   'Team'
 )
 
-const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
-  gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
-  gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
+const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score,
+    gcsAttributes.coryat_score, gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection]
+  .concat(isPopCulture() ? [gcsAttributes.tp_score] : [gcsAttributes.dd_score, gcsAttributes.fj_start_score, gcsAttributes.fj_score])
+  .concat([gcsAttributes.fj_final_score])
 const standardScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
@@ -268,24 +269,24 @@ const slimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.b
 const slimConversionValueScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(slimConversionValueScoringAttributes)
 
 const teamStandardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
-  gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
+  gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score, gcsAttributes.tp_score,
   gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
-const teamStandardScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
+const teamStandardScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamStandardScoringAttributes)
 
 const teamConversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
     gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
     gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
-const teamConversionScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
+const teamConversionScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamConversionScoringAttributes)
 
 const teamConversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
     gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
     gcsAttributes.time_value, gcsAttributes.time_score,
     gcsAttributes.solo_value, gcsAttributes.solo_score]
-const teamConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
+const teamConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamConversionValueScoringAttributes)
 
 const teamSlimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
-const teamSlimConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(slimConversionValueScoringAttributes)
+const teamSlimConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamSlimConversionValueScoringAttributes)
 
 const standardFinalJeopardyMatrixCells = computed(() => {
   if (!jschemaClueContestantStatData.value || !gameRounds.value || !gameContestantIds.value) return [[-1],[-1],[-1],[-1],[-1],[-1],[-1],[-1]]
