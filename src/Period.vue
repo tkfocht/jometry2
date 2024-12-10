@@ -230,9 +230,86 @@ const teamIdToContestantIdMap = data.computedIfRefHasValue(gameData,
   }
 )
 
+const contestantIdToTeamIdMap = data.computedIfRefHasValue(gameData,
+  gData => {
+    var retMap = {}
+    for (var g of gData) {
+      if (g.podium_1_team_id !== undefined) {
+        if (!(g.podium_1_1_contestant_id in retMap)) {
+          retMap[g.podium_1_1_contestant_id] = []
+        }
+        if (!(g.podium_1_2_contestant_id in retMap)) {
+          retMap[g.podium_1_2_contestant_id] = []
+        }
+        if (!(g.podium_1_3_contestant_id in retMap)) {
+          retMap[g.podium_1_3_contestant_id] = []
+        }
+        if (!(g.podium_2_1_contestant_id in retMap)) {
+          retMap[g.podium_2_1_contestant_id] = []
+        }
+        if (!(g.podium_2_2_contestant_id in retMap)) {
+          retMap[g.podium_2_2_contestant_id] = []
+        }
+        if (!(g.podium_2_3_contestant_id in retMap)) {
+          retMap[g.podium_2_3_contestant_id] = []
+        }
+        if (!(g.podium_3_1_contestant_id in retMap)) {
+          retMap[g.podium_3_1_contestant_id] = []
+        }
+        if (!(g.podium_3_2_contestant_id in retMap)) {
+          retMap[g.podium_3_2_contestant_id] = []
+        }
+        if (!(g.podium_3_3_contestant_id in retMap)) {
+          retMap[g.podium_3_3_contestant_id] = []
+        }
+        if (!retMap[g.podium_1_1_contestant_id].includes(g.podium_1_team_id)) {
+          retMap[g.podium_1_1_contestant_id].push(g.podium_1_team_id)
+        }
+        if (!retMap[g.podium_1_2_contestant_id].includes(g.podium_1_team_id)) {
+          retMap[g.podium_1_2_contestant_id].push(g.podium_1_team_id)
+        }
+        if (!retMap[g.podium_1_3_contestant_id].includes(g.podium_1_team_id)) {
+          retMap[g.podium_1_3_contestant_id].push(g.podium_1_team_id)
+        }
+        if (!retMap[g.podium_2_1_contestant_id].includes(g.podium_2_team_id)) {
+          retMap[g.podium_2_1_contestant_id].push(g.podium_2_team_id)
+        }
+        if (!retMap[g.podium_2_2_contestant_id].includes(g.podium_2_team_id)) {
+          retMap[g.podium_2_2_contestant_id].push(g.podium_2_team_id)
+        }
+        if (!retMap[g.podium_2_3_contestant_id].includes(g.podium_2_team_id)) {
+          retMap[g.podium_2_3_contestant_id].push(g.podium_2_team_id)
+        }
+        if (!retMap[g.podium_3_1_contestant_id].includes(g.podium_3_team_id)) {
+          retMap[g.podium_3_1_contestant_id].push(g.podium_3_team_id)
+        }
+        if (!retMap[g.podium_3_2_contestant_id].includes(g.podium_3_team_id)) {
+          retMap[g.podium_3_2_contestant_id].push(g.podium_3_team_id)
+        }
+        if (!retMap[g.podium_3_3_contestant_id].includes(g.podium_3_team_id)) {
+          retMap[g.podium_3_3_contestant_id].push(g.podium_3_team_id)
+        }
+      }
+    }
+    return retMap
+  }
+)
+
 const summaryDataConstructed = periodUtil.summaryDataConstructor(
   gameData,
-  g => g.winning_contestant_id,
+  isPopCulture() ?
+    g => {
+      if (g.winning_team_id === g.podium_1_team_id) {
+        return [g.podium_1_1_contestant_id, g.podium_1_2_contestant_id, g.podium_1_3_contestant_id]
+      }
+      if (g.winning_team_id === g.podium_2_team_id) {
+        return [g.podium_2_1_contestant_id, g.podium_2_2_contestant_id, g.podium_2_3_contestant_id]
+      }
+      if (g.winning_team_id === g.podium_3_team_id) {
+        return [g.podium_3_1_contestant_id, g.podium_3_2_contestant_id, g.podium_3_3_contestant_id]
+      }
+    } :
+    g => [g.winning_contestant_id],
   gameContestantStatDataByGameIdAndContestantId,
   gameContestantStatData,
   gcs => gcs.contestant_id,
@@ -245,7 +322,7 @@ const summaryDataConstructed = periodUtil.summaryDataConstructor(
 );
 const teamSummaryDataConstructed = periodUtil.summaryDataConstructor(
   gameData,
-  g => g.winning_team_id,
+  g => [g.winning_team_id],
   gameTeamStatDataByGameIdAndTeamId,
   gameTeamStatData,
   gcs => gcs.team_id,
@@ -262,14 +339,15 @@ const displayContestantIds = summaryDataConstructed.displayCompetitorIds
 const contestantSort = summaryDataConstructed.competitorSort
 const contestantWins = summaryDataConstructed.competitorWins
 const winnerContestantGameContestantStatData = summaryDataConstructed.winnerCompetitorGameCompetitorStatData
+const graphDisplayLimit = summaryDataConstructed.graphDisplayLimit
 
 const displayTeamGameTeamStatData = teamSummaryDataConstructed.displayCompetitorGameCompetitorStatData
 const displayTeamIds = teamSummaryDataConstructed.displayCompetitorIds
 const teamSort = teamSummaryDataConstructed.competitorSort
 const teamWins = teamSummaryDataConstructed.competitorWins
 const winnerTeamGameTeamStatData = teamSummaryDataConstructed.winnerCompetitorGameCompetitorStatData
+const teamGraphDisplayLimit = teamSummaryDataConstructed.graphDisplayLimit
 
-const graphDisplayLimit = isPopCulture() ? teamSummaryDataConstructed.graphDisplayLimit : summaryDataConstructed.graphDisplayLimit
 
 const anyGameHasAttemptData = data.computedIfRefHasValue(
   displayContestantGameContestantStatData,
@@ -412,22 +490,28 @@ const contestantSpecificationConstructor = periodUtil.constructSpecificationCons
 const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
   gcsAttributes.dd_found, gcsAttributes.dd_plus_buzc, gcsAttributes.dd_plus_selection, gcsAttributes.dd_score,
   gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
-const standardScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
     gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
     gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
-const conversionScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
-
+    
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
     gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
     gcsAttributes.time_value, gcsAttributes.time_score,
     gcsAttributes.solo_value, gcsAttributes.solo_score]
-const conversionValueScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
 
 const slimConversionScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
+
+const standardScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
+const conversionScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
+const conversionValueScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
 const slimConversionScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(slimConversionScoringAttributes)
+
+const teamStandardScoringTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
+const teamConversionScoringTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
+const teamConversionValueScoringTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
+const teamSlimConversionScoringTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(slimConversionScoringAttributes)
 
 
 //Stacked bars
@@ -764,8 +848,6 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
 
 <template>
   <Header />
-  {{ contestantIds }}
-  {{ teamIdToContestantIdMap }}
   <div class="component-body" :data-bs-theme="subdomainIdentifier()">
     <h1>
       <span v-if="tocPeriodSearchParameters && tocPeriodSearchParameters.length > 0">{{ tocPeriodSearchParameters.join(', ') }} Qual Period<span v-if="tocPeriodSearchParameters.length > 1">s</span>&nbsp;</span>
@@ -829,21 +911,37 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
         <OptionDropdown :optionLabels="aggregationOptionLabels" :selectionIndex="selectedAggregationIndex"
           @newSelectionIndex="(idx) => selectedAggregationIndex = idx" />
       </div>
-      <div class="subsection">
+      <div class="subsection" v-if="teamStandardScoringTableSpec" >
         <div class="subsection-header">Standard Metrics</div>
-        <SortableTable v-if="standardScoringTableSpec" v-bind="standardScoringTableSpec" />
+        <SortableTable v-bind="teamStandardScoringTableSpec" />
       </div>
-      <div class="subsection" v-if="anyGameHasAttemptData">
+      <div class="subsection" v-if="anyGameHasAttemptData && teamConversionScoringTableSpec">
         <div class="subsection-header">Conversion Metrics</div>
-        <SortableTable v-if="conversionScoringTableSpec" v-bind="conversionScoringTableSpec" />
+        <SortableTable v-bind="teamConversionScoringTableSpec" />
       </div>
-      <div class="subsection" v-if="anyGameHasAttemptData">
+      <div class="subsection" v-if="anyGameHasAttemptData && teamConversionValueScoringTableSpec">
         <div class="subsection-header">Conversion Value Metrics</div>
-        <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
+        <SortableTable v-bind="teamConversionValueScoringTableSpec" />
       </div>
-      <div class="subsection" v-if="!anyGameHasAttemptData">
+      <div class="subsection" v-if="!anyGameHasAttemptData && teamSlimConversionScoringTableSpec">
         <div class="subsection-header">Conversion Metrics</div>
-        <SortableTable v-if="slimConversionScoringTableSpec" v-bind="slimConversionScoringTableSpec" />
+        <SortableTable v-bind="teamSlimConversionScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="standardScoringTableSpec">
+        <div class="subsection-header">Standard Metrics</div>
+        <SortableTable v-bind="standardScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="anyGameHasAttemptData && conversionScoringTableSpec">
+        <div class="subsection-header">Conversion Metrics</div>
+        <SortableTable v-bind="conversionScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="anyGameHasAttemptData && conversionValueScoringTableSpec">
+        <div class="subsection-header">Conversion Value Metrics</div>
+        <SortableTable v-bind="conversionValueScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="!anyGameHasAttemptData && slimConversionScoringTableSpec">
+        <div class="subsection-header">Conversion Metrics</div>
+        <SortableTable v-bind="slimConversionScoringTableSpec" />
       </div>
     </div>
     <div class="section" v-if="isSyndicated()">

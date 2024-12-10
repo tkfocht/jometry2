@@ -16,17 +16,31 @@ const summaryDataConstructor = function(
   winThresholdString,
   winLimitString
 ) {
-    const competitorWins = computedIfRefHasValue(gameData, gData => d3.rollup(gData, v => v.length, gameWinnerExtractionFn))
-    const competitorWinnings = computedIfRefHasValues([gameData, gameCompetitorStatDataByGameIdAndCompetitorId], (gData, gcsData) => {
-      const aggregateWinnings = function(games) {
-        return games
-          .filter(g => !_.isNil(gameWinnerExtractionFn(g)))
-          .map(g => {
-            return gcsData.get(g.game_id).get(gameWinnerExtractionFn(g)).score
-          })
-          .reduce((a, b) => a + b, 0)
+    const competitorWins = computedIfRefHasValue(gameData, gData => {
+      var winReturn = new d3.InternMap()
+      for (var g of gData) {
+        var winners = gameWinnerExtractionFn(g)
+        for (var winner of winners) {
+          if (!winReturn.has(winner)) {
+            winReturn.set(winner, 0)
+          }
+          winReturn.set(winner, winReturn.get(winner) + 1)
+        }
       }
-      return d3.rollup(gData, aggregateWinnings, gameWinnerExtractionFn)
+      return winReturn
+    })
+    const competitorWinnings = computedIfRefHasValues([gameData, gameCompetitorStatDataByGameIdAndCompetitorId], (gData, gcsData) => {
+      var winReturn = new d3.InternMap()
+      for (var g of gData) {
+        var winners = gameWinnerExtractionFn(g)
+        for (var winner of winners) {
+          if (!winReturn.has(winner)) {
+            winReturn.set(winner, 0)
+          }
+          winReturn.set(winner, winReturn.get(winner) + gcsData.get(g.game_id).get(winner).score)
+        }
+      }
+      return winReturn
     })
     const competitorTotalScores = computedIfRefHasValue(gameCompetitorStatData, gcsData => {
       return d3.rollup(gcsData, v => v.map(gcs => gcs.score).reduce((a, b) => a + b, 0), competitorExtractionFn)
@@ -34,8 +48,7 @@ const summaryDataConstructor = function(
     const competitorSort = computedIfRefHasValues(
       [competitorWins, competitorWinnings, competitorTotalScores],
       (wins, winnings, totalScores) => (
-        (a, b) =>
-          d3.descending(_.defaultTo(wins.get(a), 0), _.defaultTo(wins.get(b), 0)) ||
+        (a, b) => d3.descending(_.defaultTo(wins.get(a), 0), _.defaultTo(wins.get(b), 0)) ||
           d3.descending(_.defaultTo(winnings.get(a), 0), _.defaultTo(winnings.get(b), 0)) ||
           d3.descending(_.defaultTo(totalScores.get(a), 0), _.defaultTo(totalScores.get(b), 0))))
     const displayCompetitorIds = computedIfRefHasValues(
@@ -44,7 +57,6 @@ const summaryDataConstructor = function(
         if (dcIdParameters.length > 0) {
           return dcIdParameters.map(v => +v)
         }
-        cids.sort(cSort)
         if (cids.length <= 10) {
           return cids
         }
@@ -52,11 +64,12 @@ const summaryDataConstructor = function(
         //Okay fine, if anyone ever wins 10001 games this will be a bug,
         //but truthy values are weird when winLimit=0 is a primary case
         var winLimit = winLimitString.value ? +winLimitString.value : 10000
-        return cids.filter(i => {
+        var fcids = cids.filter(i => {
           var cwin = wins.get(i)
           if (cwin === undefined) cwin = 0
           return cwin >= winThreshold && cwin <= winLimit
         })
+        return fcids
       })
     const displayCompetitorGameCompetitorStatData = computedIfRefHasValues(
       [displayCompetitorIds, gameCompetitorStatData],
@@ -95,7 +108,6 @@ const constructSpecificationConstuctors = function(
       [baseScoringTableRows, gameDataById, competitorDataById,
         baseScoringTableData, baseScoringTableAggregation, baseScoringTableDisplayFunction],
       (baseRows, gData, cData, gcsData, aggrFn, attrDisplayFn) => {
-        console.log(baseRows)
         var columns = [
           {
             label: competitorLabel + ' (Wins)'
@@ -108,7 +120,6 @@ const constructSpecificationConstuctors = function(
 
         var rows = baseRows.map(baseRow => {
           const cid = competitorIdFn(baseRow)
-          console.log(baseRow)
           var row = [
             {
               value: competitorLink(cid, cData.get(cid).name) + '&nbsp;(' + baseRow.wins + ')',
