@@ -103,6 +103,14 @@ function loadGameDailyDoubleData() {
 const gameDailyDoubleDataByGameId = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id))
 const gameDailyDoubleDataByGameIdRound = computedIfRefHasValue(gameDailyDoubleData, gddData => d3.group(gddData, r => r.game_id, r => r.round_of_game))
 
+//Daily Double summary data
+const gameTriplePlayData = ref(null)
+function loadGameTriplePlayData() {
+    loadDataReference(gameTriplePlayData, `/csvs/${ dataPrefix() }jschema_tp_summary.csv`)
+}
+const gameTriplePlayDataByGameId = computedIfRefHasValue(gameTriplePlayData, gddData => d3.group(gddData, r => r.game_id))
+const gameTriplePlayDataByGameIdRound = computedIfRefHasValue(gameTriplePlayData, gddData => d3.group(gddData, r => r.game_id, r => r.round_of_game))
+
 
 const jschemaClueContestantStatData = ref(null)
 function loadJschemaClueContestantStatData(gameId) {
@@ -161,6 +169,7 @@ export { computedIfRefHasValue, computedIfRefHasValues,
     loadGameTeamStatData, gameTeamStatData, gameTeamStatDataByGameId, gameTeamStatDataByTeamId, gameTeamStatDataByGameIdTeamId,
     loadGameRoundTeamStatData, gameRoundTeamStatData, gameRoundTeamStatDataByGameIdRoundIdTeamId,
     loadGameDailyDoubleData, gameDailyDoubleData, gameDailyDoubleDataByGameId, gameDailyDoubleDataByGameIdRound,
+    loadGameTriplePlayData, gameTriplePlayData, gameTriplePlayDataByGameId, gameTriplePlayDataByGameIdRound,
     loadJschemaClueContestantStatData, jschemaClueContestantStatData, jschemaClueContestantStatDataByRoundClueAndContestantId,
     loadJschemaClueTeamStatData, jschemaClueTeamStatData, jschemaClueTeamStatDataByRoundClueAndTeamId,
     loadJschemaClueData, jschemaClueData, jschemaClueByRoundRowColumn,

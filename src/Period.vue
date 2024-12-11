@@ -28,6 +28,7 @@ if (isPopCulture()) {
   data.loadTeamData()
   data.loadGameTeamStatData()
   data.loadGameRoundTeamStatData()
+  data.loadGameTriplePlayData()
 }
 data.loadGameData()
 data.loadGameStatData()
@@ -172,6 +173,12 @@ const gameRoundContestantStatDataByRoundIdContestantId = data.computedIfRefHasVa
     (gcsData, gIds) => d3.group(gcsData.filter(gr => gIds.includes(gr.game_id)), r => r.round_of_game, r => r.contestant_id))
 const gameDailyDoubleData = data.computedIfRefHasValues(
     [data.gameDailyDoubleData, gameIds],
+    (gddData, gIds) => {
+      return gddData.filter(gdd => gIds.includes(gdd.game_id))
+    }
+)
+const gameTriplePlayData = data.computedIfRefHasValues(
+    [data.gameTriplePlayData, gameIds],
     (gddData, gIds) => {
       return gddData.filter(gdd => gIds.includes(gdd.game_id))
     }
@@ -759,9 +766,7 @@ const teamAverageScatterGraphSpecification = data.computedIfRefHasValues(
   }
 )
 
-const dailyDoubleAbsoluteLocationHeatmapChartSpecs = data.computedIfRefHasValues(
-  [displayRounds, gameDailyDoubleData],
-  (dr, gddData) => {
+const clueHeatMapChartSpecFn = (dr, gddData) => {
     var heatmapTraces = []
     for (var r of d3.range(1, dr + 1, 1)) {
       const xValues = d3.range(1, 7, 1)
@@ -820,7 +825,13 @@ const dailyDoubleAbsoluteLocationHeatmapChartSpecs = data.computedIfRefHasValues
       }
     })
   }
-)
+
+const dailyDoubleAbsoluteLocationHeatmapChartSpecs = data.computedIfRefHasValues(
+  [displayRounds, gameDailyDoubleData], clueHeatMapChartSpecFn)
+
+  const triplePlayAbsoluteLocationHeatmapChartSpecs = data.computedIfRefHasValues(
+  [displayRounds, gameTriplePlayData], clueHeatMapChartSpecFn)
+
 
 const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues(
   [displayRounds, gameDailyDoubleData],
@@ -1009,6 +1020,12 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
       <div class="section-header">Daily Double Heatmaps</div>
       <div v-for="(dailyDoubleAbsoluteLocationHeatmapChartSpec, index) in dailyDoubleAbsoluteLocationHeatmapChartSpecs">
         <ReactiveChart :chart="dailyDoubleAbsoluteLocationHeatmapChartSpec"/>
+      </div>
+    </div>
+    <div class="section" v-if="triplePlayAbsoluteLocationHeatmapChartSpecs">
+      <div class="section-header">Triple Play Heatmaps</div>
+      <div v-for="(triplePlayAbsoluteLocationHeatmapChartSpec, index) in triplePlayAbsoluteLocationHeatmapChartSpecs">
+        <ReactiveChart :chart="triplePlayAbsoluteLocationHeatmapChartSpec"/>
       </div>
     </div>
     <div class="section" v-if="boxWhiskerGraphAttributes">
