@@ -36,6 +36,10 @@ const teamData = data.teamDataById
 <template>
   <Header />
   <div class="component-body" :data-bs-theme="subdomain">
+    <div class="alert alert-primary" role="alert" v-if="isSyndicated()" data-bs-theme="popculture">
+      Pop Culture J-ometry! is live at <a href="https://popculture.j-ometry.com">popculture.j-ometry.com</a>!
+    </div>
+
     <div class="alert alert-primary" role="alert" v-if="isSyndicated()">
       The site has been updated to allow games to fit within two different tournament qualification periods.
       The beginning of champion runs for Dave Bond, Lucas Patridge, and Luigi de Guzman have been updated to

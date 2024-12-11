@@ -10,6 +10,8 @@
   --bs-primary-rgb: #{to-rgb($colorPopCulturePrimary)};
   --bs-secondary: #{$colorPopCultureSecondary};
   --bs-secondary-rgb: #{to-rgb($colorPopCultureSecondary)};
+  --bs-primary-border-subtle: #{$colorPopCulturePrimary};
+  --bs-alert-bg: #{$colorPopCultureSecondary};
 
   .btn {
     --bs-btn-bg: #{$colorPopCulturePrimary};
@@ -19,6 +21,7 @@
     --bs-btn-active-bg: #{darken($colorPopCulturePrimary, 20%)};
     --bs-btn-active-border-color: #{darken($colorPopCulturePrimary, 20%)};
   }
+
 }
 
 a:link, a:visited, a:hover {
