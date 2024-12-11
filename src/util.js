@@ -277,9 +277,17 @@ var filterValues = function(map, lambda) {
     return new Map([...map].filter(([k, v]) => lambda(v)))
 }
 
+var initializeString = function(s) {
+    if (!s) {
+        return undefined
+    }
+    var sArray = s.split(' ')
+    return sArray.map(s0 => s0[0]).join('')
+}
+
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
 
 export { subdomainIdentifier, subdomainTitle, isSyndicated, isPopCulture,
-    averageData, rollupData, 
+    averageData, rollupData, initializeString,
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat, urlDateParse,
     clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues, filterValues, threeColorSet };
