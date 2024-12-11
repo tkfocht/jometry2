@@ -4,7 +4,8 @@ import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as data from '@/data'
 import { playClassificationNameByTocPeriod, seasonDisplayId } from '@/configuration'
-import { threeColorSet, roundAbbreviation, subdomainIdentifier, isPopCulture, isSyndicated } from '@/util'
+import { threeColorSet, roundAbbreviation, subdomainIdentifier, isPopCulture,
+  contestantIdToTeamIdMapFromGameData, teamIdToContestantIdMapFromGameData } from '@/util'
 import * as gcsAttributes from '@/gameContestantStatAttributes'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
@@ -24,8 +25,10 @@ const teamId = +urlParams.get('team_id')
 
 data.loadContestantData()
 const isPopCultureTeam = isPopCulture() && displayAsTeamListing
-if (isPopCultureTeam) {
+if (isPopCulture()) {
   data.loadTeamData()
+}
+if (isPopCultureTeam) {
   data.loadGameTeamStatData()
   data.loadGameRoundTeamStatData()
 }
@@ -67,10 +70,15 @@ const playClassificationPeriodIdx = data.computedIfRefHasValues(
 const playClassificationPeriod = data.computedIfRefHasValue(playClassificationPeriods, pcp => pcp[playClassificationPeriodIdx.value])
 const displayRounds = data.computedIfRefHasValue(playClassificationPeriod, pcp => pcp[1] === 'celebrity' ? 3 : 2)
 
-const singleContestantData = data.computedIfRefHasValue(data.contestantDataById, cData => cData.get(contestantId))
-const singleTeamData = data.computedIfRefHasValue(data.teamDataById, cData => cData.get(teamId))
+const contestantDataById = data.contestantDataById
+const teamDataById = data.teamDataById
+
+const singleContestantData = data.computedIfRefHasValue(contestantDataById, cData => cData.get(contestantId))
+const singleTeamData = data.computedIfRefHasValue(teamDataById, cData => cData.get(teamId))
 
 const singleCompetitorData = isPopCultureTeam ? singleTeamData : singleContestantData
+const contestantIdToTeamIdMap = contestantIdToTeamIdMapFromGameData(contestantGames)
+const teamIdToContestantIdMap = teamIdToContestantIdMapFromGameData(teamGames)
 
 const gameIds = data.computedIfRefHasValues([allGameData, playClassificationPeriod],
   (gData, pcp) => gData.filter(g => (g.toc_period === pcp[0] || (g.toc_period_2 ? g.toc_period_2.toString() : undefined) === pcp[0]) && g.play_classification === pcp[1]).map(g => g.game_id))
@@ -420,7 +428,25 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <div v-if="singleCompetitorData && singleCompetitorGameCompetitorStatData" class="subsection">
         <div class="overview">
           <div class="overview-row">
-            <div id="overview-name" class="value">{{ singleCompetitorData.name }}</div>
+            <div id="overview-name" class="value" v-if="isPopCulture() && !isPopCultureTeam">
+              <div>{{ singleCompetitorData.name }}</div>
+              <div>
+                <span v-for="(teamId, teamIdIdx) in contestantIdToTeamIdMap.get(singleCompetitorData.contestant_id)">
+                  <span v-if="teamIdIdx !== 0">&nbsp;/&nbsp;</span>
+                  <a :href="'/team.html?team_id=' + teamId">{{ teamDataById.get(teamId).name }}</a>
+                </span>
+              </div>
+            </div>
+            <div id="overview-name" class="value" v-else-if="isPopCulture() && isPopCultureTeam">
+              <div>{{ singleCompetitorData.name }}</div>
+              <div>
+                <span v-for="(contestantId, contestantIdIdx) in teamIdToContestantIdMap.get(singleCompetitorData.team_id)">
+                  <span v-if="contestantIdIdx !== 0">&nbsp;/&nbsp;</span>
+                  <a :href="'/contestant.html?contestant_id=' + contestantId">{{ contestantDataById.get(contestantId).name }}</a>
+                </span>
+              </div>
+            </div>
+            <div id="overview-name" class="value" v-else>{{ singleCompetitorData.name }}</div>
             <div class="overview-window">
               <div class="overview-row">
                 <div class="caption-stack">

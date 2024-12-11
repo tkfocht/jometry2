@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { movingAverageOfLast, dateFormat, transformValues, urlDateParse, roundAbbreviation, subdomainIdentifier, isPopCulture, isSyndicated, initializeString } from '@/util'
+import { movingAverageOfLast, dateFormat, transformValues, urlDateParse,
+  roundAbbreviation, subdomainIdentifier, isPopCulture, isSyndicated, initializeString,
+  teamIdToContestantIdMapFromGameData, contestantIdToTeamIdMapFromGameData } from '@/util'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import * as configuration from '@/configuration'
@@ -183,117 +185,8 @@ const gameRoundTeamStatDataByRoundIdTeamId = data.computedIfRefHasValues(
     [data.gameRoundTeamStatData, gameIds],
     (gcsData, gIds) => d3.group(gcsData.filter(gr => gIds.includes(gr.game_id)), r => r.round_of_game, r => r.team_id))
 
-const teamIdToContestantIdMap = data.computedIfRefHasValue(gameData,
-  gData => {
-    var retMap = new d3.InternMap()
-    for (var g of gData) {
-      if (g.podium_1_team_id !== undefined) {
-        if (!retMap.has(g.podium_1_team_id)) {
-          retMap.set(g.podium_1_team_id, [])
-        }
-        if (!retMap.has(g.podium_2_team_id)) {
-          retMap.set(g.podium_2_team_id, [])
-        }
-        if (!retMap.has(g.podium_3_team_id)) {
-          retMap.set(g.podium_3_team_id, [])
-        }
-        if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_1_contestant_id)) {
-          retMap.get(g.podium_1_team_id).push(g.podium_1_1_contestant_id)
-        }
-        if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_2_contestant_id)) {
-          retMap.get(g.podium_1_team_id).push(g.podium_1_2_contestant_id)
-        }
-        if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_3_contestant_id)) {
-          retMap.get(g.podium_1_team_id).push(g.podium_1_3_contestant_id)
-        }
-        if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_1_contestant_id)) {
-          retMap.get(g.podium_2_team_id).push(g.podium_2_1_contestant_id)
-        }
-        if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_2_contestant_id)) {
-          retMap.get(g.podium_2_team_id).push(g.podium_2_2_contestant_id)
-        }
-        if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_3_contestant_id)) {
-          retMap.get(g.podium_2_team_id).push(g.podium_2_3_contestant_id)
-        }
-        if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_1_contestant_id)) {
-          retMap.get(g.podium_3_team_id).push(g.podium_3_1_contestant_id)
-        }
-        if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_2_contestant_id)) {
-          retMap.get(g.podium_3_team_id).push(g.podium_3_2_contestant_id)
-        }
-        if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_3_contestant_id)) {
-          retMap.get(g.podium_3_team_id).push(g.podium_3_3_contestant_id)
-        }
-      }
-    }
-    return retMap
-  }
-)
-
-const contestantIdToTeamIdMap = data.computedIfRefHasValue(gameData,
-  gData => {
-    var retMap = new d3.InternMap()
-    for (var g of gData) {
-      if (g.podium_1_team_id !== undefined) {
-        if (!retMap.has(g.podium_1_1_contestant_id)) {
-          retMap.set(g.podium_1_1_contestant_id, [])
-        }
-        if (!retMap.has(g.podium_1_2_contestant_id)) {
-          retMap.set(g.podium_1_2_contestant_id, [])
-        }
-        if (!retMap.has(g.podium_1_3_contestant_id)) {
-          retMap.set(g.podium_1_3_contestant_id, [])
-        }
-        if (!retMap.has(g.podium_2_1_contestant_id)) {
-          retMap.set(g.podium_2_1_contestant_id, [])
-        }
-        if (!retMap.has(g.podium_2_2_contestant_id)) {
-          retMap.set(g.podium_2_2_contestant_id, [])
-        }
-        if (!retMap.has(g.podium_2_3_contestant_id)) {
-          retMap.set(g.podium_2_3_contestant_id, [])
-        }
-        if (!retMap.has(g.podium_3_1_contestant_id)) {
-          retMap.set(g.podium_3_1_contestant_id, [])
-        }
-        if (!retMap.has(g.podium_3_2_contestant_id)) {
-          retMap.set(g.podium_3_2_contestant_id, [])
-        }
-        if (!retMap.has(g.podium_3_3_contestant_id)) {
-          retMap.set(g.podium_3_3_contestant_id, [])
-        }
-        if (!retMap.get(g.podium_1_1_contestant_id).includes(g.podium_1_team_id)) {
-          retMap.get(g.podium_1_1_contestant_id).push(g.podium_1_team_id)
-        }
-        if (!retMap.get(g.podium_1_2_contestant_id).includes(g.podium_1_team_id)) {
-          retMap.get(g.podium_1_2_contestant_id).push(g.podium_1_team_id)
-        }
-        if (!retMap.get(g.podium_1_3_contestant_id).includes(g.podium_1_team_id)) {
-          retMap.get(g.podium_1_3_contestant_id).push(g.podium_1_team_id)
-        }
-        if (!retMap.get(g.podium_2_1_contestant_id).includes(g.podium_2_team_id)) {
-          retMap.get(g.podium_2_1_contestant_id).push(g.podium_2_team_id)
-        }
-        if (!retMap.get(g.podium_2_2_contestant_id).includes(g.podium_2_team_id)) {
-          retMap.get(g.podium_2_2_contestant_id).push(g.podium_2_team_id)
-        }
-        if (!retMap.get(g.podium_2_3_contestant_id).includes(g.podium_2_team_id)) {
-          retMap.get(g.podium_2_3_contestant_id).push(g.podium_2_team_id)
-        }
-        if (!retMap.get(g.podium_3_1_contestant_id).includes(g.podium_3_team_id)) {
-          retMap.get(g.podium_3_1_contestant_id).push(g.podium_3_team_id)
-        }
-        if (!retMap.get(g.podium_3_2_contestant_id).includes(g.podium_3_team_id)) {
-          retMap.get(g.podium_3_2_contestant_id).push(g.podium_3_team_id)
-        }
-        if (!retMap.get(g.podium_3_3_contestant_id).includes(g.podium_3_team_id)) {
-          retMap.get(g.podium_3_3_contestant_id).push(g.podium_3_team_id)
-        }
-      }
-    }
-    return retMap
-  }
-)
+const teamIdToContestantIdMap = teamIdToContestantIdMapFromGameData(gameData)
+const contestantIdToTeamIdMap = contestantIdToTeamIdMapFromGameData(gameData)
 
 const summaryDataConstructed = periodUtil.summaryDataConstructor(
   gameData,

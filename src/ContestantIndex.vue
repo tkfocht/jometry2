@@ -1,7 +1,7 @@
 <script setup>
 import * as d3 from 'd3'
 import * as data from '@/data'
-import { filterValues, isPopCulture, subdomainIdentifier } from '@/util'
+import { filterValues, isPopCulture, subdomainIdentifier, contestantIdToTeamIdMapFromGameData } from '@/util'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 
@@ -10,8 +10,11 @@ const displayAsTeamListing = window.location.pathname === '/team_index.html'
 
 data.loadContestantData()
 data.loadGameContestantStatData()
-if (isPopCulture() && displayAsTeamListing) {
+if (isPopCulture()) {
   data.loadTeamData()
+  data.loadGameData()
+}
+if (isPopCulture() && displayAsTeamListing) {
   data.loadGameTeamStatData()
 }
 
@@ -50,6 +53,10 @@ const teamData = data.computedIfRefHasValues(
   }
 )
 
+const gameData = data.gameData
+const contestantIdToTeamIdMap = contestantIdToTeamIdMapFromGameData(gameData)
+const teamDataById = data.teamDataById
+
 </script>
 
 <template>
@@ -59,6 +66,7 @@ const teamData = data.computedIfRefHasValues(
       <div class="section-header">Contestant Index</div>
       <div v-for="c in contestantData">
         <a :href="'/contestant.html?data_source=standard&contestant_id=' + c.contestant_id">{{ c.name }}</a>&nbsp;
+        <span v-if="contestantIdToTeamIdMap && teamDataById">({{ contestantIdToTeamIdMap.get(c.contestant_id).map(tid => teamDataById.get(tid).name).join('/') }})&nbsp;</span>
         <span v-if="gameContestantStatDataByContestantId.get(c.contestant_id)?.length > 0">
           {{ gameContestantStatDataByContestantId.get(c.contestant_id)?.length }} game<template v-if="gameContestantStatDataByContestantId.get(c.contestant_id)?.length > 1">s</template>
         </span>

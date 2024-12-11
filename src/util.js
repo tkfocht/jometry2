@@ -1,5 +1,6 @@
 import * as d3 from 'd3'
 import * as _ from 'lodash'
+import { computedIfRefHasValue } from '@/data'
 
 var csvDateParse = d3.timeParse("%m/%d/%Y");
 var ymdDateParse = d3.timeParse("%Y-%m-%d");
@@ -285,9 +286,128 @@ var initializeString = function(s) {
     return sArray.map(s0 => s0[0]).join('')
 }
 
+
+const teamIdToContestantIdMapFromGameData = function(gameData) {
+    return computedIfRefHasValue(gameData,
+      gData => {
+        var retMap = new d3.InternMap()
+        for (var g of gData) {
+            if (g.podium_1_team_id !== undefined) {
+            if (!retMap.has(g.podium_1_team_id)) {
+                retMap.set(g.podium_1_team_id, [])
+            }
+            if (!retMap.has(g.podium_2_team_id)) {
+                retMap.set(g.podium_2_team_id, [])
+            }
+            if (!retMap.has(g.podium_3_team_id)) {
+                retMap.set(g.podium_3_team_id, [])
+            }
+            if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_1_contestant_id)) {
+                retMap.get(g.podium_1_team_id).push(g.podium_1_1_contestant_id)
+            }
+            if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_2_contestant_id)) {
+                retMap.get(g.podium_1_team_id).push(g.podium_1_2_contestant_id)
+            }
+            if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_3_contestant_id)) {
+                retMap.get(g.podium_1_team_id).push(g.podium_1_3_contestant_id)
+            }
+            if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_1_contestant_id)) {
+                retMap.get(g.podium_2_team_id).push(g.podium_2_1_contestant_id)
+            }
+            if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_2_contestant_id)) {
+                retMap.get(g.podium_2_team_id).push(g.podium_2_2_contestant_id)
+            }
+            if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_3_contestant_id)) {
+                retMap.get(g.podium_2_team_id).push(g.podium_2_3_contestant_id)
+            }
+            if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_1_contestant_id)) {
+                retMap.get(g.podium_3_team_id).push(g.podium_3_1_contestant_id)
+            }
+            if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_2_contestant_id)) {
+                retMap.get(g.podium_3_team_id).push(g.podium_3_2_contestant_id)
+            }
+            if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_3_contestant_id)) {
+                retMap.get(g.podium_3_team_id).push(g.podium_3_3_contestant_id)
+            }
+            }
+        }
+        console.log(retMap)
+        return retMap
+    });
+}
+
+const contestantIdToTeamIdMapFromGameData = function(gameData) {
+  return computedIfRefHasValue(gameData,
+    gData => {
+      var retMap = new d3.InternMap()
+      for (var g of gData) {
+        if (g.podium_1_team_id !== undefined) {
+          if (!retMap.has(g.podium_1_1_contestant_id)) {
+            retMap.set(g.podium_1_1_contestant_id, [])
+          }
+          if (!retMap.has(g.podium_1_2_contestant_id)) {
+            retMap.set(g.podium_1_2_contestant_id, [])
+          }
+          if (!retMap.has(g.podium_1_3_contestant_id)) {
+            retMap.set(g.podium_1_3_contestant_id, [])
+          }
+          if (!retMap.has(g.podium_2_1_contestant_id)) {
+            retMap.set(g.podium_2_1_contestant_id, [])
+          }
+          if (!retMap.has(g.podium_2_2_contestant_id)) {
+            retMap.set(g.podium_2_2_contestant_id, [])
+          }
+          if (!retMap.has(g.podium_2_3_contestant_id)) {
+            retMap.set(g.podium_2_3_contestant_id, [])
+          }
+          if (!retMap.has(g.podium_3_1_contestant_id)) {
+            retMap.set(g.podium_3_1_contestant_id, [])
+          }
+          if (!retMap.has(g.podium_3_2_contestant_id)) {
+            retMap.set(g.podium_3_2_contestant_id, [])
+          }
+          if (!retMap.has(g.podium_3_3_contestant_id)) {
+            retMap.set(g.podium_3_3_contestant_id, [])
+          }
+          if (!retMap.get(g.podium_1_1_contestant_id).includes(g.podium_1_team_id)) {
+            retMap.get(g.podium_1_1_contestant_id).push(g.podium_1_team_id)
+          }
+          if (!retMap.get(g.podium_1_2_contestant_id).includes(g.podium_1_team_id)) {
+            retMap.get(g.podium_1_2_contestant_id).push(g.podium_1_team_id)
+          }
+          if (!retMap.get(g.podium_1_3_contestant_id).includes(g.podium_1_team_id)) {
+            retMap.get(g.podium_1_3_contestant_id).push(g.podium_1_team_id)
+          }
+          if (!retMap.get(g.podium_2_1_contestant_id).includes(g.podium_2_team_id)) {
+            retMap.get(g.podium_2_1_contestant_id).push(g.podium_2_team_id)
+          }
+          if (!retMap.get(g.podium_2_2_contestant_id).includes(g.podium_2_team_id)) {
+            retMap.get(g.podium_2_2_contestant_id).push(g.podium_2_team_id)
+          }
+          if (!retMap.get(g.podium_2_3_contestant_id).includes(g.podium_2_team_id)) {
+            retMap.get(g.podium_2_3_contestant_id).push(g.podium_2_team_id)
+          }
+          if (!retMap.get(g.podium_3_1_contestant_id).includes(g.podium_3_team_id)) {
+            retMap.get(g.podium_3_1_contestant_id).push(g.podium_3_team_id)
+          }
+          if (!retMap.get(g.podium_3_2_contestant_id).includes(g.podium_3_team_id)) {
+            retMap.get(g.podium_3_2_contestant_id).push(g.podium_3_team_id)
+          }
+          if (!retMap.get(g.podium_3_3_contestant_id).includes(g.podium_3_team_id)) {
+            retMap.get(g.podium_3_3_contestant_id).push(g.podium_3_team_id)
+          }
+        }
+      }
+      return retMap
+    })
+}
+
+
+
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
 
 export { subdomainIdentifier, subdomainTitle, isSyndicated, isPopCulture,
+    teamIdToContestantIdMapFromGameData, contestantIdToTeamIdMapFromGameData,
     averageData, rollupData, initializeString,
     csvDataAccessor, gameClueDataAccessor, formatNumber, gameStatDataFromContestantStatData, dateFormat, urlDateParse,
     clueBaseValue, roundName, roundAbbreviation, movingAverageOfLast, jschemaCsvDataAccessor, transformValues, filterValues, threeColorSet };
