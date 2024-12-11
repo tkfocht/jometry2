@@ -923,7 +923,7 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
       Displaying specified contestants
     </div>
     <div v-else>
-      Display contestants between
+      Display <span v-if="isPopCulture()">teams and </span>contestants between
       <select v-model="winThresholdString">
         <option :value="null">Auto</option>
         <option>0</option>
