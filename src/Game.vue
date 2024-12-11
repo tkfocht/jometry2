@@ -499,7 +499,7 @@ const teamHistogramSpecification = computed(() => {
             <div class="value">{{ playClassificationName(gameData?.play_classification, gameData?.season_id) }}</div>
           </div>
           <div class="caption-stack">
-            <div class="caption">TOC Period</div>
+            <div class="caption">Qual Period</div>
             <div class="value">{{ gameData?.toc_period }}<span v-if="gameData?.toc_period_2">/{{ gameData?.toc_period_2 }}</span></div>
           </div>
         </div>
