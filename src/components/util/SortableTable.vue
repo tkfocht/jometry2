@@ -24,8 +24,22 @@ const sortDirectionDescending = ref(props.initialSortDescending ? props.initialS
 const sortedRows = computed(() => {
     var sortedData = props.rows.slice()
     var sortDirection = sortDirectionDescending.value ? d3.descending : d3.ascending
-    sortedData.sort((a,b) => nilsLast(a[sortColumn.value].sortValue, b[sortColumn.value].sortValue) || 
-        sortDirection(a[sortColumn.value].sortValue, b[sortColumn.value].sortValue))
+    const referenceValue = sortedData[0][sortColumn.value].sortValue
+    const cmp = (a,b) => {
+        const nilsLastValue = nilsLast(a,b)
+        if (nilsLastValue) return nilsLastValue
+
+        if (Array.isArray(referenceValue)) {
+            for (var idx in referenceValue) {
+                if (sortDirection(a[sortColumn.value].sortValue[idx], b[sortColumn.value].sortValue[idx])) {
+                    return sortDirection(a[sortColumn.value].sortValue[idx], b[sortColumn.value].sortValue[idx])
+                }
+            }
+        }
+
+        return sortDirection(a[sortColumn.value].sortValue, b[sortColumn.value].sortValue)
+    }
+    sortedData.sort(cmp)
     return sortedData
 })
 

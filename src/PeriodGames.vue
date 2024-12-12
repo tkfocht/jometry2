@@ -172,7 +172,7 @@ const tableSpec = data.computedIfRefHasValues(
       var row = isSyndicated() ? [
         {
           value: '<a href="/game.html?game_id=' + g.game_id + '">' + configuration.seasonDisplayId(g.season_id) + '-' + g.game_in_season + '</a> <span class="date" style="white-space: nowrap">' + dateFormat(g.airdate) + '</span>',
-          sortValue: g.airdate
+          sortValue: [g.airdate, g.game_in_season]
         },
         {
           value: '<a href="/contestant.html?contestant_id=' + g.podium_1_contestant_id + '">' + cData.get(g.podium_1_contestant_id).name + '</a>',
@@ -197,7 +197,7 @@ const tableSpec = data.computedIfRefHasValues(
       ] : [
         {
           value: '<a href="/game.html?game_id=' + g.game_id + '">' + configuration.seasonDisplayId(g.season_id) + '-' + g.game_in_season + '</a> <span class="date" style="white-space: nowrap">' + dateFormat(g.airdate) + '</span>',
-          sortValue: g.airdate
+          sortValue: [g.airdate, g.game_in_season]
         },
         {
           value: '<a href="/team.html?team_id=' + g.podium_1_team_id + '">' + cData.get(g.podium_1_team_id).name + '</a>',
