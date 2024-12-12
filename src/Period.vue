@@ -609,7 +609,7 @@ const boxWhiskerGraphSpecification = data.computedIfRefHasValues(
         {
           label: 'All Others',
           color: 'black',
-          yLabel: d => cData.get(d.contestant_id).name + ' ' + gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
+          yLabel: d => nameFn(d.contestant_id) + ' ' + gData.get(d.game_id).season_id + '-' + gData.get(d.game_id).game_in_season,
           filter: d => !cids.includes(d.contestant_id)
         }
       ]
