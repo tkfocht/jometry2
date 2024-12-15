@@ -53,17 +53,27 @@ const teamData = data.teamDataById
         <div class="toc-period-header bg-primary text-white">Recent Games
         </div>
         <div>
-          <table class="game-list">
-            <tbody>
-              <tr v-for="game in gameDataSorted.slice(0, 10)">
-                <td><a :href="'game.html?game_id=' + game.game_id">Season {{ seasonDisplayId(game.season_id) }} Game {{ game.game_in_season }}</a></td>
-                <td>{{ dateFormat(game.airdate) }}</td>
-                <td v-for="contestant_id in [game.podium_1_contestant_id, game.podium_2_contestant_id, game.podium_3_contestant_id]">
-                  <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="container game-listing">
+            <div v-for="game in gameDataSorted.slice(0, 10)" class="row">
+              <div class="col-5">
+                <div class="row">
+                  <div class="col-md-7">
+                    <a :href="'game.html?game_id=' + game.game_id">Season {{ seasonDisplayId(game.season_id) }} Game {{ game.game_in_season }}</a>
+                  </div>
+                  <div class="col-md-5">
+                    {{ dateFormat(game.airdate) }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-7">
+                <div class="row">
+                  <div class="col-md" v-for="contestant_id in [game.podium_1_contestant_id, game.podium_2_contestant_id, game.podium_3_contestant_id]">
+                    <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="toc-period section">
@@ -145,17 +155,27 @@ const teamData = data.teamDataById
         <div class="toc-period-header bg-primary text-white">Recent Games
         </div>
         <div>
-          <table class="game-list">
-            <tbody>
-              <tr v-for="game in gameDataSorted.slice(0, 10)">
-                <td><a :href="'game.html?game_id=' + game.game_id">Season {{ seasonDisplayId(game.season_id) }} Game {{ game.game_in_season }}</a></td>
-                <td>{{ dateFormat(game.airdate) }}</td>
-                <td v-for="team_id in [game.podium_1_team_id, game.podium_2_team_id, game.podium_3_team_id]">
-                  <a :href="'/team.html?team_id=' + team_id">{{ teamData.get(team_id).name }}</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="container game-listing">
+            <div v-for="game in gameDataSorted.slice(0, 10)" class="row">
+              <div class="col-5">
+                <div class="row">
+                  <div class="col-md-7">
+                    <a :href="'game.html?game_id=' + game.game_id">Season {{ seasonDisplayId(game.season_id) }} Game {{ game.game_in_season }}</a>
+                  </div>
+                  <div class="col-md-5">
+                    {{ dateFormat(game.airdate) }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-7">
+                <div class="row">
+                  <div class="col-md" v-for="team_id in [game.podium_1_team_id, game.podium_2_team_id, game.podium_3_team_id]">
+                    <a :href="'/team.html?team_id=' + team_id">{{ teamData.get(team_id).name }}</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -165,6 +185,10 @@ const teamData = data.teamDataById
 </template>
 
 <style lang="scss" scoped>
+@import "../node_modules/bootstrap/scss/functions";
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/mixins";
+
 .toc-period {
   text-align: left;
 }
@@ -249,6 +273,24 @@ table.game-list, table.play-classification-list {
   justify-content: space-around;
   gap: 0.25em 1em;
   margin-bottom: 1em;
+}
+
+.game-listing {
+  text-align: center;
+
+  > .row {
+    margin-bottom: 0.5em;
+  }
+
+  @include media-breakpoint-down(lg) {
+    font-size: 12px;
+  }
+}
+
+.competition-contestant-links {
+  @include media-breakpoint-down(lg) {
+    font-size: 12px;
+  }
 }
 
 </style>
