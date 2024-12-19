@@ -454,7 +454,7 @@ const teamSlimConversionScoringTableSpec = teamSpecificationConstructor.construc
 
 
 //Stacked bars
-const buildStackedBarSpecificationLambda = function(yAttrsInput, colorFn) {
+const buildStackedBarSpecificationLambda = function(yAttrsInput, colorFn, tOrCLabel) {
   return (cids, cData, gcsData, displayGcsData, allGcsData, winGcsData, hasAttempt, nameLabelFn) => {
     const yAttrs = hasAttempt ? yAttrsInput.slice(0,3) : yAttrsInput.slice(0,2)
     const dataSet = cids.map(cid => ({
@@ -464,7 +464,7 @@ const buildStackedBarSpecificationLambda = function(yAttrsInput, colorFn) {
     }))
     const aggregateDataSet = [
       {
-        label: 'Selected contestant avg',
+        label: 'Selected ' + tOrCLabel + ' avg',
         values: yAttrs.map(attr => d3.mean(displayGcsData.map(attr.generatingFunction))),
         displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(displayGcsData.map(attr.generatingFunction)))),
         color: 'black'
@@ -476,7 +476,7 @@ const buildStackedBarSpecificationLambda = function(yAttrsInput, colorFn) {
         color: 'black'
       },
       {
-        label: 'All contestant avg',
+        label: 'All ' + tOrCLabel + ' avg',
         values: yAttrs.map(attr => d3.mean(allGcsData.map(attr.generatingFunction))),
         displayValues: yAttrs.map(attr => attr.averageDisplayFormat(d3.mean(allGcsData.map(attr.generatingFunction)))),
         color: 'black'
@@ -501,25 +501,41 @@ const attemptBarChartSpecification = data.computedIfRefHasValues(
   [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId,
     displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData, anyGameHasAttemptData,
     isPopCulture() ? teamContestantGraphLabel : contestantGraphLabel],
-  buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], isPopCulture() ? teamContestantColor : color))
+  buildStackedBarSpecificationLambda(
+    [gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att],
+    isPopCulture() ? teamContestantColor : color,
+    'contestant'
+  ))
 
 const teamAttemptBarChartSpecification = data.computedIfRefHasValues(
   [displayTeamIds, teamDataById, gameTeamStatDataByTeamId,
     displayTeamGameTeamStatData, gameTeamStatData, winnerTeamGameTeamStatData, anyGameHasAttemptData,
     teamGraphLabel],
-  buildStackedBarSpecificationLambda([gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att], teamColor))
+  buildStackedBarSpecificationLambda(
+    [gcsAttributes.buzc, gcsAttributes.buz, gcsAttributes.att],
+    teamColor,
+    'team'
+  ))
 
 const attemptValueBarChartSpecification = data.computedIfRefHasValues(
   [displayContestantIds, contestantDataById, gameContestantStatDataByContestantId,
     displayContestantGameContestantStatData, gameContestantStatData, winnerContestantGameContestantStatData, anyGameHasAttemptData,
     isPopCulture() ? teamContestantGraphLabel : contestantGraphLabel],
-  buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], isPopCulture() ? teamContestantColor : color))
+  buildStackedBarSpecificationLambda(
+    [gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value],
+    isPopCulture() ? teamContestantColor : color,
+    'contestant'
+  ))
 
 const teamAttemptValueBarChartSpecification = data.computedIfRefHasValues(
   [displayTeamIds, teamDataById, gameTeamStatDataByTeamId,
     displayTeamGameTeamStatData, gameTeamStatData, winnerTeamGameTeamStatData, anyGameHasAttemptData,
     teamGraphLabel],
-  buildStackedBarSpecificationLambda([gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value], teamColor))
+  buildStackedBarSpecificationLambda(
+    [gcsAttributes.buz_score, gcsAttributes.buz_value, gcsAttributes.att_value],
+    teamColor,
+    'team'
+  ))
 
 //Charts
 const totalAttemptsChartSpecification = data.computedIfRefHasValues(
