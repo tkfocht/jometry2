@@ -54,10 +54,27 @@ const summaryDataConstructor = function(
     const displayCompetitorIds = computedIfRefHasValues(
       [displayContestantIdParameters, competitorIds, competitorSort, competitorWins],
       (dcIdParameters, cids, cSort, wins) => {
+
+        cids.sort(cSort)
         if (dcIdParameters.length > 0) {
           return dcIdParameters.map(v => +v)
         }
-        var winThreshold = winThresholdString.value ? +winThresholdString.value : Math.max(Math.min((wins.get(cids[9]) ? wins.get(cids[9]) : 0), 4), cids.length > 21 ? 1 + (wins.get(cids[20]) ? wins.get(cids[20]) : 0) : 0)
+
+        var defaultWinThreshold = 4
+        var tenthWinCount = wins.get(cids[9]) ? wins.get(cids[9]) : 0
+        if (tenthWinCount < defaultWinThreshold) {
+          defaultWinThreshold = tenthWinCount
+        }
+
+        var fifthWinThreshold = wins.get(cids[4]) ? wins.get(cids[4]) : 0
+        var twentyFirstWinThreshold = wins.get(cids[20]) ? wins.get(cids[20]) : 0
+        if (twentyFirstWinThreshold >= defaultWinThreshold &&
+            twentyFirstWinThreshold < fifthWinThreshold) {
+          defaultWinThreshold = 1 + twentyFirstWinThreshold
+        }
+
+        var winThreshold = winThresholdString.value ? +winThresholdString.value : defaultWinThreshold
+
         //Okay fine, if anyone ever wins 10001 games this will be a bug,
         //but truthy values are weird when winLimit=0 is a primary case
         var winLimit = winLimitString.value ? +winLimitString.value : 10000

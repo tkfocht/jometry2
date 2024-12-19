@@ -23,6 +23,9 @@ const sortColumn = ref(props.initialSortColumnIndex ? props.initialSortColumnInd
 const sortDirectionDescending = ref(props.initialSortDescending ? props.initialSortDescending : false)
 const sortedRows = computed(() => {
     var sortedData = props.rows.slice()
+    if (sortedData.length <= 0) {
+        return []
+    }
     var sortDirection = sortDirectionDescending.value ? d3.descending : d3.ascending
     const referenceValue = sortedData[0][sortColumn.value].sortValue
     const cmp = (a,b) => {

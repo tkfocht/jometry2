@@ -331,7 +331,6 @@ const teamIdToContestantIdMapFromGameData = function(gameData) {
             }
             }
         }
-        console.log(retMap)
         return retMap
     });
 }
