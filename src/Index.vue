@@ -40,14 +40,6 @@ const teamData = data.teamDataById
       Pop Culture J-ometry! is live at <a href="https://popculture.j-ometry.com">popculture.j-ometry.com</a>!
     </div>
 
-    <div class="alert alert-primary" role="alert" v-if="isSyndicated()">
-      The site has been updated to allow games to fit within two different tournament qualification periods.
-      The beginning of champion runs for Dave Bond, Lucas Patridge, and Luigi de Guzman have been updated to
-      reflect that they took place within a prior period but carried over for the champions to a new period.
-      This addresses inconsistencies of having champions' runs split into two or having part of an SCC field
-      separated from others. 
-    </div>
-
     <div v-if="isSyndicated() && gameData && contestantData">
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Recent Games
