@@ -36,10 +36,6 @@ const teamData = data.teamDataById
 <template>
   <Header />
   <div class="component-body" :data-bs-theme="subdomain">
-    <div class="alert alert-primary" role="alert" v-if="isSyndicated()" data-bs-theme="popculture">
-      Pop Culture J-ometry! is live at <a href="https://popculture.j-ometry.com">popculture.j-ometry.com</a>!
-    </div>
-
     <div v-if="isSyndicated() && gameData && contestantData">
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Recent Games

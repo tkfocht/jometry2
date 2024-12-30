@@ -28,6 +28,15 @@ import { subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
                 <li class="nav-item ms-md-3"><a href="/about.html">About</a></li>
             </ul>
         </div>
+        <div class="nav-item dropdown mx-3 px-3 d-none d-lg-block">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                All J-ometry
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="https://j-ometry.com">Mainline</a></li>
+                <li><a class="dropdown-item" href="https://popculture.j-ometry.com">Pop Culture</a></li>
+            </ul>
+        </div>
     </div>
     </div>
 </template>
