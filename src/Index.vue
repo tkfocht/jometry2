@@ -101,9 +101,9 @@ const teamData = data.teamDataById
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">Current Qualification Period and Season
+        <div class="toc-period-header bg-primary text-white">Current Qualification Periods and Season
         </div>
-        <div v-for="tocPeriod in ['2026']" class="toc-period-play-class"
+        <div v-for="tocPeriod in ['2025','2026']" class="toc-period-play-class"
             :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
             :set2="tocPeriodGamesByPlayClassification = d3.group(tocPeriodGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
