@@ -53,6 +53,13 @@ const gameContestantIds = isPopCulture() ?
   ]) :
   data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 const gameTeamIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_team_id, gData.podium_2_team_id, gData.podium_3_team_id])
+const teamIdForContestantId = data.computedIfRefHasValues([gameTeamIds, gameContestantIds],
+  (tIds, cIds) => function(cid) {
+    const cIndex = cIds.indexOf(cid)
+    const tIndex = Math.floor(cIndex / 3)
+    return tIds[tIndex]
+  }
+)
 
 const gameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => isSyndicated() && gsData.att_total > 0)
 
@@ -138,6 +145,7 @@ const jschemaClueByRoundRowColumn = data.jschemaClueByRoundRowColumn
 const jschemaClueContestantStatDataByRoundClueAndContestantId = data.jschemaClueContestantStatDataByRoundClueAndContestantId
 const jschemaResponseByRoundClue = data.jschemaResponseByRoundClue
 const jschemaTeamResponseByRoundClue = data.jschemaTeamResponseByRoundClue
+const jschemaClueTeamStatDataByRoundClueAndTeamId = data.jschemaClueTeamStatDataByRoundClueAndTeamId
 
 
 const threeColorSet = ['#0072B2','#E69F00','#009E73']
@@ -729,6 +737,39 @@ const teamHistogramSpecification = computed(() => {
               <td><span :style="'color: ' + color(clueData.selecting_contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(clueData.selecting_contestant_id).name }}</td>
               <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(clueData.selecting_contestant_id).dd_score }}</td>
               <td>{{ jschemaClueContestantStatDataByRoundClueAndContestantId.get(clueData.round_of_game).get(clueData.clue_of_round).get(clueData.selecting_contestant_id).postscore }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section" v-if="isPopCulture() && jschemaClueData && teamDataById && contestantDataById && jschemaClueTeamStatDataByRoundClueAndTeamId && jschemaClueContestantStatDataByRoundClueAndContestantId && gameContestantIds">
+      <div class="section-header">Daily Doubles</div>
+      <div class="game-stat-listing">
+        <table>
+          <thead>
+            <tr class="bg-secondary">
+              <th>Round</th>
+              <th>Clue</th>
+              <th>Value</th>
+              <th><span :style="'color: ' + color(gameTeamIds[0])">&#9632;</span>&nbsp;{{ teamDataById.get(gameTeamIds[0]).name }}</th>
+              <th><span :style="'color: ' + color(gameTeamIds[1])">&#9632;</span>&nbsp;{{ teamDataById.get(gameTeamIds[1]).name }}</th>
+              <th><span :style="'color: ' + color(gameTeamIds[2])">&#9632;</span>&nbsp;{{ teamDataById.get(gameTeamIds[2]).name }}</th>
+              <th>Selector</th>
+              <th>DD$</th>
+              <th>New Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="clueData in jschemaClueData.filter(c => c.is_daily_double)">
+              <td>{{ clueData.round_of_game }}</td>
+              <td>{{ clueData.clue_of_round }}</td>
+              <td>{{ clueData.value }}</td>
+              <td>{{ jschemaClueTeamStatDataByRoundClueAndTeamId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameTeamIds[0]).prescore }}</td>
+              <td>{{ jschemaClueTeamStatDataByRoundClueAndTeamId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameTeamIds[1]).prescore }}</td>
+              <td>{{ jschemaClueTeamStatDataByRoundClueAndTeamId.get(clueData.round_of_game).get(clueData.clue_of_round).get(gameTeamIds[2]).prescore }}</td>
+              <td><span :style="'color: ' + teamContestantColor(clueData.selecting_contestant_id)">&#9632;</span>&nbsp;{{ contestantDataById.get(clueData.selecting_contestant_id).name }}</td>
+              <td>{{ jschemaClueTeamStatDataByRoundClueAndTeamId.get(clueData.round_of_game).get(clueData.clue_of_round).get(teamIdForContestantId(clueData.selecting_contestant_id)).dd_score }}</td>
+              <td>{{ jschemaClueTeamStatDataByRoundClueAndTeamId.get(clueData.round_of_game).get(clueData.clue_of_round).get(teamIdForContestantId(clueData.selecting_contestant_id)).postscore }}</td>
             </tr>
           </tbody>
         </table>
