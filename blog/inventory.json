@@ -1,0 +1,25 @@
+{
+    "articles": [
+        {
+            "id": "analyst-measure-thyself",
+            "title": "Analyst, Measure Thyself",
+            "subtitle": "Using Jeopardy at-home scoring as a yardstick on my mental and physical health during chemotherapy treatment",
+            "authorId": 1,
+            "publicationDate": "2024-08-05T08:30:00-07:00"
+        },
+        {
+            "id": "jeopardy-masters-episodes-1-and-2",
+            "title": "Jeopardy! Masters: Episodes 1 and 2",
+            "subtitle": "Breaking down the buzzing game analytics of the first four matches",
+            "authorId": 1,
+            "publicationDate": "2024-05-07T08:30:00-07:00"
+        }
+    ],
+    "authors": [
+        {
+            "id": 1,
+            "name": "John Focht",
+            "jometry_id": 287
+        }
+    ]
+}

@@ -63,12 +63,13 @@ var playClassificationNameByTocPeriod = function(playClassification, toc_period)
 
 var seasonIds = [
     '32', '33', '34', '35', '36', '37', '38', '39', '40', '40A', '41',
-    'M2023', 'M2024', 'PCJ1', 'PCJ2'
+    'M2023', 'M2024', 'PCJ1', 'PCJ2', 'PCJ3'
 ]
 
 var seasonDisplayId = function(seasonId) {
     if (seasonId === 'PCJ1') return 'Celeb 1'
     if (seasonId === 'PCJ2') return 'Celeb 2'
+    if (seasonId === 'PCJ3') return 'Celeb 3'
     if (seasonId === 'M2023') return 'Masters 1'
     if (seasonId === 'M2024') return 'Masters 2'
     if (seasonId.startsWith('POP') && isPopCulture()) return seasonId.substring(3)
