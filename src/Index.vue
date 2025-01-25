@@ -15,9 +15,7 @@ if (subdomain == 'popculture') {
   data.loadTeamData()
 }
 
-const scc2025Cids = [7976, 8040, 8049, 8073, 8079, 8085, 8088, 8091, 8094, 8138, 8159, 8190, 8207, 8210, 8222, 8235, 8250, 8289]
-const cwc2025Cids = [8144, 7956, 8163, 8175, 8187, 8195, 8243, 8306, 8312, 8318, 8328, 8334, 8355, 8190, 8207]
-const toc2025Cids = [8042, 8117, 8087, 8286, 7941, 8229, 7968, 8217, 8013, 8265, 8028, 5342, 8201, 8004, 8154, 8249, 7995, 7982, 8336]
+const toc2025Cids = [8042, 8117, 8087, 8286, 7941, 8229, 7968, 8217, 8013, 8265, 8028, 5342, 8201, 8004, 8154, 8249, 7995, 7982, 8336, 8328, 8207]
 
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
@@ -65,16 +63,6 @@ const teamData = data.teamDataById
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2025 Champions Wildcard Contestants
-        </div>
-        <div class="competition-summary-links"><a :href="'/period.html?toc_period=2025&play_classification=regular&contestants=' + cwc2025Cids.join(',')">Competitor Statistical Summary</a></div>
-        <div class="competition-contestant-links">
-          <div class="competition-contestant-link" v-for="contestant_id in cwc2025Cids">
-            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-        </div>
-      </div>
-      <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">2025 Tournament of Champions Contestants
         </div>
         <div class="competition-summary-links"><a :href="'/period.html?toc_period=2025&play_classification=regular&contestants=' + toc2025Cids.join(',')">Competitor Statistical Summary</a></div>
@@ -82,9 +70,6 @@ const teamData = data.teamDataById
           <div class="competition-contestant-link" v-for="contestant_id in toc2025Cids">
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
           </div>
-        </div>
-        <div class="competition-contestant-links">
-          Plus one additional champion and one CWC winner
         </div>
       </div>
       <div class="toc-period section">
