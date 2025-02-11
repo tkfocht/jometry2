@@ -1,5 +1,6 @@
 <script setup>
 import * as data from '@/data'
+import * as _ from 'lodash'
 import { playClassificationName, playClassificationNameByTocPeriod, seasonDisplayId } from '@/configuration'
 import { dateFormat, subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
 
@@ -16,6 +17,9 @@ if (subdomain == 'popculture') {
 }
 
 const toc2025Cids = [8042, 8117, 8087, 8286, 7941, 8229, 7968, 8217, 8013, 8265, 8028, 5342, 8201, 8004, 8154, 8249, 7995, 7982, 8336, 8328, 8207]
+const jit2025Cids = [639, "Robin Carroll", 5052, "Roger Craig", 4542, 753, 287, 4070, 2653,
+  "Skyler Hornback", 2650, 4043, 4782, 4374, 4859, "Doug Molitor", 462, 
+  1788, 834, "Rachael Schwartz", 1055, 4066, "Shane Whitlock", 5097, 3451, 1782, 5106]
 
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
@@ -69,6 +73,16 @@ const teamData = data.teamDataById
         <div class="competition-contestant-links">
           <div class="competition-contestant-link" v-for="contestant_id in toc2025Cids">
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
+          </div>
+        </div>
+      </div>
+      <div class="toc-period section">
+        <div class="toc-period-header bg-primary text-white">2025 Invitational Tournament Contestants
+        </div>
+        <div class="competition-contestant-links">
+          <div class="competition-contestant-link" v-for="contestant_id in jit2025Cids">
+            <a v-if="_.isInteger(contestant_id)" :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
+            <span v-else>{{ contestant_id }}</span>
           </div>
         </div>
       </div>
