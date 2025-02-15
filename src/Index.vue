@@ -67,16 +67,6 @@ const teamData = data.teamDataById
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2025 Tournament of Champions Contestants
-        </div>
-        <div class="competition-summary-links"><a :href="'/period.html?toc_period=2025&play_classification=regular&contestants=' + toc2025Cids.join(',')">Competitor Statistical Summary</a></div>
-        <div class="competition-contestant-links">
-          <div class="competition-contestant-link" v-for="contestant_id in toc2025Cids">
-            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-        </div>
-      </div>
-      <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">2025 Invitational Tournament Contestants
         </div>
         <div class="competition-summary-links">
