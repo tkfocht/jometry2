@@ -37,7 +37,9 @@ const summaryDataConstructor = function(
           if (!winReturn.has(winner)) {
             winReturn.set(winner, 0)
           }
-          winReturn.set(winner, winReturn.get(winner) + gcsData.get(g.game_id).get(winner).score)
+          if (!_.isNil(winner)) {
+            winReturn.set(winner, winReturn.get(winner) + gcsData.get(g.game_id).get(winner).score)
+          }
         }
       }
       return winReturn

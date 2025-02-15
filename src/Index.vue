@@ -79,6 +79,11 @@ const teamData = data.teamDataById
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">2025 Invitational Tournament Contestants
         </div>
+        <div class="competition-summary-links">
+          <a :href="'/period.html?play_classification=regular&contestants=639,5052,4542,753,287,4043,4782,4374,4859,462,834,1055,5097,3451,5106'">Competitor Regular Play Summary</a>
+          <a :href="'/period.html?play_classificationteen,hsreunion,college&contestants=2653,2650,1788,1782,4070,4066'">Competitor Teen/HSR/College Summary</a>
+          <a :href="'/period.html?play_classification=champions&contestants=639,5052,4542,753,287,4043,4782,4374,4859,462,834,1055,5097,3451,5106,4066'">Competitor TOC Summary</a>
+        </div>
         <div class="competition-contestant-links">
           <div class="competition-contestant-link" v-for="contestant_id in jit2025Cids">
             <a v-if="_.isInteger(contestant_id)" :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
