@@ -63,7 +63,7 @@ var playClassificationNameByTocPeriod = function(playClassification, toc_period)
 
 var seasonIds = [
     '32', '33', '34', '35', '36', '37', '38', '39', '40', '40A', '41',
-    'M2023', 'M2024', 'PCJ1', 'PCJ2', 'PCJ3'
+    'M2023', 'M2024', 'M2025', 'PCJ1', 'PCJ2', 'PCJ3'
 ]
 
 var seasonDisplayId = function(seasonId) {
@@ -72,6 +72,7 @@ var seasonDisplayId = function(seasonId) {
     if (seasonId === 'PCJ3') return 'Celeb 3'
     if (seasonId === 'M2023') return 'Masters 1'
     if (seasonId === 'M2024') return 'Masters 2'
+    if (seasonId === 'M2025') return 'Masters 3'
     if (seasonId.startsWith('POP') && isPopCulture()) return seasonId.substring(3)
     if (seasonId.endsWith('A')) return seasonId.substring(0, seasonId.length - 1) + " Audio"
     return seasonId
@@ -79,7 +80,7 @@ var seasonDisplayId = function(seasonId) {
 
 var tocPeriodIds = [
     '2017', '2019', '2021', '2022', '2024', '2025', '2026',
-    'M2023', 'M2024'
+    'M2023', 'M2024', 'M2025',
 ]
 
 var playClassifications = [
