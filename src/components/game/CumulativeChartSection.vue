@@ -1,6 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
-import * as bootstrap from 'bootstrap'
+import { computed, ref } from 'vue'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import OptionDropdown from '@/components/util/OptionDropdown.vue'
@@ -216,22 +215,6 @@ const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList.val
 
 const legendPosition = ref('right')
 
-const updateLegendPosition = () => {
-  //FIXME: Want to use Bootstrap's breakpoint detection
-  legendPosition.value = window.innerWidth < 768 ? 'bottom' : 'right'
-}
-
-onMounted(() => {
-  updateLegendPosition()
-  window.addEventListener('resize', updateLegendPosition)
-  window.addEventListener('orientationchange', updateLegendPosition)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateLegendPosition)
-  window.removeEventListener('orientationchange', updateLegendPosition)
-})
-
 </script>
 
 <template>
@@ -260,7 +243,6 @@ onUnmounted(() => {
               :title="'Cumulative ' + byClueLineChartAttribute.label"
               :xLabel="'Clues'"
               :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
-              :legendPosition="legendPosition"
           />
           <TrendLineChart v-if="props.gameTeamIds && byClueLineChartDataTeam && props.teamDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
               :data="byClueLineChartDataTeam"
@@ -273,7 +255,6 @@ onUnmounted(() => {
               :xLabel="'Clues'"
               :yLabel="byClueLineChartAttribute.label"
               :blur="2"
-              :legendPosition="legendPosition"
           />
           <CumulativeLineChart v-if="props.gameContestantIds && byClueLineChartDataContestant && props.contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
               :data="byClueLineChartDataContestant"
@@ -285,7 +266,6 @@ onUnmounted(() => {
               :title="'Cumulative ' + byClueLineChartAttribute.label"
               :xLabel="'Clues'"
               :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
-              :legendPosition="legendPosition"
           />
           <TrendLineChart v-if="props.gameContestantIds && byClueLineChartDataContestant && props.contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
               :data="byClueLineChartDataContestant"
@@ -298,7 +278,6 @@ onUnmounted(() => {
               :xLabel="'Clues'"
               :yLabel="byClueLineChartAttribute.label"
               :blur="2"
-              :legendPosition="legendPosition"
           />        
         </div>
     </div>

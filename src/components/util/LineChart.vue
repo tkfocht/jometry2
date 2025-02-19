@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import * as d3 from 'd3'
 import ReactiveChart from './ReactiveChart.vue'
 import * as _ from 'lodash'
@@ -13,12 +13,30 @@ const props = defineProps({
   xLabel: String,
   yLabel: String,
   traceProperties: Object,
-  legendPosition: {
-    type: String,
-    default: 'right',
-    validator: (value) => ['right', 'bottom'].includes(value)
-  }
 })
+
+const legendY = ref(-0.25)
+
+const updateLegendPosition = () => {
+  const smBreakpoint = parseInt(getComputedStyle(document.body).getPropertyValue('--bs-breakpoint-sm'))
+  if (window.innerWidth < smBreakpoint) {
+    legendY.value = -0.4
+  } else {
+    legendY.value = -0.25
+  }
+}
+
+onMounted(() => {
+  updateLegendPosition()
+  window.addEventListener('resize', updateLegendPosition)
+  window.addEventListener('orientationchange', updateLegendPosition)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateLegendPosition)
+  window.removeEventListener('orientationchange', updateLegendPosition)
+})
+
 
 const traces = computed(() => {
   if (!props.data) return undefined
@@ -55,11 +73,11 @@ const layout = computed(() => {
     xaxis: { title: props.xLabel, type: 'category', automargin: true, fixedrange: true },
     yaxis: { title: props.yLabel, automargin: true, fixedrange: true },
     legend: {
-      orientation: props.legendPosition === 'bottom' ? 'h' : 'v',
-      y: props.legendPosition === 'bottom' ? -0.5 : 0.95,
-      x: props.legendPosition === 'bottom' ? 0.5 : 1.05,
-      xanchor: props.legendPosition === 'bottom' ? 'center' : 'left',
-      yanchor: props.legendPosition === 'bottom' ? 'top' : 'top',
+      orientation: 'h',
+      y: legendY.value,
+      x: 0.5,
+      xanchor: 'center',
+      yanchor: 'top',
       bgcolor: 'rgba(0,0,0,0)'
     }
   }

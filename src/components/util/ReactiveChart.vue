@@ -31,7 +31,7 @@ watch(() => props.chart, (newValue, oldValue) => {
 
 div.graph {
     --bs-aspect-ratio: 100%;
-    @include media-breakpoint-up(sm) {
+    @include media-breakpoint-up(md) {
         --bs-aspect-ratio: calc(9 / 16 * 100%);
     }
 }

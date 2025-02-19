@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { computed } from 'vue'
 import * as d3 from 'd3'
 import LineChart from './LineChart.vue'
 import { update } from 'plotly.js-dist';
@@ -14,11 +14,6 @@ const props = defineProps({
   title: String,
   xLabel: String,
   yLabel: String,
-  legendPosition: {
-    type: String,
-    default: 'right',
-    validator: (value) => ['right', 'top'].includes(value)
-  }
 })
 
 const cumulativeData = computed(() => {
@@ -65,6 +60,5 @@ const cumulativeData = computed(() => {
     :title="props.title"
     :xLabel="props.xLabel"
     :yLabel="props.yLabel"
-    :legendPosition="props.legendPosition"
   />
 </template>
