@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import * as bootstrap from 'bootstrap'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
@@ -218,12 +218,18 @@ const legendPosition = ref('right')
 
 const updateLegendPosition = () => {
   //FIXME: Want to use Bootstrap's breakpoint detection
-  legendPosition.value = window.innerWidth < 768 ? 'top' : 'right'
+  legendPosition.value = window.innerWidth < 768 ? 'bottom' : 'right'
 }
 
 onMounted(() => {
   updateLegendPosition()
   window.addEventListener('resize', updateLegendPosition)
+  window.addEventListener('orientationchange', updateLegendPosition)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateLegendPosition)
+  window.removeEventListener('orientationchange', updateLegendPosition)
 })
 
 </script>

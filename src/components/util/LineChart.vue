@@ -16,7 +16,7 @@ const props = defineProps({
   legendPosition: {
     type: String,
     default: 'right',
-    validator: (value) => ['right', 'top'].includes(value)
+    validator: (value) => ['right', 'bottom'].includes(value)
   }
 })
 
@@ -49,15 +49,17 @@ const layout = computed(() => {
     showlegend: true,
     title: {
       text: props.title,
-      y: props.legendPosition === 'top' ? 1.4 : 0.9
+      y: 0.85,
+      yanchor: 'bottom',
     },
     xaxis: { title: props.xLabel, type: 'category', automargin: true, fixedrange: true },
     yaxis: { title: props.yLabel, automargin: true, fixedrange: true },
     legend: {
-      orientation: props.legendPosition === 'top' ? 'h' : 'v',
-      y: props.legendPosition === 'top' ? 1.2 : 0.95,
-      x: props.legendPosition === 'top' ? 0.5 : 1.05,
-      xanchor: props.legendPosition === 'top' ? 'center' : 'left',
+      orientation: props.legendPosition === 'bottom' ? 'h' : 'v',
+      y: props.legendPosition === 'bottom' ? -0.5 : 0.95,
+      x: props.legendPosition === 'bottom' ? 0.5 : 1.05,
+      xanchor: props.legendPosition === 'bottom' ? 'center' : 'left',
+      yanchor: props.legendPosition === 'bottom' ? 'top' : 'top',
       bgcolor: 'rgba(0,0,0,0)'
     }
   }
