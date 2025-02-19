@@ -13,12 +13,7 @@ const props = defineProps({
   colors: Array,
   title: String,
   xLabel: String,
-  yLabel: String,
-  legendPosition: {
-    type: String,
-    default: 'right',
-    validator: (value) => ['right', 'top'].includes(value)
-  }
+  yLabel: String
 })
 
 const cumulativeData = computed(() => {
@@ -65,6 +60,5 @@ const cumulativeData = computed(() => {
     :title="props.title"
     :xLabel="props.xLabel"
     :yLabel="props.yLabel"
-    :legendPosition="props.legendPosition"
   />
 </template>
