@@ -1,5 +1,6 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+import * as bootstrap from 'bootstrap'
 import * as d3 from 'd3'
 import * as _ from 'lodash'
 import OptionDropdown from '@/components/util/OptionDropdown.vue'
@@ -213,6 +214,17 @@ const cumulativeDataAttributesList = computed(()  => {
 const byClueLineChartAttributeIdx = ref(0)
 const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList.value[byClueLineChartAttributeIdx.value])
 
+const legendPosition = ref('right')
+
+const updateLegendPosition = () => {
+  //FIXME: Want to use Bootstrap's breakpoint detection
+  legendPosition.value = window.innerWidth < 768 ? 'top' : 'right'
+}
+
+onMounted(() => {
+  updateLegendPosition()
+  window.addEventListener('resize', updateLegendPosition)
+})
 
 </script>
 
@@ -231,51 +243,57 @@ const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList.val
             @newSelectionIndex="(idx) => gameProgressGraphTypeIdx = idx"
         />
         </div>
-        <CumulativeLineChart v-if="props.gameTeamIds && byClueLineChartDataTeam && props.teamDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
-            :data="byClueLineChartDataTeam"
-            :xFunction="d => d['clue_identifier']"
-            :yFunctions="_.range(props.gameTeamIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
-            :yDenominatorFunctions="_.range(props.gameTeamIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
-            :labels="props.gameTeamIds.map(cid => props.teamDataById.get(cid).name)"
-            :colors="props.gameTeamIds.map(cid => teamColorFn(cid))"
-            :title="'Cumulative ' + byClueLineChartAttribute.label"
-            :xLabel="'Clues'"
-            :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
-        />
-        <TrendLineChart v-if="props.gameTeamIds && byClueLineChartDataTeam && props.teamDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
-            :data="byClueLineChartDataTeam"
-            :xFunction="d => d['clue_identifier']"
-            :yFunctions="_.range(props.gameTeamIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
-            :yDenominatorFunctions="_.range(props.gameTeamIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
-            :labels="props.gameTeamIds.map(cid => props.teamDataById.get(cid).name)"
-            :colors="props.gameTeamIds.map(cid => teamColorFn(cid))"
-            :title="byClueLineChartAttribute.label + ' Trend'"
-            :xLabel="'Clues'"
-            :yLabel="byClueLineChartAttribute.label"
-            :blur="2"
-        />
-        <CumulativeLineChart v-if="props.gameContestantIds && byClueLineChartDataContestant && props.contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
-            :data="byClueLineChartDataContestant"
-            :xFunction="d => d['clue_identifier']"
-            :yFunctions="_.range(props.gameContestantIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
-            :yDenominatorFunctions="_.range(props.gameContestantIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
-            :labels="props.gameContestantIds.map(cid => props.contestantDataById.get(cid).name)"
-            :colors="props.gameContestantIds.map(cid => contestantColorFn(cid))"
-            :title="'Cumulative ' + byClueLineChartAttribute.label"
-            :xLabel="'Clues'"
-            :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
-        />
-        <TrendLineChart v-if="props.gameContestantIds && byClueLineChartDataContestant && props.contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
-            :data="byClueLineChartDataContestant"
-            :xFunction="d => d['clue_identifier']"
-            :yFunctions="_.range(props.gameContestantIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
-            :yDenominatorFunctions="_.range(props.gameContestantIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
-            :labels="props.gameContestantIds.map(cid => props.contestantDataById.get(cid).name)"
-            :colors="props.gameContestantIds.map(cid => contestantColorFn(cid))"
-            :title="byClueLineChartAttribute.label + ' Trend'"
-            :xLabel="'Clues'"
-            :yLabel="byClueLineChartAttribute.label"
-            :blur="2"
-        />        
+        <div>
+          <CumulativeLineChart v-if="props.gameTeamIds && byClueLineChartDataTeam && props.teamDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
+              :data="byClueLineChartDataTeam"
+              :xFunction="d => d['clue_identifier']"
+              :yFunctions="_.range(props.gameTeamIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+              :yDenominatorFunctions="_.range(props.gameTeamIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+              :labels="props.gameTeamIds.map(cid => props.teamDataById.get(cid).name)"
+              :colors="props.gameTeamIds.map(cid => teamColorFn(cid))"
+              :title="'Cumulative ' + byClueLineChartAttribute.label"
+              :xLabel="'Clues'"
+              :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
+              :legendPosition="legendPosition"
+          />
+          <TrendLineChart v-if="props.gameTeamIds && byClueLineChartDataTeam && props.teamDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
+              :data="byClueLineChartDataTeam"
+              :xFunction="d => d['clue_identifier']"
+              :yFunctions="_.range(props.gameTeamIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+              :yDenominatorFunctions="_.range(props.gameTeamIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+              :labels="props.gameTeamIds.map(cid => props.teamDataById.get(cid).name)"
+              :colors="props.gameTeamIds.map(cid => teamColorFn(cid))"
+              :title="byClueLineChartAttribute.label + ' Trend'"
+              :xLabel="'Clues'"
+              :yLabel="byClueLineChartAttribute.label"
+              :blur="2"
+              :legendPosition="legendPosition"
+          />
+          <CumulativeLineChart v-if="props.gameContestantIds && byClueLineChartDataContestant && props.contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Cumulative'"
+              :data="byClueLineChartDataContestant"
+              :xFunction="d => d['clue_identifier']"
+              :yFunctions="_.range(props.gameContestantIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+              :yDenominatorFunctions="_.range(props.gameContestantIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+              :labels="props.gameContestantIds.map(cid => props.contestantDataById.get(cid).name)"
+              :colors="props.gameContestantIds.map(cid => contestantColorFn(cid))"
+              :title="'Cumulative ' + byClueLineChartAttribute.label"
+              :xLabel="'Clues'"
+              :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
+              :legendPosition="legendPosition"
+          />
+          <TrendLineChart v-if="props.gameContestantIds && byClueLineChartDataContestant && props.contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
+              :data="byClueLineChartDataContestant"
+              :xFunction="d => d['clue_identifier']"
+              :yFunctions="_.range(props.gameContestantIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+              :yDenominatorFunctions="_.range(props.gameContestantIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+              :labels="props.gameContestantIds.map(cid => props.contestantDataById.get(cid).name)"
+              :colors="props.gameContestantIds.map(cid => contestantColorFn(cid))"
+              :title="byClueLineChartAttribute.label + ' Trend'"
+              :xLabel="'Clues'"
+              :yLabel="byClueLineChartAttribute.label"
+              :blur="2"
+              :legendPosition="legendPosition"
+          />        
+        </div>
     </div>
 </template>
