@@ -19,7 +19,7 @@ if (subdomain == 'popculture') {
 const toc2025Cids = [8042, 8117, 8087, 8286, 7941, 8229, 7968, 8217, 8013, 8265, 8028, 5342, 8201, 8004, 8154, 8249, 7995, 7982, 8336, 8328, 8207]
 const jit2025Cids = [639, "Robin Carroll", 5052, "Roger Craig", 4542, 753, 287, 4070, 2653,
   8536, 2650, 4043, 4782, 4374, 4859, 8535, 462, 
-  1788, 834, "Rachael Schwartz", 1055, 4066, "Shane Whitlock", 5097, 3451, 1782, 5106]
+  1788, 834, 8540, 1055, 4066, "Shane Whitlock", 5097, 3451, 1782, 5106]
 
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
