@@ -16,9 +16,7 @@ if (subdomain == 'popculture') {
   data.loadTeamData()
 }
 
-const jit2025Cids = [639, 8552, 5052, 8546, 4542, 753, 287, 4070, 2653,
-  8536, 2650, 4043, 4782, 4374, 4859, 8535, 462, 
-  1788, 834, 8540, 1055, 4066, 8556, 5097, 3451, 1782, 5106]
+const masters2025Cids = [639, 8546, 7912, 8042, 8117, 4842, "Brad Rutter", 8154, 5106]
 
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
@@ -66,15 +64,14 @@ const teamData = data.teamDataById
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2025 Invitational Tournament Contestants
+        <div class="toc-period-header bg-primary text-white">2025 Masters Contestants
         </div>
         <div class="competition-summary-links">
-          <a :href="'/period.html?play_classification=regular&contestants=639,5052,4542,753,287,4043,4782,4374,4859,462,834,1055,5097,3451,5106'">Competitor Regular Play Summary</a>
-          <a :href="'/period.html?play_classificationteen,hsreunion,college&contestants=2653,2650,1788,1782,4070,4066'">Competitor Teen/HSR/College Summary</a>
-          <a :href="'/period.html?play_classification=champions&contestants=639,5052,4542,753,287,4043,4782,4374,4859,462,834,1055,5097,3451,5106,4066'">Competitor TOC Summary</a>
+          <a :href="'/period.html?play_classification=regular&contestants=639,8042,8117,4842,8154,5106'">Competitor Regular Play Summary</a>
+          <a :href="'/period.html?play_classification=champions,invitational,masters&contestants=639,8546,7912,8042,8117,4842,8154,5106'">Competitor TOC/JIT/Masters Summary</a>
         </div>
         <div class="competition-contestant-links">
-          <div class="competition-contestant-link" v-for="contestant_id in jit2025Cids">
+          <div class="competition-contestant-link" v-for="contestant_id in masters2025Cids">
             <a v-if="_.isInteger(contestant_id)" :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
             <span v-else>{{ contestant_id }}</span>
           </div>
