@@ -16,7 +16,7 @@ if (subdomain == 'popculture') {
   data.loadTeamData()
 }
 
-const masters2025Cids = [639, 8546, 7912, 8042, 8117, 4842, "Brad Rutter", 8154, 5106]
+const masters2025Cids = [639, 8546, 7912, 8042, 8117, 4842, 8727, 8154, 5106]
 
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
