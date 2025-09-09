@@ -574,7 +574,9 @@ const rollingChartSpecification = data.computedIfRefHasValues(
   [gameIds, gameDataById, gameStatDataById, gameContestantStatDataByGameId, rollingAverageGraphAttribute, rollingAverageRollCount],
   (gIds, gData, gsData, gcsData, attr, rollCount) => {
     const numerators = movingAverageOfLast(rollCount, gIds.map(gid => attr.generatingFunction(gsData.get(gid), gcsData.get(gid))))
-    const denominators = new Array(numerators.length).fill(1.0)
+    const denominators = attr.denominatorGeneratingFunction ?
+      movingAverageOfLast(rollCount, gIds.map(gid => attr.denominatorGeneratingFunction(gsData.get(gid), gcsData.get(gid)))) :
+      new Array(numerators.length).fill(1.0)
     const values = d3.zip(numerators, denominators).map(a => (1.0 * a[0] / a[1]))
     return {
       data: d3.zip(gIds, values),

@@ -111,13 +111,30 @@ const contention = {
     averageDisplayFormat: v => formatNumber(v, 2, false)
 }
 
+const fj_percentage = {
+    short_label: 'FJ%',
+    label: 'Final Jeopardy Correct %',
+    description: 'Final Jeopardy Correct %',
+    requiresAttemptData: false,
+    generatingFunction: (gs, gcs) => {
+        console.log(gcs)
+        return 1
+    },
+    denominatorGeneratingFunction: (gs, gcs) => {
+        console.log(gcs)
+        return 2
+    },
+    valueDisplayFormat: v => formatNumber(v, 2),
+    averageDisplayFormat: v => formatNumber(v, 2, false)
+}
+
 const all_attributes = [
     att_total, att_max, att_med, att_min, att_value_total, buzc_total, buzi_total, buz_score_total,
-    coryat_score_total, coryat_positive_score_total, contention
+    coryat_score_total, coryat_positive_score_total, contention, fj_percentage
 ]
 
 const attributes_without_att = all_attributes.filter(attr => !attr.requiresAttemptData)
 
 export { all_attributes, attributes_without_att, att_total, att_max, att_med, att_min, att_value_total,
     buzc_total, buzi_total, buz_score_total, coryat_score_total, coryat_positive_score_total,
-    contention };
+    contention, fj_percentage };
