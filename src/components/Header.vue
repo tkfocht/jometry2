@@ -17,9 +17,9 @@ import { subdomainIdentifier, isSyndicated, isPopCulture } from '@/util'
         <div id="navbarSupportedContent" class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0 ms-2">
                 <li class="nav-item ms-md-3"><a href="/">Home</a></li>
-                <li class="nav-item ms-md-3" v-if="isSyndicated()"><a href="/period.html?toc_period=2026">Statistics</a></li>
+                <li class="nav-item ms-md-3" v-if="isSyndicated()"><a href="/period.html?toc_period=2026&play_classification=regular">Statistics</a></li>
                 <li class="nav-item ms-md-3" v-if="isPopCulture()"><a href="/period.html?toc_period=POP1">Statistics</a></li>
-                <li class="nav-item ms-md-3" v-if="isSyndicated()"><a href="/period_games.html?season=41">Games</a></li>
+                <li class="nav-item ms-md-3" v-if="isSyndicated()"><a href="/period_games.html?season=42">Games</a></li>
                 <li class="nav-item ms-md-3" v-if="isPopCulture()"><a href="/period_games.html?season=POP1">Games</a></li>
                 <li class="nav-item ms-md-3" v-if="isPopCulture()"><a href="/team_index.html">Teams</a></li>
                 <li class="nav-item ms-md-3"><a href="/contestant_index.html">Contestants</a></li>
