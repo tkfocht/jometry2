@@ -16,8 +16,6 @@ if (subdomain == 'popculture') {
   data.loadTeamData()
 }
 
-const masters2025Cids = [639, 8546, 7912, 8042, 8117, 4842, 8727, 8154, 5106]
-
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
   gData.sort((a,b) => d3.descending(a['airdate'], b['airdate']) || d3.descending(a['game_in_season'], b['game_in_season']))
@@ -82,7 +80,7 @@ const teamData = data.teamDataById
             </div>
           </div>
         </div>
-        <div v-for="season_id_set in [['41']]" class="toc-period-play-class"
+        <div v-for="season_id_set in [['42']]" class="toc-period-play-class"
             :set1="seasonGames = gameDataSorted.filter(g => season_id_set.includes(g.season_id))"
             :set2="seasonGamesByPlayClassification = d3.group(seasonGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
