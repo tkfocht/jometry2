@@ -117,12 +117,10 @@ const fj_percentage = {
     description: 'Final Jeopardy Correct %',
     requiresAttemptData: false,
     generatingFunction: (gs, gcs) => {
-        console.log(gcs)
-        return 1
+        return d3.sum(gcs, (gc) => gc.fj_cor)
     },
     denominatorGeneratingFunction: (gs, gcs) => {
-        console.log(gcs)
-        return 2
+        return d3.sum(gcs, (gc) => gc.fj_att)
     },
     valueDisplayFormat: v => formatNumber(v, 2),
     averageDisplayFormat: v => formatNumber(v, 2, false)
