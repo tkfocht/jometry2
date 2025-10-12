@@ -8,15 +8,6 @@ import { resolve } from 'node:path'
 export default defineConfig({
   plugins: [vue()],
   server: {
-    proxy: {
-      '/csvs': {
-        target: 'https://j-ometry.com',
-        changeOrigin: true,
-        configure: (proxy, options) => {
-          // proxy will be an instance of 'http-proxy'
-        },
-      }
-    }
   },
   resolve: {
     alias: {
