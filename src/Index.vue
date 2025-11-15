@@ -34,6 +34,11 @@ const teamData = data.teamDataById
   <Header />
   <div class="component-body" :data-bs-theme="subdomain">
     <div v-if="isSyndicated() && gameData && contestantData">
+      <div class="alert alert-primary" role="alert" v-if="isSyndicated()">
+        Games from November 11 to November 14, 2025, have been placed into the qualification
+        periods for both the 2026 and 2027 Tournaments of Champions.
+      </div>
+
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Recent Games
         </div>
@@ -64,8 +69,8 @@ const teamData = data.teamDataById
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Current Qualification Periods and Season
         </div>
-        <div v-for="tocPeriod in ['2026']" class="toc-period-play-class"
-            :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod)"
+        <div v-for="tocPeriod in ['2026', '2027']" class="toc-period-play-class"
+            :set1="tocPeriodGames = gameDataSorted.filter(g => g.toc_period === tocPeriod || g.toc_period_2 === tocPeriod)"
             :set2="tocPeriodGamesByPlayClassification = d3.group(tocPeriodGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
             {{ tocPeriod }} Period&nbsp;

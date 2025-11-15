@@ -79,6 +79,8 @@ var jschemaCsvDataAccessor = function(row) {
             r[k] = row[k];
         } else if (row[k] === '') {
             r[k] = undefined;
+        } else if (k === 'toc_period_2') {
+            r[k] = row[k];
         } else {
             r[k] = +row[k];
             if (isNaN(r[k])) {
