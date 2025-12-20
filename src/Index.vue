@@ -16,11 +16,10 @@ if (subdomain == 'popculture') {
   data.loadTeamData()
 }
 
-var scc2026CidsWeek1 = [8613, 8625, 8639, 8648, 8897, 8903, 8975, 9003, 9014]
 var scc2026CidsWeek2 = [8385, 8616, 8636, 8669, 8672, 8708, 8891, 9072, 9077]
 var scc2026CidsWeek3 = [8400, 8582, 8609, 8660, 8678, 8706, 8876, 8882, 8952]
 
-var cwc2026Cids = [8366, 8790, 8583, 8928, 8360, 8868, 9024, 8799, 8976, 8604, 8579, 8940]
+var cwc2026Cids = [8366, 8790, 8583, 8928, 8360, 8868, 9024, 8799, 8976, 8604, 8579, 8940, 8897]
 
 var toc2026Cids = [8874, 8391, 8942, 8646, 8670, 8607, 8690, 8991, 8591, 9075, 8963, 8624, 8375, 8814, 9030, 8747, 8637, 9053]
 
@@ -42,11 +41,6 @@ const teamData = data.teamDataById
   <Header />
   <div class="component-body" :data-bs-theme="subdomain">
     <div v-if="isSyndicated() && gameData && contestantData">
-      <div class="alert alert-primary" role="alert" v-if="isSyndicated()">
-        Games from November 11 to November 14, 2025, have been placed into the qualification
-        periods for both the 2026 and 2027 Tournaments of Champions.
-      </div>
-
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Recent Games
         </div>
@@ -76,12 +70,6 @@ const teamData = data.teamDataById
       </div>
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">2025-26 Second Chance Competition Contestants</div>
-        <div class="competition-summary-links"><a :href="'/period.html?toc_period=2026&play_classification=regular&contestants=' + scc2026CidsWeek1.join(',')">Week 1 Competitor Statistical Summary</a></div>
-        <div class="competition-contestant-links">
-          <div class="competition-contestant-link" v-for="contestant_id in scc2026CidsWeek1">
-            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-        </div>
         <div class="competition-summary-links"><a :href="'/period.html?toc_period=2026&play_classification=regular&contestants=' + scc2026CidsWeek2.join(',')">Week 2 Competitor Statistical Summary</a></div>
         <div class="competition-contestant-links">
           <div class="competition-contestant-link" v-for="contestant_id in scc2026CidsWeek2">
@@ -103,7 +91,7 @@ const teamData = data.teamDataById
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
           </div>
           <div class="competition-contestant-link">
-            +3 SCC champions
+            +2 SCC champions
           </div>
         </div>
       </div>
