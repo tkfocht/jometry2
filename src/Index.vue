@@ -16,9 +16,7 @@ if (subdomain == 'popculture') {
   data.loadTeamData()
 }
 
-var scc2026CidsWeek3 = [8400, 8582, 8609, 8660, 8678, 8706, 8876, 8882, 8952]
-
-var cwc2026Cids = [8366, 8790, 8583, 8928, 8360, 8868, 9024, 8799, 8976, 8604, 8579, 8940, 8897, 8708]
+var cwc2026Cids = [8366, 8790, 8583, 8928, 8360, 8868, 9024, 8799, 8976, 8604, 8579, 8940, 8897, 8708, 8952]
 
 var toc2026Cids = [8874, 8391, 8942, 8646, 8670, 8607, 8690, 8991, 8591, 9075, 8963, 8624, 8375, 8814, 9030, 8747, 8637, 9053]
 
@@ -68,23 +66,11 @@ const teamData = data.teamDataById
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2025-26 Second Chance Competition Contestants</div>
-        <div class="competition-summary-links"><a :href="'/period.html?toc_period=2026&play_classification=regular&contestants=' + scc2026CidsWeek3.join(',')">Week 3 Competitor Statistical Summary</a></div>
-        <div class="competition-contestant-links">
-          <div class="competition-contestant-link" v-for="contestant_id in scc2026CidsWeek3">
-            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-        </div>
-      </div>
-      <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">2026 Champions Wildcard Contestants</div>
         <div class="competition-summary-links"><a :href="'/period.html?toc_period=2026&play_classification=regular&contestants=' + cwc2026Cids.join(',')">Competitor Statistical Summary</a></div>
         <div class="competition-contestant-links">
           <div class="competition-contestant-link" v-for="contestant_id in cwc2026Cids">
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-          <div class="competition-contestant-link">
-            +1 SCC champion
           </div>
         </div>
       </div>
