@@ -16,9 +16,7 @@ if (subdomain == 'popculture') {
   data.loadTeamData()
 }
 
-var cwc2026Cids = [8366, 8790, 8583, 8928, 8360, 8868, 9024, 8799, 8976, 8604, 8579, 8940, 8897, 8708, 8952]
-
-var toc2026Cids = [8874, 8391, 8942, 8646, 8670, 8607, 8690, 8991, 8591, 9075, 8963, 8624, 8375, 8814, 9030, 8747, 8637, 9053]
+var toc2026Cids = [8874, 8391, 8942, 8646, 8670, 8607, 8690, 8991, 8591, 9075, 8963, 8624, 8375, 8814, 9030, 8747, 8637, 9053, 8604]
 
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
@@ -66,15 +64,6 @@ const teamData = data.teamDataById
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2026 Champions Wildcard Contestants</div>
-        <div class="competition-summary-links"><a :href="'/period.html?toc_period=2026&play_classification=regular&contestants=' + cwc2026Cids.join(',')">Competitor Statistical Summary</a></div>
-        <div class="competition-contestant-links">
-          <div class="competition-contestant-link" v-for="contestant_id in cwc2026Cids">
-            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-        </div>
-      </div>
-      <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">2026 Tournament of Champions Contestants</div>
         <div class="competition-summary-links"><a :href="'/period.html?toc_period=2026&play_classification=regular&contestants=' + toc2026Cids.join(',')">Regular Play Competitor Statistical Summary</a></div>
         <div class="competition-contestant-links">
@@ -83,9 +72,6 @@ const teamData = data.teamDataById
           </div>
           <div class="competition-contestant-link" v-for="contestant_id in [5417, 8442]">
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-          <div class="competition-contestant-link">
-            +1 CWC champion
           </div>
         </div>
       </div>
