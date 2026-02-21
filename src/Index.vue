@@ -16,7 +16,7 @@ if (subdomain == 'popculture') {
   data.loadTeamData()
 }
 
-var jit2026Cids = [8117, 639, 8546, 8042, 819, 8328, 8207, 8190, 8087, 7941, 4421, 4988, 4064, 499, 510, 3824, 7329]
+var celeb2026Cids = [4610, 5417, 8442, 8496, 5524, 5525, 5395, 9046, 9050, 5626, 5433, 4864, 4590, 5720, 4687, 5418, 5473, 8532, 8466, 5455, 8509]
 
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
@@ -64,14 +64,11 @@ const teamData = data.teamDataById
         </div>
       </div>
       <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2026 Invitational Tournament Contestants</div>
-        <div class="competition-summary-links"><a :href="'/period.html?play_classification=secondchance,wildcard,champions,invitational,college,teachers&contestants=' + jit2026Cids.join(',')">Tournament Play Statistical Summary</a></div>
+        <div class="toc-period-header bg-primary text-white">2026 Celebrity Tournament Contestants</div>
+        <div class="competition-summary-links"><a :href="'/period.html?play_classification=celebrity&contestants=' + celeb2026Cids.join(',')">Tournament Play Statistical Summary</a></div>
         <div class="competition-contestant-links">
-          <div class="competition-contestant-link" v-for="contestant_id in jit2026Cids">
+          <div class="competition-contestant-link" v-for="contestant_id in celeb2026Cids">
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
-          </div>
-          <div class="competition-contestant-link" v-for="contestant_name in ['TL Cubbage']">
-            <span>{{ contestant_name }}</span>
           </div>
         </div>
       </div>
