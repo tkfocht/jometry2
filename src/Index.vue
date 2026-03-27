@@ -65,7 +65,7 @@ const teamData = data.teamDataById
       </div>
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">2026 Celebrity Tournament Contestants</div>
-        <div class="competition-summary-links"><a :href="'/period.html?play_classification=celebrity&contestants=' + celeb2026Cids.join(',')">Tournament Play Statistical Summary</a></div>
+        <div class="competition-summary-links"><a :href="'/period.html?play_classification=celebrity&season_id=PCJ1,PCJ2,PCJ3&contestants=' + celeb2026Cids.join(',')">Previous Tournament Play Statistical Summary</a></div>
         <div class="competition-contestant-links">
           <div class="competition-contestant-link" v-for="contestant_id in celeb2026Cids">
             <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
@@ -91,11 +91,11 @@ const teamData = data.teamDataById
             </div>
           </div>
         </div>
-        <div v-for="season_id_set in [['42']]" class="toc-period-play-class"
+        <div v-for="season_id_set in [['42'],['PCJ4']]" class="toc-period-play-class"
             :set1="seasonGames = gameDataSorted.filter(g => season_id_set.includes(g.season_id))"
             :set2="seasonGamesByPlayClassification = d3.group(seasonGames, g => g.play_classification)">
           <div class="toc-period-play-class-header bg-secondary">
-            Season {{ season_id_set[0] }}&nbsp;
+            Season {{ seasonDisplayId(season_id_set[0]) }}&nbsp;
             <a :href="'/period_games.html?season=' + season_id_set.join(',')">{{ seasonGames.length }} game{{ seasonGames.length === 1 ? '' : 's' }}</a>&nbsp;
             <a :href="'/period.html?season=' + season_id_set.join(',')">Statistical Summary</a>
           </div>

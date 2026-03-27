@@ -38,6 +38,27 @@ data.loadJschemaClueContestantStatData(gameId)
 data.loadJschemaClueData(gameId)
 data.loadJschemaResponseData(gameId)
 
+const alertMessage = ref(null)
+if (isSyndicated()) {
+  if (gameId === 3130) {
+    alertMessage.value = "The published box score for this game includes an attempt and buzz for Zach on " +
+      "a response at clue 15 that was initially accepted and later overruled such that he received no credit or " +
+      "penalty. For consistency in metrics, this attempt and buzz have been removed from J-ometry data at " +
+      "the cost of a small inconsistency with the published box score."
+  } else if (gameId === 3133) {
+    alertMessage.value = "Feb 28, 2026: The published box score for this game is known to have an error. " +
+      "Patrick's Final Jeopardy wager and his final score were reversed. " +
+      "The correct values from broadcast are used on this page. " +
+      "This error was found through a consistency check with J-Archive data."
+  } else if (gameId === 3134) {
+    alertMessage.value = "Feb 28, 2026: The published box score for this game is known to have an error. " +
+      "Diana's DD2 wager was listed as $2000 but was actually $2600. " +
+      "The correct value from the broadcast is used on this page. " +
+      "This error was found through a consistency check with J-Archive data."
+  }
+
+}
+
 const contestantDataById = data.contestantDataById
 const teamDataById = data.teamDataById
 const gameData = data.computedIfRefHasValue(data.gameDataById, gData => gData.get(gameId))
@@ -487,6 +508,9 @@ const teamHistogramSpecification = computed(() => {
 <template>
   <Header />
   <div class="component-body" :data-bs-theme="subdomainIdentifier()">
+    <div v-if="alertMessage" class="alert alert-warning" role="alert">
+      {{ alertMessage }}
+    </div>
     <div v-if="gameData && gameStatData" class="section">
       <div class="overview">
         <div class="overview-row">
