@@ -15,6 +15,7 @@ var playClassificationGenericName = function(playClassification) {
     if (playClassification === 'masters') return 'Masters'
     if (playClassification === 'wildcard') return 'Champions Wildcard'
     if (playClassification === 'college') return 'College'
+    if (playClassification === 'youtube') return 'YouTube'
     return null
 }
 
@@ -37,6 +38,7 @@ var playClassificationName = function(playClassification, season) {
         if (season === 'NCC2022') return 'National College Championship'
         return 'College Tournament'
     }
+    if (playClassification === 'youtube') return 'YouTube'
     return null
 }
 
@@ -58,6 +60,7 @@ var playClassificationNameByTocPeriod = function(playClassification, toc_period)
         if (toc_period === '2022') return 'National College Championship'
         return 'College Tournament'
     }
+    if (playClassification === 'youtube') return 'YouTube'
     return null
 }
 

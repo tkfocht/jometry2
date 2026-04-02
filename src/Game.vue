@@ -65,7 +65,11 @@ const gameData = data.computedIfRefHasValue(data.gameDataById, gData => gData.ge
 const gameStatData = data.computedIfRefHasValue(data.gameStatDataById, gsData => gsData.get(gameId))
 const gamePlayClassification = data.computedIfRefHasValue(gameData, gData => gData.play_classification)
 const gameTocPeriod = data.computedIfRefHasValue(gameData, gData => gData.toc_period)
-const gameRounds = data.computedIfRefHasValue(gameData, gData => gData.play_classification == 'celebrity' ? 3 : 2)
+const gameRounds = data.computedIfRefHasValue(gameData, gData => {
+  if (gData.play_classification == 'celebrity') return 3
+  if (gData.play_classification == 'youtube') return 1
+  return 2
+})
 const gameContestantIds = isPopCulture() ?
   data.computedIfRefHasValue(gameData, gData => [
     gData.podium_1_1_contestant_id, gData.podium_1_2_contestant_id, gData.podium_1_3_contestant_id,
@@ -222,8 +226,10 @@ function contestantLegend (contestant_id, contestant_name) {
 }
 
 //Tables
-const roundOptionLabels = computed(() => 
-  ['Full Game', 'J Round', 'DJ Round'].concat(gameRounds.value && gameRounds.value > 2 ? ['TJ Round'] : []))
+const roundOptionLabels = computed(() => {
+  if (gameRounds.value && gameRounds.value <= 1) return ['Full Game']
+  return ['Full Game', 'J Round', 'DJ Round'].concat(gameRounds.value && gameRounds.value > 2 ? ['TJ Round'] : [])
+})
 const selectedRoundIndex = ref(0)
 
 const standardBaseScoringTableData = data.computedIfRefHasValues(
@@ -900,7 +906,7 @@ const teamHistogramSpecification = computed(() => {
         v-if="isSyndicated() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById" 
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
-        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :xGroupLabels="[roundAbbreviation(1)].concat(gameRounds >= 2 ? [roundAbbreviation(2)] : []).concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
             cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buzc,
@@ -914,7 +920,7 @@ const teamHistogramSpecification = computed(() => {
         v-if="isPopCulture() && gameTeamIds && jschemaGameRoundTeamStatData && teamDataById"
         :data="gameTeamIds"
         :xCoreLabelFunction="cid => teamDataById.get(cid).name"
-        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :xGroupLabels="[roundAbbreviation(1)].concat(gameRounds >= 2 ? [roundAbbreviation(2)] : []).concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
             cid => jschemaGameRoundTeamStatData.get(rid).get(cid).buzc,
@@ -928,7 +934,7 @@ const teamHistogramSpecification = computed(() => {
         v-if="isPopCulture() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById"
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
-        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :xGroupLabels="[roundAbbreviation(1)].concat(gameRounds >= 2 ? [roundAbbreviation(2)] : []).concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
             cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buzc,
@@ -946,7 +952,7 @@ const teamHistogramSpecification = computed(() => {
         v-if="isSyndicated() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById"
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
-        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :xGroupLabels="[roundAbbreviation(1)].concat(gameRounds >= 2 ? [roundAbbreviation(2)] : []).concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
             cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz_score,
@@ -960,7 +966,7 @@ const teamHistogramSpecification = computed(() => {
         v-if="isPopCulture() && gameTeamIds && jschemaGameRoundTeamStatData && teamDataById"
         :data="gameTeamIds"
         :xCoreLabelFunction="cid => teamDataById.get(cid).name"
-        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :xGroupLabels="[roundAbbreviation(1)].concat(gameRounds >= 2 ? [roundAbbreviation(2)] : []).concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
             cid => jschemaGameRoundTeamStatData.get(rid).get(cid).buz_score,
@@ -974,7 +980,7 @@ const teamHistogramSpecification = computed(() => {
         v-if="isPopCulture() && gameContestantIds && jschemaGameRoundContestantStatData && contestantDataById"
         :data="gameContestantIds"
         :xCoreLabelFunction="cid => contestantDataById.get(cid).name"
-        :xGroupLabels="[roundAbbreviation(1),roundAbbreviation(2)].concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
+        :xGroupLabels="[roundAbbreviation(1)].concat(gameRounds >= 2 ? [roundAbbreviation(2)] : []).concat(gameRounds >= 3 ? [roundAbbreviation(3)] : [])"
         :yFunctionGroups="d3.range(1, gameRounds+1).map(rid => 
           [
             cid => jschemaGameRoundContestantStatData.get(rid).get(cid).buz_score,
@@ -995,7 +1001,7 @@ const teamHistogramSpecification = computed(() => {
           @newSelectionIndex="(idx) => histogramGraphAttributeSelectedIdx = idx"
         />
         <OptionDropdown
-          :optionLabels="['Full Game', 'J! Round', 'DJ! Round'].concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
+          :optionLabels="['Full Game'].concat(gameRounds >= 2 ? ['J! Round', 'DJ! Round'] : []).concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
           :selectionIndex="histogramGraphRoundIdx"
           @newSelectionIndex="(idx) => histogramGraphRoundIdx = idx"
         />
@@ -1019,7 +1025,7 @@ const teamHistogramSpecification = computed(() => {
           @newSelectionIndex="(idx) => yScatterGraphAttributeSelectedIdx = idx"
         />
         <OptionDropdown
-          :optionLabels="['Full Game', 'J! Round', 'DJ! Round'].concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
+          :optionLabels="['Full Game'].concat(gameRounds >= 2 ? ['J! Round', 'DJ! Round'] : []).concat(gameRounds >= 3 ? ['TJ! Round'] : [])"
           :selectionIndex="scatterGraphRoundIdx"
           @newSelectionIndex="(idx) => scatterGraphRoundIdx = idx"
         />
