@@ -14,6 +14,7 @@ const props = defineProps({
   title: String,
   xLabel: String,
   yLabel: String,
+  setTransform: Function,
 })
 
 const cumulativeData = computed(() => {
@@ -45,6 +46,12 @@ const cumulativeData = computed(() => {
       updatedData[idx].y.push(sum / denominatorSum)
       idx += 1
     }
+  }
+  if (props.setTransform) {
+    updatedData = d3.map(updatedData, u => ({
+      x: u.x,
+      y: props.setTransform(u.y)
+    }))
   }
   return updatedData
 })

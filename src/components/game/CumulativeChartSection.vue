@@ -82,7 +82,8 @@ function defaultUndefinedForBuzzing(clueStatValue, clueInfo, defaultValue, force
 
 const gameProgressGraphTypeList = [
   'Cumulative',
-  'Trend'
+  'Ratio',
+  'Trend',
 ]
 const gameProgressGraphTypeIdx = ref(0)
 const cumulativeDataAttributesFullList = [
@@ -215,6 +216,14 @@ const byClueLineChartAttribute = computed(() => cumulativeDataAttributesList.val
 
 const legendPosition = ref('right')
 
+const medianRatioFunction = valueSet => {
+  const median = d3.median(valueSet)
+  if (median <= 0) {
+    return d3.map(valueSet, v => undefined)
+  }
+  return d3.map(valueSet, v => v * 1.0 / median)
+}
+
 </script>
 
 <template>
@@ -244,6 +253,18 @@ const legendPosition = ref('right')
               :xLabel="'Clues'"
               :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
           />
+          <CumulativeLineChart v-if="props.gameTeamIds && byClueLineChartDataTeam && props.teamDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Ratio'"
+              :data="byClueLineChartDataTeam"
+              :xFunction="d => d['clue_identifier']"
+              :yFunctions="_.range(props.gameTeamIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+              :yDenominatorFunctions="_.range(props.gameTeamIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+              :labels="props.gameTeamIds.map(cid => props.teamDataById.get(cid).name)"
+              :colors="props.gameTeamIds.map(cid => teamColorFn(cid))"
+              :title="'Ratio of ' + byClueLineChartAttribute.label"
+              :xLabel="'Clues'"
+              :yLabel="'Ratio of ' + byClueLineChartAttribute.label"
+              :setTransform="medianRatioFunction"
+          />
           <TrendLineChart v-if="props.gameTeamIds && byClueLineChartDataTeam && props.teamDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
               :data="byClueLineChartDataTeam"
               :xFunction="d => d['clue_identifier']"
@@ -266,6 +287,18 @@ const legendPosition = ref('right')
               :title="'Cumulative ' + byClueLineChartAttribute.label"
               :xLabel="'Clues'"
               :yLabel="'Cumulative ' + byClueLineChartAttribute.label"
+          />
+          <CumulativeLineChart v-if="props.gameContestantIds && byClueLineChartDataContestant && props.contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Ratio'"
+              :data="byClueLineChartDataContestant"
+              :xFunction="d => d['clue_identifier']"
+              :yFunctions="_.range(props.gameContestantIds.length).map(idx => (d => byClueLineChartAttribute.generatingFunction(d.contestant_data[idx], d.clue_data)))"
+              :yDenominatorFunctions="_.range(props.gameContestantIds.length).map(idx => byClueLineChartAttribute.generatingDenominatorFunction === undefined ? undefined : (d => byClueLineChartAttribute.generatingDenominatorFunction(d.contestant_data[idx], d.clue_data)))"
+              :labels="props.gameContestantIds.map(cid => props.contestantDataById.get(cid).name)"
+              :colors="props.gameContestantIds.map(cid => contestantColorFn(cid))"
+              :title="'Ratio of ' + byClueLineChartAttribute.label"
+              :xLabel="'Clues'"
+              :yLabel="'Ratio of ' + byClueLineChartAttribute.label"
+              :setTransform="medianRatioFunction"
           />
           <TrendLineChart v-if="props.gameContestantIds && byClueLineChartDataContestant && props.contestantDataById && gameProgressGraphTypeList[gameProgressGraphTypeIdx] === 'Trend'"
               :data="byClueLineChartDataContestant"
