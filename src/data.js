@@ -134,7 +134,7 @@ const jschemaClueByRoundRowColumn = computed(() => {
   if (!jschemaClueData.value) return null
 
   const fj_clue = jschemaClueData.value.filter(c => c.is_final_jeopardy)
-  const game_rounds = fj_clue[0].round_of_game
+  const game_rounds = fj_clue[0].round_of_game - 1
 
   const clueData = jschemaClueData.value.filter(c => c.round_of_game <= game_rounds)
   return d3.index(clueData, c => c.round_of_game, c => c.row, c => c.column)
