@@ -431,16 +431,17 @@ const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAtt
   gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
-    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
     gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
     
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
     gcsAttributes.time_value, gcsAttributes.time_score,
     gcsAttributes.solo_value, gcsAttributes.solo_score]
 
-const slimConversionScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
-    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
+const slimConversionScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buzi,
+    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buzc_score, gcsAttributes.buzi_score,
+    gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
 
 const standardScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 const conversionScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)

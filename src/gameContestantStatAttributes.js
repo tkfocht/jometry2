@@ -81,11 +81,41 @@ const buzc = {
     bins: { size: 1 }
 }
 
+const buzi = {
+    short_label: 'BuzI',
+    label: 'Incorrect Buzzes',
+    description: 'Incorrect responses on buzzes',
+    generatingFunction: gcs => gcs.buz - gcs.buzc,
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 1, false),
+    bins: { size: 1 }
+}
+
 const buz_score = {
     short_label: 'Buz$',
     label: 'Buzz Score',
     description: 'Scoring from buzzes',
     generatingFunction: gcs => gcs.buz_score,
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 1000 }
+}
+
+const buzc_score = {
+    short_label: 'BuzC$',
+    label: 'Buzz Correct Score',
+    description: 'Correct scoring from buzzes',
+    generatingFunction: gcs => gcs.buzc_score,
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 0, false),
+    bins: { size: 1000 }
+}
+
+const buzi_score = {
+    short_label: 'BuzI$',
+    label: 'Buzz Incorrect Score',
+    description: 'Incorrect scoring from buzzes',
+    generatingFunction: gcs => gcs.buzc_score - gcs.buz_score,
     valueDisplayFormat: v => formatNumber(v, 0),
     averageDisplayFormat: v => formatNumber(v, 0, false),
     bins: { size: 1000 }
@@ -292,23 +322,23 @@ const fj_final_score = {
 }
 
 const all_attributes = [
-    att, att_clue, buz, buz_percent, buzc, acc_percent, conversion_percent, time, solo,
-    att_value, buz_value, buz_score, coryat_score, buz_value_percent, acc_value_percent, conversion_value_percent,
+    att, att_clue, buz, buz_percent, buzc, buzi, acc_percent, conversion_percent, time, solo,
+    att_value, buz_value, buz_score, buzc_score, buzi_score, coryat_score, buz_value_percent, acc_value_percent, conversion_value_percent,
     time_value, time_score, timing_rating, solo_value, solo_score,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score, fj_start_score, fj_score, fj_final_score]
 
 const attributes_without_att = [
-    buz, buzc, acc_percent,
-    buz_value, buz_score, coryat_score, acc_value_percent,
+    buz, buzc, buzi, acc_percent,
+    buz_value, buz_score, buzc_score, buzi_score, coryat_score, acc_value_percent,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score, fj_start_score, fj_score, fj_final_score]
 
 const attributes_for_pop_culture = [
-    buz, buzc, acc_percent,
-    buz_value, buz_score, coryat_score, acc_value_percent,
+    buz, buzc, buzi, acc_percent,
+    buz_value, buz_score, buzc_score, buzi_score, coryat_score, acc_value_percent,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score, tp_score, fj_start_score, fj_score, fj_final_score]
     
 export { att, att_value, att_clue, buz, buz_value, buz_percent, buz_value_percent,
-    buzc, buz_score, coryat_score, acc_percent, acc_value_percent, conversion_percent, conversion_value_percent,
+    buzc, buzi, buz_score, buzc_score, buzi_score, coryat_score, acc_percent, acc_value_percent, conversion_percent, conversion_value_percent,
     time, time_value, time_score, timing_rating, solo, solo_value, solo_score,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score,
     tp_score,

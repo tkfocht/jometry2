@@ -292,18 +292,19 @@ const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAtt
 const standardScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
-    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
     gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
 const conversionScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
 
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
     gcsAttributes.time_value, gcsAttributes.time_score,
     gcsAttributes.solo_value, gcsAttributes.solo_score]
 const conversionValueScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
 
-const slimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
-    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
+const slimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buzi,
+    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.buzc_score,
+    gcsAttributes.buzi_score, gcsAttributes.acc_value_percent]
 const slimConversionValueScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(slimConversionValueScoringAttributes)
 
 const teamStandardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buz_score, gcsAttributes.coryat_score,
@@ -312,18 +313,20 @@ const teamStandardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gc
 const teamStandardScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamStandardScoringAttributes)
 
 const teamConversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
-    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
     gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
 const teamConversionScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamConversionScoringAttributes)
 
 const teamConversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score,
+    gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
     gcsAttributes.time_value, gcsAttributes.time_score,
     gcsAttributes.solo_value, gcsAttributes.solo_score]
 const teamConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamConversionValueScoringAttributes)
 
-const teamSlimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
-    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.acc_value_percent]
+const teamSlimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buzi,
+    gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score,
+    gcsAttributes.buzc_score, gcsAttributes.buzi_score, gcsAttributes.acc_value_percent]
 const teamSlimConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamSlimConversionValueScoringAttributes)
 
 const standardFinalJeopardyMatrixCells = computed(() => {
