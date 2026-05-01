@@ -13,10 +13,10 @@ const props = defineProps({
 })
 
 const nilsLast = (a, b) => {
-    if (_.isNil(a) && _.isNil(b)) return NaN
+    if (_.isNil(a) && _.isNil(b)) return 0
     if (_.isNil(a)) return 1
     if (_.isNil(b)) return -1
-    return NaN
+    return 0
 }
 
 const sortColumn = ref(props.initialSortColumnIndex ? props.initialSortColumnIndex : 0)
@@ -29,18 +29,23 @@ const sortedRows = computed(() => {
     var sortDirection = sortDirectionDescending.value ? d3.descending : d3.ascending
     const referenceValue = sortedData[0][sortColumn.value].sortValue
     const cmp = (a,b) => {
-        const nilsLastValue = nilsLast(a,b)
-        if (nilsLastValue) return nilsLastValue
+        const a_value = a[sortColumn.value].sortValue
+        const b_value = b[sortColumn.value].sortValue
+
+        const nilsLastValue = nilsLast(a_value,b_value)
+        if (nilsLastValue !== 0) {
+            return nilsLastValue
+        }
 
         if (Array.isArray(referenceValue)) {
             for (var idx in referenceValue) {
-                if (sortDirection(a[sortColumn.value].sortValue[idx], b[sortColumn.value].sortValue[idx])) {
-                    return sortDirection(a[sortColumn.value].sortValue[idx], b[sortColumn.value].sortValue[idx])
+                if (sortDirection(a_value[idx], b_value[idx])) {
+                    return sortDirection(a_value[idx], b_value[idx])
                 }
             }
         }
 
-        return sortDirection(a[sortColumn.value].sortValue, b[sortColumn.value].sortValue)
+        return sortDirection(a_value, b_value)
     }
     sortedData.sort(cmp)
     return sortedData
