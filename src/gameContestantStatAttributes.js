@@ -241,6 +241,17 @@ const solo_score = {
     bins: { size: 500 }
 }
 
+const solo_value_percent = {
+    short_label: 'SoloV%',
+    label: 'Solo Value %',
+    description: 'Solo Value: Solo score as percentage of solo value',
+    generatingFunction: gcs => _.isNil(gcs.solo_value) || _.isNil(gcs.solo_score) || gcs.solo_value == 0 ?
+        null : 100.0 * gcs.solo_score / gcs.solo_value,
+    valueDisplayFormat: v => formatNumber(v, 1, false),
+    averageDisplayFormat: v => formatNumber(v, 1, false),
+    bins: { size: 5 }
+}
+
 const dd_found = {
     short_label: 'DDF',
     label: 'Daily Doubles Found',
@@ -324,7 +335,7 @@ const fj_final_score = {
 const all_attributes = [
     att, att_clue, buz, buz_percent, buzc, buzi, acc_percent, conversion_percent, time, solo,
     att_value, buz_value, buz_score, buzc_score, buzi_score, coryat_score, buz_value_percent, acc_value_percent, conversion_value_percent,
-    time_value, time_score, timing_rating, solo_value, solo_score,
+    time_value, time_score, timing_rating, solo_value, solo_score, solo_value_percent,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score, fj_start_score, fj_score, fj_final_score]
 
 const attributes_without_att = [
@@ -339,7 +350,7 @@ const attributes_for_pop_culture = [
     
 export { att, att_value, att_clue, buz, buz_value, buz_percent, buz_value_percent,
     buzc, buzi, buz_score, buzc_score, buzi_score, coryat_score, acc_percent, acc_value_percent, conversion_percent, conversion_value_percent,
-    time, time_value, time_score, timing_rating, solo, solo_value, solo_score,
+    time, time_value, time_score, timing_rating, solo, solo_value, solo_score, solo_value_percent,
     dd_found, dd_plus_buzc, dd_plus_selection, dd_score,
     tp_score,
     fj_start_score, fj_score, fj_final_score,

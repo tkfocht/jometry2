@@ -431,13 +431,15 @@ const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAtt
   gcsAttributes.fj_start_score, gcsAttributes.fj_score, gcsAttributes.fj_final_score]
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
-    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
-    gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent, gcsAttributes.conversion_percent]
     
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent]
+
+const componentBreakdownAttributes = [gcsAttributes.time, gcsAttributes.timing_rating,
     gcsAttributes.time_value, gcsAttributes.time_score,
-    gcsAttributes.solo_value, gcsAttributes.solo_score]
+    gcsAttributes.solo,
+    gcsAttributes.solo_value, gcsAttributes.solo_score, gcsAttributes.solo_value_percent]
 
 const slimConversionScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buzi,
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buzc_score, gcsAttributes.buzi_score,
@@ -446,11 +448,13 @@ const slimConversionScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, 
 const standardScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 const conversionScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
 const conversionValueScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
+const componentBreakdownTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(componentBreakdownAttributes)
 const slimConversionScoringTableSpec = contestantSpecificationConstructor.constructScoringTableSpecification(slimConversionScoringAttributes)
 
 const teamStandardScoringTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 const teamConversionScoringTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
 const teamConversionValueScoringTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
+const teamComponentBreakdownTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(componentBreakdownAttributes)
 const teamSlimConversionScoringTableSpec = teamSpecificationConstructor.constructScoringTableSpecification(slimConversionScoringAttributes)
 
 
@@ -987,6 +991,10 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
         <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-bind="teamConversionValueScoringTableSpec" />
       </div>
+      <div class="subsection" v-if="anyGameHasAttemptData && teamComponentBreakdownTableSpec">
+        <div class="subsection-header">Component Metrics</div>
+        <SortableTable v-bind="teamComponentBreakdownTableSpec" />
+      </div>
       <div class="subsection" v-if="!anyGameHasAttemptData && teamSlimConversionScoringTableSpec">
         <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-bind="teamSlimConversionScoringTableSpec" />
@@ -1002,6 +1010,10 @@ const dailyDoubleRelativeLocationHeatmapChartSpecs = data.computedIfRefHasValues
       <div class="subsection" v-if="anyGameHasAttemptData && conversionValueScoringTableSpec">
         <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-bind="conversionValueScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="anyGameHasAttemptData && componentBreakdownTableSpec">
+        <div class="subsection-header">Component Metrics</div>
+        <SortableTable v-bind="componentBreakdownTableSpec" />
       </div>
       <div class="subsection" v-if="!anyGameHasAttemptData && slimConversionScoringTableSpec">
         <div class="subsection-header">Conversion Metrics</div>

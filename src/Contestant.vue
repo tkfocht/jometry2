@@ -243,16 +243,19 @@ const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAtt
 const standardScoringTableSpec = constructScoringTableSpecification(standardScoringAttributes)
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
-    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
-    gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent,
+    gcsAttributes.conversion_percent]
 const conversionScoringTableSpec = constructScoringTableSpecification(conversionScoringAttributes)
 
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
     gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score, 
-    gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
-    gcsAttributes.time_value, gcsAttributes.time_score,
-    gcsAttributes.solo_value, gcsAttributes.solo_score]
+    gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent]
 const conversionValueScoringTableSpec = constructScoringTableSpecification(conversionValueScoringAttributes)
+
+const componentBreakdownAttributes = [gcsAttributes.time, gcsAttributes.timing_rating,
+    gcsAttributes.time_value, gcsAttributes.time_score,
+    gcsAttributes.solo, gcsAttributes.solo_value, gcsAttributes.solo_score, gcsAttributes.solo_value_percent]
+const componentBreakdownTableSpec = constructScoringTableSpecification(componentBreakdownAttributes)
 
 const slimConversionScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc,
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.buzc_score, 
@@ -481,7 +484,7 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
         </div>
       </div>
     </div>
-    <div class="section" v-if="standardScoringTableSpec && conversionScoringTableSpec && conversionValueScoringTableSpec">
+    <div class="section" v-if="standardScoringTableSpec && conversionScoringTableSpec && conversionValueScoringTableSpec && componentBreakdownTableSpec">
       <div class="section-header">Game Statistic Tables</div>
       <div class="option-groups">
         <OptionDropdown :optionLabels="roundOptionLabels" :selectionIndex="selectedRoundIndex"
@@ -498,6 +501,10 @@ const scatterHistogramSpecification = data.computedIfRefHasValues(
       <div class="subsection" v-if="anyGameHasAttemptData">
         <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="anyGameHasAttemptData">
+        <div class="subsection-header">Component Metrics</div>
+        <SortableTable v-if="componentBreakdownTableSpec" v-bind="componentBreakdownTableSpec" />
       </div>
       <div class="subsection" v-if="!anyGameHasAttemptData">
         <div class="subsection-header">Conversion Metrics</div>

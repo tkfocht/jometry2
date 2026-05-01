@@ -292,15 +292,18 @@ const standardScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAtt
 const standardScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(standardScoringAttributes)
 
 const conversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_clue, gcsAttributes.buz,
-    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent, gcsAttributes.conversion_percent,
-    gcsAttributes.time, gcsAttributes.timing_rating, gcsAttributes.solo]
+    gcsAttributes.buz_percent, gcsAttributes.buzc, gcsAttributes.buzi, gcsAttributes.acc_percent, gcsAttributes.conversion_percent]
 const conversionScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(conversionScoringAttributes)
 
 const conversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
-    gcsAttributes.time_value, gcsAttributes.time_score,
-    gcsAttributes.solo_value, gcsAttributes.solo_score]
+    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent]
 const conversionValueScoringTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(conversionValueScoringAttributes)
+
+const componentBreakdownAttributes = [gcsAttributes.time, gcsAttributes.timing_rating,
+    gcsAttributes.time_value, gcsAttributes.time_score,
+    gcsAttributes.solo,
+    gcsAttributes.solo_value, gcsAttributes.solo_score, gcsAttributes.solo_value_percent]
+const componentBreakdownTableSpec = standardConstructSpecificationConstructor.constructScoringTableSpecification(componentBreakdownAttributes)
 
 const slimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buzi,
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score, gcsAttributes.buzc_score,
@@ -323,6 +326,13 @@ const teamConversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttrib
     gcsAttributes.time_value, gcsAttributes.time_score,
     gcsAttributes.solo_value, gcsAttributes.solo_score]
 const teamConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamConversionValueScoringAttributes)
+
+const teamComponentBreakdownAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
+    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score,
+    gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+    gcsAttributes.time_value, gcsAttributes.time_score,
+    gcsAttributes.solo_value, gcsAttributes.solo_score]
+const teamComponentBreakdownTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamComponentBreakdownAttributes)
 
 const teamSlimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buzi,
     gcsAttributes.acc_percent, gcsAttributes.buz_value, gcsAttributes.buz_score,
@@ -615,6 +625,10 @@ const teamHistogramSpecification = computed(() => {
         <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-bind="teamConversionValueScoringTableSpec" />
       </div>
+      <div class="subsection" v-if="teamComponentBreakdownTableSpec && gameHasAttemptData">
+        <div class="subsection-header">Component Metrics</div>
+        <SortableTable v-bind="teamComponentBreakdownTableSpec" />
+      </div>
       <div class="subsection" v-if="teamSlimConversionValueScoringTableSpec && !gameHasAttemptData">
         <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-bind="teamSlimConversionValueScoringTableSpec" />
@@ -630,6 +644,10 @@ const teamHistogramSpecification = computed(() => {
       <div class="subsection" v-if="gameHasAttemptData">
         <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-if="conversionValueScoringTableSpec" v-bind="conversionValueScoringTableSpec" />
+      </div>
+      <div class="subsection" v-if="gameHasAttemptData">
+        <div class="subsection-header">Component Metrics</div>
+        <SortableTable v-if="componentBreakdownTableSpec" v-bind="componentBreakdownTableSpec" />
       </div>
       <div class="subsection" v-if="!gameHasAttemptData">
         <div class="subsection-header">Conversion Metrics</div>
