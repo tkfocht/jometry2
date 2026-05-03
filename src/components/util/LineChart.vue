@@ -13,18 +13,23 @@ const props = defineProps({
   xLabel: String,
   yLabel: String,
   traceProperties: Object,
+  legendYOverride: Number,
 })
 
-const legendY = ref(-0.25)
+const legendYDefault = ref(props.legendYOverride ? props.legendYOverride : -0.25)
 
 const updateLegendPosition = () => {
   const smBreakpoint = parseInt(getComputedStyle(document.body).getPropertyValue('--bs-breakpoint-sm'))
   if (window.innerWidth < smBreakpoint) {
-    legendY.value = -0.4
+    legendYDefault.value = props.legendYOverride ? props.legendYOverride * 2 : -0.25
   } else {
-    legendY.value = -0.25
+    legendYDefault.value = props.legendYOverride ? props.legendYOverride : -0.4
   }
 }
+
+const legendY = computed(() => {
+  return legendYDefault.value
+})
 
 onMounted(() => {
   updateLegendPosition()

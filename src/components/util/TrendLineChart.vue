@@ -73,5 +73,6 @@ const rollingData = computed(() => {
     :xLabel="props.xLabel"
     :yLabel="props.yLabel"
     :trace-properties="{ connectgaps: true }"
+    :legendYOverride="-0.4"
   />
 </template>

@@ -67,5 +67,6 @@ const cumulativeData = computed(() => {
     :title="props.title"
     :xLabel="props.xLabel"
     :yLabel="props.yLabel"
+    :legendYOverride="-0.25"
   />
 </template>
