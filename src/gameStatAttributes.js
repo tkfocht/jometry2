@@ -61,6 +61,16 @@ const att_value_total = {
     averageDisplayFormat: v => formatNumber(v, 1, false)
 }
 
+const att_value_total_challengers = {
+    short_label: 'AttVCh',
+    label: 'Attempt Value by Challengers',
+    description: 'Total attempt value by challengers',
+    requiresAttemptData: true,
+    generatingFunction: (gs, gcs) => gs.att_value_total_challengers > 0 ? gs.att_value_total_challengers : undefined,
+    valueDisplayFormat: v => formatNumber(v, 0),
+    averageDisplayFormat: v => formatNumber(v, 1, false)
+}
+
 const buzc_total = {
     short_label: 'BuzC',
     label: 'Correct Buzzes',
@@ -137,12 +147,14 @@ const fj_percentage = {
 }
 
 const all_attributes = [
-    att_total, att_total_challengers, att_max, att_med, att_min, att_value_total, buzc_total, buzi_total, buz_score_total,
+    att_total, att_total_challengers, att_max, att_med, att_min, att_value_total, att_value_total_challengers,
+    buzc_total, buzi_total, buz_score_total,
     coryat_score_total, coryat_positive_score_total, contention, fj_percentage
 ]
 
 const attributes_without_att = all_attributes.filter(attr => !attr.requiresAttemptData)
 
-export { all_attributes, attributes_without_att, att_total, att_total_challengers, att_max, att_med, att_min, att_value_total,
+export { all_attributes, attributes_without_att, att_total, att_total_challengers, att_max, att_med, att_min,
+    att_value_total, att_value_total_challengers,
     buzc_total, buzi_total, buz_score_total, coryat_score_total, coryat_positive_score_total,
     contention, fj_percentage };
