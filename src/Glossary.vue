@@ -46,6 +46,24 @@ import Header from './components/Header.vue'
         </div>
       </div>
       <div class="entry">
+        <div class="term">BuzC$: Score on Correct Buzzes</div>
+        <div class="definition">
+            Score on correct buzzes. Buz$ = BuzC$ - BuzI$.
+        </div>
+      </div>
+      <div class="entry">
+        <div class="term">BuzI: Incorrect on Buzz</div>
+        <div class="definition">
+            Incorrect answers on buzz. Equivalent to INC from the box score, minus any incorrect Daily Doubles.
+        </div>
+      </div>
+      <div class="entry">
+        <div class="term">BuzI$: Score on Incorrect Buzzes</div>
+        <div class="definition">
+            Score on incorrect buzzes. Buz$ = BuzC$ - BuzI$.
+        </div>
+      </div>
+      <div class="entry">
         <div class="term">BuzValue (BuzV): Buzz Value</div>
         <div class="definition">
           The total value of clues a player buzzes in on.
@@ -123,6 +141,13 @@ import Header from './components/Header.vue'
           An estimate of the clue value of correct responses did not block an opponent's attempt at a correct response.
           That is, it is an estimate of the value of clues in which there was a buzz opportunity where the contestant
           was alone buzzing in.
+        </div>
+      </div>
+      <div class="entry">
+        <div class="term">Solo Value Percentage (SoloV%): Percentage of Solo Value that becomes score</div>
+        <div class="definition">
+          Solo$ / SoloV. I think this is possibly interpretable as correlated with risk-taking at the edge
+          of a contestant's knowledge, but I'm not sure.
         </div>
       </div>
       <div class="entry">
