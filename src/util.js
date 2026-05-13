@@ -304,31 +304,31 @@ const teamIdToContestantIdMapFromGameData = function(gameData) {
             if (!retMap.has(g.podium_3_team_id)) {
                 retMap.set(g.podium_3_team_id, [])
             }
-            if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_1_contestant_id)) {
+            if (g.podium_1_1_contestant_id !== undefined && !retMap.get(g.podium_1_team_id).includes(g.podium_1_1_contestant_id)) {
                 retMap.get(g.podium_1_team_id).push(g.podium_1_1_contestant_id)
             }
-            if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_2_contestant_id)) {
+            if (g.podium_1_2_contestant_id !== undefined && !retMap.get(g.podium_1_team_id).includes(g.podium_1_2_contestant_id)) {
                 retMap.get(g.podium_1_team_id).push(g.podium_1_2_contestant_id)
             }
-            if (!retMap.get(g.podium_1_team_id).includes(g.podium_1_3_contestant_id)) {
+            if (g.podium_1_3_contestant_id !== undefined && !retMap.get(g.podium_1_team_id).includes(g.podium_1_3_contestant_id)) {
                 retMap.get(g.podium_1_team_id).push(g.podium_1_3_contestant_id)
             }
-            if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_1_contestant_id)) {
+            if (g.podium_2_1_contestant_id !== undefined && !retMap.get(g.podium_2_team_id).includes(g.podium_2_1_contestant_id)) {
                 retMap.get(g.podium_2_team_id).push(g.podium_2_1_contestant_id)
             }
-            if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_2_contestant_id)) {
+            if (g.podium_2_2_contestant_id !== undefined && !retMap.get(g.podium_2_team_id).includes(g.podium_2_2_contestant_id)) {
                 retMap.get(g.podium_2_team_id).push(g.podium_2_2_contestant_id)
             }
-            if (!retMap.get(g.podium_2_team_id).includes(g.podium_2_3_contestant_id)) {
+            if (g.podium_2_3_contestant_id !== undefined && !retMap.get(g.podium_2_team_id).includes(g.podium_2_3_contestant_id)) {
                 retMap.get(g.podium_2_team_id).push(g.podium_2_3_contestant_id)
             }
-            if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_1_contestant_id)) {
+            if (g.podium_3_1_contestant_id !== undefined && !retMap.get(g.podium_3_team_id).includes(g.podium_3_1_contestant_id)) {
                 retMap.get(g.podium_3_team_id).push(g.podium_3_1_contestant_id)
             }
-            if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_2_contestant_id)) {
+            if (g.podium_3_2_contestant_id !== undefined && !retMap.get(g.podium_3_team_id).includes(g.podium_3_2_contestant_id)) {
                 retMap.get(g.podium_3_team_id).push(g.podium_3_2_contestant_id)
             }
-            if (!retMap.get(g.podium_3_team_id).includes(g.podium_3_3_contestant_id)) {
+            if (g.podium_3_3_contestant_id !== undefined && !retMap.get(g.podium_3_team_id).includes(g.podium_3_3_contestant_id)) {
                 retMap.get(g.podium_3_team_id).push(g.podium_3_3_contestant_id)
             }
             }
