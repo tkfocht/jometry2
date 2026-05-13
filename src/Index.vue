@@ -1,4 +1,5 @@
 <script setup>
+import { ref } from 'vue'
 import * as data from '@/data'
 import * as _ from 'lodash'
 import { playClassificationName, playClassificationNameByTocPeriod, seasonDisplayId } from '@/configuration'
@@ -14,6 +15,11 @@ data.loadContestantData()
 data.loadGameData()
 if (subdomain == 'popculture') {
   data.loadTeamData()
+}
+
+const alertMessage = ref(null)
+if (isPopCulture()) {
+  alertMessage.value = "Season 2 games are listed but are not yet functional."
 }
 
 var celeb2026Cids = [4610, 5417, 8442, 8496, 5524, 5525, 5395, 9046, 9050, 5626, 5433, 4864, 4590, 5720, 4687, 5418, 5473, 8532, 8466, 5455, 8509]
@@ -35,6 +41,9 @@ const teamData = data.teamDataById
 <template>
   <Header />
   <div class="component-body" :data-bs-theme="subdomain">
+    <div v-if="alertMessage" class="alert alert-danger" role="alert">
+      {{ alertMessage }}
+    </div>
     <div v-if="isSyndicated() && gameData && contestantData">
       <div class="toc-period section">
         <div class="toc-period-header bg-primary text-white">Recent Games

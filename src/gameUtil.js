@@ -25,21 +25,23 @@ const constructSpecificationConstructor = function(
                 label: attr.short_label,
                 description: attr.description
             })))
-    
-            var rows = baseRows.map(baseRow => {
-                const cid = competitorIdFn(baseRow)
-                var row = [
-                    {
-                        value: competitorLink(cid, cData.get(cid).name),
-                        sortValue: baseRow.podium
-                    }
-                ]
-                row = row.concat(attrSpecs.map(attr => ({
-                    value: attr.valueDisplayFormat(attr.generatingFunction(gcsData.get(cid))),
-                    sortValue: attr.generatingFunction(gcsData.get(cid))
-                })))
-                return row
-            })
+
+            var rows = baseRows
+                .filter(baseRow => competitorIdFn(baseRow) !== undefined)
+                .map(baseRow => {
+                    const cid = competitorIdFn(baseRow)
+                    var row = [
+                        {
+                            value: competitorLink(cid, cData.get(cid).name),
+                            sortValue: baseRow.podium
+                        }
+                    ]
+                    row = row.concat(attrSpecs.map(attr => ({
+                        value: attr.valueDisplayFormat(attr.generatingFunction(gcsData.get(cid))),
+                        sortValue: attr.generatingFunction(gcsData.get(cid))
+                    })))
+                    return row
+                })
     
             return {
                 columns: columns,

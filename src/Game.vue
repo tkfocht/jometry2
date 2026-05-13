@@ -70,18 +70,22 @@ const gameRounds = data.computedIfRefHasValue(gameData, gData => {
   if (gData.play_classification == 'youtube') return 1
   return 2
 })
+const gamePlayersPerTeam = data.computedIfRefHasValue(gameData, gData => {
+  if (gData.play_classification !== 'popculture') return 1
+  return gData.players_per_team
+})
 const gameContestantIds = isPopCulture() ?
   data.computedIfRefHasValue(gameData, gData => [
     gData.podium_1_1_contestant_id, gData.podium_1_2_contestant_id, gData.podium_1_3_contestant_id,
     gData.podium_2_1_contestant_id, gData.podium_2_2_contestant_id, gData.podium_2_3_contestant_id,
     gData.podium_3_1_contestant_id, gData.podium_3_2_contestant_id, gData.podium_3_3_contestant_id
-  ]) :
+  ].filter(id => id !== undefined)) :
   data.computedIfRefHasValue(gameData, gData => [gData.podium_1_contestant_id, gData.podium_2_contestant_id, gData.podium_3_contestant_id])
 const gameTeamIds = data.computedIfRefHasValue(gameData, gData => [gData.podium_1_team_id, gData.podium_2_team_id, gData.podium_3_team_id])
-const teamIdForContestantId = data.computedIfRefHasValues([gameTeamIds, gameContestantIds],
-  (tIds, cIds) => function(cid) {
+const teamIdForContestantId = data.computedIfRefHasValues([gameTeamIds, gameContestantIds, gamePlayersPerTeam],
+  (tIds, cIds, playersPerTeam) => function(cid) {
     const cIndex = cIds.indexOf(cid)
-    const tIndex = Math.floor(cIndex / 3)
+    const tIndex = Math.floor(cIndex / playersPerTeam)
     return tIds[tIndex]
   }
 )
@@ -185,11 +189,18 @@ const teamColor = computed(() => {
   else return null
 })
 const teamContestantColor = computed(() => {
-  if (gameContestantIds.value) return d3.scaleOrdinal().domain(gameContestantIds.value).range(
+  if (gameContestantIds.value && gameContestantIds.value.length == 9) return d3.scaleOrdinal().domain(gameContestantIds.value).range(
     [
       d3.color(threeColorSet[0]).darker(0.7), d3.color(threeColorSet[0]).brighter(0.5), d3.color(threeColorSet[0]).brighter(1.0),
       d3.color(threeColorSet[1]).darker(0.7), d3.color(threeColorSet[1]).brighter(0.5), d3.color(threeColorSet[1]).brighter(1.0),
       d3.color(threeColorSet[2]).darker(0.7), d3.color(threeColorSet[2]).brighter(0.5), d3.color(threeColorSet[2]).brighter(1.0),
+    ]
+  )
+  if (gameContestantIds.value && gameContestantIds.value.length == 6) return d3.scaleOrdinal().domain(gameContestantIds.value).range(
+    [
+      d3.color(threeColorSet[0]).darker(0.7), d3.color(threeColorSet[0]).brighter(0.7),
+      d3.color(threeColorSet[1]).darker(0.7), d3.color(threeColorSet[1]).brighter(0.7),
+      d3.color(threeColorSet[2]).darker(0.7), d3.color(threeColorSet[2]).brighter(0.7),
     ]
   )
   else return null

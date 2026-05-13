@@ -93,11 +93,11 @@ var playClassifications = [
 ]
 
 var popCultureSeasonIds = [
-    'POP1'
+    'POP1', 'POP2'
 ]
 
 var popCultureTocPeriodIds = [
-    'POP1'
+    'POP1', 'POP2'
 ]
 
 var popCulturePlayClassifications = [
