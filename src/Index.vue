@@ -19,7 +19,7 @@ if (subdomain == 'popculture') {
 
 const alertMessage = ref(null)
 if (isPopCulture()) {
-  alertMessage.value = "Season 2 games are listed but are not yet functional."
+  alertMessage.value = "Season 2 games are listed but do not yet include team attempt data."
 }
 
 var celeb2026Cids = [4610, 5417, 8442, 8496, 5524, 5525, 5395, 9046, 9050, 5626, 5433, 4864, 4590, 5720, 4687, 5418, 5473, 8532, 8466, 5455, 8509]
