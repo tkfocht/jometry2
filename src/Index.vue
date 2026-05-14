@@ -19,7 +19,7 @@ if (subdomain == 'popculture') {
 
 const alertMessage = ref(null)
 if (isPopCulture()) {
-  alertMessage.value = "Season 2 games are listed but do not yet include team attempt data."
+  alertMessage.value = "Season 2 games now include team attempt data although not at full functionality for graphs."
 }
 
 var celeb2026Cids = [4610, 5417, 8442, 8496, 5524, 5525, 5395, 9046, 9050, 5626, 5433, 4864, 4590, 5720, 4687, 5418, 5473, 8532, 8466, 5455, 8509]
@@ -41,7 +41,7 @@ const teamData = data.teamDataById
 <template>
   <Header />
   <div class="component-body" :data-bs-theme="subdomain">
-    <div v-if="alertMessage" class="alert alert-danger" role="alert">
+    <div v-if="alertMessage" class="alert alert-warning" role="alert">
       {{ alertMessage }}
     </div>
     <div v-if="isSyndicated() && gameData && contestantData">

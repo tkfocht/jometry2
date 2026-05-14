@@ -91,6 +91,8 @@ const teamIdForContestantId = data.computedIfRefHasValues([gameTeamIds, gameCont
 )
 
 const gameHasAttemptData = data.computedIfRefHasValue(gameStatData, gsData => isSyndicated() && gsData.att_total > 0)
+const gameHasTeamAttemptData = data.computedIfRefHasValue(gameStatData, gsData => isPopCulture() && gsData.team_att_total > 0)
+const gameHasContestantAttemptData = data.computedIfRefHasValue(gameStatData, gsData => isPopCulture() && false)
 
 const allGameStatData = data.computedIfRefHasValues(
   [data.gameStatData, gamePlayClassification, gameTocPeriod, data.gameDataById],
@@ -332,17 +334,13 @@ const teamConversionScoringAttributes = [gcsAttributes.att, gcsAttributes.att_cl
 const teamConversionScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamConversionScoringAttributes)
 
 const teamConversionValueScoringAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score,
-    gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
-    gcsAttributes.time_value, gcsAttributes.time_score,
-    gcsAttributes.solo_value, gcsAttributes.solo_score]
+    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score, gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent]
 const teamConversionValueScoringTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamConversionValueScoringAttributes)
 
-const teamComponentBreakdownAttributes = [gcsAttributes.att_value, gcsAttributes.buz_value, gcsAttributes.buz_value_percent,
-    gcsAttributes.buz_score, gcsAttributes.buzc_score, gcsAttributes.buzi_score,
-    gcsAttributes.acc_value_percent, gcsAttributes.conversion_value_percent,
+const teamComponentBreakdownAttributes = [gcsAttributes.time, gcsAttributes.timing_rating,
     gcsAttributes.time_value, gcsAttributes.time_score,
-    gcsAttributes.solo_value, gcsAttributes.solo_score]
+    gcsAttributes.solo,
+    gcsAttributes.solo_value, gcsAttributes.solo_score, gcsAttributes.solo_value_percent]
 const teamComponentBreakdownTableSpec = teamConstructSpecificationConstructor.constructScoringTableSpecification(teamComponentBreakdownAttributes)
 
 const teamSlimConversionValueScoringAttributes = [gcsAttributes.buz, gcsAttributes.buzc, gcsAttributes.buzi,
@@ -604,6 +602,11 @@ const teamHistogramSpecification = computed(() => {
                 <div class="value" v-if="gameStatData.att_value_total > 0">${{ formatNumber(gameStatData.att_value_total, 0, true) }}</div>
                 <div class="value" v-else></div>
               </div>
+              <div class="caption-stack" v-if="gameHasTeamAttemptData">
+                <div class="caption">Total Team Attempt Value</div>
+                <div class="value" v-if="gameStatData.team_att_value_total > 0">${{ formatNumber(gameStatData.team_att_value_total, 0, true) }}</div>
+                <div class="value" v-else></div>
+              </div>
               <div class="caption-stack">
                 <div class="caption">Combined Positive Coryat</div>
                 <div class="value">${{ formatNumber(gameStatData.coryat_score_positive_total, 0, true) }}</div>
@@ -628,19 +631,19 @@ const teamHistogramSpecification = computed(() => {
         <div class="subsection-header">Standard Metrics</div>
         <SortableTable v-bind="teamStandardScoringTableSpec" />
       </div>
-      <div class="subsection" v-if="teamConversionScoringTableSpec && gameHasAttemptData">
+      <div class="subsection" v-if="teamConversionScoringTableSpec && gameHasTeamAttemptData">
         <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-bind="teamConversionScoringTableSpec" />
       </div>
-      <div class="subsection" v-if="teamConversionValueScoringTableSpec && gameHasAttemptData">
+      <div class="subsection" v-if="teamConversionValueScoringTableSpec && gameHasTeamAttemptData">
         <div class="subsection-header">Conversion Value Metrics</div>
         <SortableTable v-bind="teamConversionValueScoringTableSpec" />
       </div>
-      <div class="subsection" v-if="teamComponentBreakdownTableSpec && gameHasAttemptData">
+      <div class="subsection" v-if="teamComponentBreakdownTableSpec && gameHasTeamAttemptData">
         <div class="subsection-header">Component Metrics</div>
         <SortableTable v-bind="teamComponentBreakdownTableSpec" />
       </div>
-      <div class="subsection" v-if="teamSlimConversionValueScoringTableSpec && !gameHasAttemptData">
+      <div class="subsection" v-if="teamSlimConversionValueScoringTableSpec && !gameHasTeamAttemptData">
         <div class="subsection-header">Conversion Metrics</div>
         <SortableTable v-bind="teamSlimConversionValueScoringTableSpec" />
       </div>
