@@ -22,8 +22,6 @@ if (isPopCulture()) {
   alertMessage.value = "Season 2 games now include team attempt data although not at full functionality for graphs."
 }
 
-var celeb2026Cids = [4610, 5417, 8442, 8496, 5524, 5525, 5395, 9046, 9050, 5626, 5433, 4864, 4590, 5720, 4687, 5418, 5473, 8532, 8466, 5455, 8509]
-
 const gameDataRaw = data.gameData
 const gameDataSorted = data.computedIfRefHasValue(gameDataRaw, gData => {
   gData.sort((a,b) => d3.descending(a['airdate'], b['airdate']) || d3.descending(a['game_in_season'], b['game_in_season']))
@@ -69,15 +67,6 @@ const teamData = data.teamDataById
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-      <div class="toc-period section">
-        <div class="toc-period-header bg-primary text-white">2026 Celebrity Tournament Contestants</div>
-        <div class="competition-summary-links"><a :href="'/period.html?play_classification=celebrity&season=PCJ1,PCJ2,PCJ3&contestants=' + celeb2026Cids.join(',')">Previous Tournament Play Statistical Summary</a></div>
-        <div class="competition-contestant-links">
-          <div class="competition-contestant-link" v-for="contestant_id in celeb2026Cids">
-            <a :href="'/contestant.html?contestant_id=' + contestant_id">{{ contestantData.get(contestant_id).name }}</a>
           </div>
         </div>
       </div>
