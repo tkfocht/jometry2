@@ -284,6 +284,7 @@ var initializeString = function(s) {
     if (!s) {
         return undefined
     }
+    s = s.replace(/[\(\)]/gi, "")
     var sArray = s.split(' ')
     return sArray.map(s0 => s0[0]).join('')
 }
